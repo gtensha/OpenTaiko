@@ -1,0 +1,8 @@
+name "OpenTaiko"
+description "Open source cross-platform Taiko no Tatsujin clone"
+authors "gtensha"
+copyright "Copyright © 2017, Ståle"
+license "GNU GPLv3"
+
+dependency "derelict-sdl2" version="~>2.0.0"
+targetType "executable"
