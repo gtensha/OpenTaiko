@@ -76,16 +76,14 @@ void render() {
     gameRenderer.renderAllCircles(frame);
 
     if (hitType != 3 || performance.checkTardiness(frame * 16)) {
-	if (hitType == 0) {
-	    SDL_SetRenderDrawColor(renderer, 255, 236, 0, 255);
-	} else if (hitType == 1) {
-	    SDL_SetRenderDrawColor(renderer, 247, 247, 247, 255);
+	if (hitType == 0 || hitType == 1) {
+	    gameRenderer.renderHitResult(hitType);
 	} else {
-	    SDL_SetRenderDrawColor(renderer, 242, 0, 0, 255);
+	    gameRenderer.renderHitResult(hitType);
 	    gameRenderer.playSoundEffect(3);
 	}
-	SDL_Rect rect = {0, 150, 30, 30};
-	SDL_RenderFillRect(renderer, &rect);
+	//SDL_Rect rect = {0, 150, 30, 30};
+	//SDL_RenderFillRect(renderer, &rect);
     }
     
     SDL_RenderPresent(renderer);

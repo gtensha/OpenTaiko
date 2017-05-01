@@ -23,6 +23,7 @@ class EzRender {
     SDL_Texture* blueDrum;
     SDL_Texture* redGrad;
     SDL_Texture* blueGrad;
+    SDL_Texture* reception, good, ok, bad;
     //SDL_Texture redLargeDrum;
     //SDL_Texture blueLargeDrum;
 
@@ -39,17 +40,29 @@ class EzRender {
 	SDL_Surface* blueSurface = IMG_Load("blue.png");
 	SDL_Surface* redGradSurface = IMG_Load("red_grad.png");
 	SDL_Surface* blueGradSurface = IMG_Load("blue_grad.png");
+	SDL_Surface* receptionSurface = IMG_Load("reception.png");
+	SDL_Surface* goodSurface = IMG_Load("good.png");
+	SDL_Surface* okSurface = IMG_Load("ok.png");
+	SDL_Surface* badSurface = IMG_Load("bad.png");
 
 	redDrum = SDL_CreateTextureFromSurface(renderer, redSurface);
 	blueDrum = SDL_CreateTextureFromSurface(renderer, blueSurface);
 	redGrad = SDL_CreateTextureFromSurface(renderer, redGradSurface);
 	blueGrad = SDL_CreateTextureFromSurface(renderer, blueGradSurface);
+	reception = SDL_CreateTextureFromSurface(renderer, receptionSurface);
+	good = SDL_CreateTextureFromSurface(renderer, goodSurface);
+	ok = SDL_CreateTextureFromSurface(renderer, okSurface);
+	bad = SDL_CreateTextureFromSurface(renderer, badSurface);
 	
 
 	SDL_FreeSurface(redSurface);
 	SDL_FreeSurface(blueSurface);
 	SDL_FreeSurface(redGradSurface);
 	SDL_FreeSurface(blueGradSurface);
+	SDL_FreeSurface(receptionSurface);
+	SDL_FreeSurface(goodSurface);
+	SDL_FreeSurface(okSurface);
+	SDL_FreeSurface(badSurface);
 
 	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024);
 
@@ -76,14 +89,12 @@ class EzRender {
     void renderAllCircles(int frame) {
 
 	foreach (Drum drum ; performance.drums) {
-		if (!(drum is null)) {
-			if (renderCircle(drum, frame) == false) {
-				break;
-			}
+	    if (!(drum is null)) {
+		if (renderCircle(drum, frame) == false) {
+		    break;
+		}
 	    }
 	}
-
-	//SDL_RenderPresent(renderer);
     }
 
     void renderBackground() {
@@ -96,8 +107,10 @@ class EzRender {
 	this.fillSurfaceArea(0, 150, 1200, 150,
 			     20, 20, 20, 255);
 	// Draw "reception" box
-	this.fillSurfaceArea(100, 200, 65, 65,
-			     80, 80, 80, 255);
+	this.renderTexture(reception,
+			   100, 200, 65, 65);
+	//this.fillSurfaceArea(100, 200, 65, 65,
+	//		     80, 80, 80, 255);
 	/*SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
 	SDL_Rect rect = {100, 200, 65, 65};
 	SDL_RenderFillRect(renderer, &rect);*/
@@ -128,6 +141,22 @@ class EzRender {
 	SDL_Rect rect = {x, y, w, h};
 	SDL_SetRenderDrawColor(renderer, r, g, b, a);
 	SDL_RenderFillRect(renderer, &rect);
+    }
+
+    void renderTexture(SDL_Texture* texture, int x, int y, int w, int h) {
+	SDL_Rect rect = {x, y, w, h};
+	SDL_RenderCopy(renderer, texture, null, &rect);
+    }
+
+    void renderHitResult(int type) {
+	SDL_Rect rect = {100, 200, 100, 100};
+	if (type == 0) {
+	    SDL_RenderCopy(renderer, good, null, &rect);
+	} else if (type == 1) {
+	    SDL_RenderCopy(renderer, ok, null, &rect);
+	} else {
+	    SDL_RenderCopy(renderer, bad, null, &rect);
+	}
     }
 	
 }
