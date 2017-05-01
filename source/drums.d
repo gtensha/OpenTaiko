@@ -46,6 +46,7 @@ class Performance {
     }
 
     void nextDrum() {
+	drums[i] = null;
 	i++;
     }
 

@@ -51,7 +51,7 @@ class EzRender {
 	SDL_FreeSurface(redGradSurface);
 	SDL_FreeSurface(blueGradSurface);
 
-	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 4096);
+	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024);
 
 	redHit = Mix_LoadWAV("red.wav");
 	blueHit = Mix_LoadWAV("blue.wav");
@@ -76,8 +76,10 @@ class EzRender {
     void renderAllCircles(int frame) {
 
 	foreach (Drum drum ; performance.drums) {
-	    if (renderCircle(drum, frame) == false) {
-		break;
+		if (!(drum is null)) {
+			if (renderCircle(drum, frame) == false) {
+				break;
+			}
 	    }
 	}
 
@@ -87,9 +89,18 @@ class EzRender {
     void renderBackground() {
 	SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
 	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
+	// Draw overhead background
+	this.fillSurfaceArea(0, 0, 1200, 150,
+						 255, 150, 0, 255);
+	// Draw play area
+	this.fillSurfaceArea(0, 150, 1200, 150,
+						 20, 20, 20, 255);
+	// Draw "reception" box
+	this.fillSurfaceArea(100, 200, 65, 65,
+						 80, 80, 80, 255);
+	/*SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
 	SDL_Rect rect = {100, 200, 65, 65};
-	SDL_RenderFillRect(renderer, &rect);
+	SDL_RenderFillRect(renderer, &rect);*/
     }
 
     void renderHitGradient(int color) {
@@ -105,9 +116,18 @@ class EzRender {
 	if (type == 0) {
 	    Mix_PlayChannel(0, redHit, 0);
 	} else if (type == 1) {
-	    Mix_PlayChannel(0, blueHit, 0);
+	    Mix_PlayChannel(1, blueHit, 0);
 	} else {
-	    Mix_PlayChannel(0, missEffect, 0);
+	    Mix_PlayChannel(2, missEffect, 0);
 	}
     }
+	
+	void fillSurfaceArea(	int x, int y, int w, int h, 
+							ubyte r, ubyte g, ubyte b, ubyte a) {
+							
+		SDL_Rect rect = {x, y, w, h};
+		SDL_SetRenderDrawColor(renderer, r, g, b, a);
+		SDL_RenderFillRect(renderer, &rect);
+	}
+	
 }
