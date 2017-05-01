@@ -137,6 +137,7 @@ void main(string[] args) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+    SDL_RaiseWindow(window);
 
     gameRenderer = new EzRender(renderer, performance);
     

@@ -91,13 +91,13 @@ class EzRender {
 	SDL_RenderClear(renderer);
 	// Draw overhead background
 	this.fillSurfaceArea(0, 0, 1200, 150,
-						 255, 150, 0, 255);
+			     255, 150, 0, 255);
 	// Draw play area
 	this.fillSurfaceArea(0, 150, 1200, 150,
-						 20, 20, 20, 255);
+			     20, 20, 20, 255);
 	// Draw "reception" box
 	this.fillSurfaceArea(100, 200, 65, 65,
-						 80, 80, 80, 255);
+			     80, 80, 80, 255);
 	/*SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
 	SDL_Rect rect = {100, 200, 65, 65};
 	SDL_RenderFillRect(renderer, &rect);*/
@@ -122,12 +122,12 @@ class EzRender {
 	}
     }
 	
-	void fillSurfaceArea(	int x, int y, int w, int h, 
-							ubyte r, ubyte g, ubyte b, ubyte a) {
-							
-		SDL_Rect rect = {x, y, w, h};
-		SDL_SetRenderDrawColor(renderer, r, g, b, a);
-		SDL_RenderFillRect(renderer, &rect);
-	}
+    void fillSurfaceArea(int x, int y, int w, int h, 
+			 ubyte r, ubyte g, ubyte b, ubyte a) {
+	
+	SDL_Rect rect = {x, y, w, h};
+	SDL_SetRenderDrawColor(renderer, r, g, b, a);
+	SDL_RenderFillRect(renderer, &rect);
+    }
 	
 }
