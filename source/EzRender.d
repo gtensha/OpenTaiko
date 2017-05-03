@@ -71,6 +71,10 @@ class EzRender {
 	missEffect = Mix_LoadWAV("miss.wav");
     }
 
+    /*~this() {
+	
+      }*/
+
     bool renderCircle(Drum drum, int frame) {
 	int drawCoord = to!int(drum.position - (frame * 16) + 100);
 	SDL_Rect rect = {drawCoord, 200, 60, 60};
@@ -108,7 +112,7 @@ class EzRender {
 			     20, 20, 20, 255);
 	// Draw "reception" box
 	this.renderTexture(reception,
-			   100, 200, 65, 65);
+			   97, 200, 65, 65);
 	//this.fillSurfaceArea(100, 200, 65, 65,
 	//		     80, 80, 80, 255);
 	/*SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
@@ -117,7 +121,7 @@ class EzRender {
     }
 
     void renderHitGradient(int color) {
-	SDL_Rect rect = {100, 198, 480, 80};
+	SDL_Rect rect = {0, 150, 400, 150};
 	if (color == 0) {
 	    SDL_RenderCopy(renderer, redGrad, null, &rect);
 	} else {
@@ -149,7 +153,7 @@ class EzRender {
     }
 
     void renderHitResult(int type) {
-	SDL_Rect rect = {100, 200, 100, 100};
+	SDL_Rect rect = {80, 180, 100, 100};
 	if (type == 0) {
 	    SDL_RenderCopy(renderer, good, null, &rect);
 	} else if (type == 1) {

@@ -126,11 +126,11 @@ void main(string[] args) {
     writeln("1");
     SDL_Delay(1000);*/
 
-    window = SDL_CreateWindow("test",
+    window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
-			      1200,
-			      600,
+			      640,
+			      480,
 			      0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -140,7 +140,7 @@ void main(string[] args) {
     gameRenderer = new EzRender(renderer, performance);
     
     render();
-    while (frame * 16 < performance.drums[performance.drums.length - 1].position) {
+    while (/*frame * 16 < performance.drums[performance.drums.length - 1].position*/!(performance.drums[performance.drums.length - 1] is null)) {
 	render();
     }
     SDL_Delay(2000);
