@@ -140,7 +140,7 @@ void main(string[] args) {
     gameRenderer = new EzRender(renderer, performance);
     
     render();
-    while (/*frame * 16 < performance.drums[performance.drums.length - 1].position*/!(performance.drums[performance.drums.length - 1] is null)) {
+    while (!(performance.drums[performance.drums.length - 1] is null)) {
 	render();
     }
     SDL_Delay(2000);
