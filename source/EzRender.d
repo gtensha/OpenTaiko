@@ -9,16 +9,17 @@ import derelict.sdl2.ttf;
 
 import drums;
 
+enum {
+	TAIKO_RED = 0,
+	TAIKO_BLUE = 1,
+	TAIKO_RED_LARGE = 2,
+	TAIKO_BLUE_LARGE = 3,
+};
+
 class EzRender {
 
-    /*enum {
-	TAIKO_RED_DRUM = 0;
-	TAIKO_BLUE_DRUM = 1;
-	TAIKO_RED_LARGE_DRUM = 2;
-	TAIKO_BLUE_LARGE_DRUM = 3;
-	}*/
-
     SDL_Renderer* renderer;
+    SDL_Window* window;
     Performance performance;
 
     SDL_Texture* redDrum;
@@ -32,10 +33,15 @@ class EzRender {
     Mix_Chunk* redHit, blueHit, missEffect;
 
     TTF_Font* font;
-    SDL_Texture*[string] textCache;
+    SDL_Texture*[string] textCache; // this never gets emptied, must
+                                    // be implemented in the future
+
+    int windowHeight;
+    int windowWidth;
     
-    this(SDL_Renderer* renderer, Performance performance) {
+    this(SDL_Renderer* renderer, SDL_Window* window, Performance performance) {
 	this.renderer = renderer;
+	this.window = window;
 	this.performance = performance;
 
 	DerelictSDL2Image.load();
@@ -76,7 +82,10 @@ class EzRender {
 	blueHit = Mix_LoadWAV("blue.wav");
 	missEffect = Mix_LoadWAV("miss.wav");
 
-	font = TTF_OpenFont("DroidSans.ttf", 48);
+	TTF_Init();
+	font = TTF_OpenFont("Roboto-Light.ttf", 48);
+
+	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
     }
 
     ~this() {
@@ -125,17 +134,13 @@ class EzRender {
 			   97, 200, 65, 65);
 
 	// Draw score display
-	this.renderText(to!string(performance.calculateScore()), 0, 0);
-	//this.fillSurfaceArea(100, 200, 65, 65,
-	//		     80, 80, 80, 255);
-	/*SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
-	SDL_Rect rect = {100, 200, 65, 65};
-	SDL_RenderFillRect(renderer, &rect);*/
+	this.renderText(to!string(performance.calculateScore()), windowWidth - 200, 95);
     }
 
+    // Render red or blue hit gradient
     void renderHitGradient(int color) {
 	SDL_Rect rect = {0, 150, 400, 150};
-	if (color == 0) {
+	if (color == TAIKO_RED) {
 	    SDL_RenderCopy(renderer, redGrad, null, &rect);
 	} else {
 	    SDL_RenderCopy(renderer, blueGrad, null, &rect);
@@ -143,9 +148,9 @@ class EzRender {
     }
 
     void playSoundEffect(int type) {
-	if (type == 0) {
+	if (type == TAIKO_RED) {
 	    Mix_PlayChannel(0, redHit, 0);
-	} else if (type == 1) {
+	} else if (type == TAIKO_BLUE) {
 	    Mix_PlayChannel(1, blueHit, 0);
 	} else {
 	    Mix_PlayChannel(2, missEffect, 0);
@@ -179,9 +184,9 @@ class EzRender {
     void renderText(string text, int x, int y) {
 	SDL_Texture* cachedText;
 	if ((text in textCache) is null) {
+	    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	    SDL_Color color = {255, 255, 255, 255};
 	    SDL_Surface* textSurface = TTF_RenderText_Blended(font, toStringz(text), color);
-	    writeln(toStringz(text));
 	    cachedText = SDL_CreateTextureFromSurface(renderer, textSurface);
 	    textCache[text] = cachedText;
 	    SDL_FreeSurface(textSurface);

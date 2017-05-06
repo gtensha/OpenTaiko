@@ -25,8 +25,8 @@ ShouldThrow myMissingSymCB( string symbolName ) {
     return ShouldThrow.No;
 }
 
-SDL_Window *window;
-SDL_Renderer *renderer;
+SDL_Window* window;
+SDL_Renderer* renderer;
 
 Performance performance;
 EzRender gameRenderer;
@@ -42,32 +42,32 @@ void render() {
 	if (event.type == SDL_KEYDOWN) {
 	    switch (event.key.keysym.sym) {
 	    case SDLK_f:
-		buttonPressed = 0;
+		buttonPressed = TAIKO_RED;
 		break;
 		
 	    case SDLK_j:
-		buttonPressed = 0;
+		buttonPressed = TAIKO_RED;
 		break;
 
 	    case SDLK_d:
-		buttonPressed = 1;
+		buttonPressed = TAIKO_BLUE;
 		break;
 
 	    case SDLK_k:
-		buttonPressed = 1;
+		buttonPressed = TAIKO_BLUE;
 		break;
 
 	    default:
 		break;
 	    }
-	    if (buttonPressed == 0 || buttonPressed == 1) {
+	    if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
 		hitType = performance.hit(buttonPressed, frame * 16);
-		if (buttonPressed == 0) {
-		    gameRenderer.renderHitGradient(0);
-		    gameRenderer.playSoundEffect(0);
+		if (buttonPressed == TAIKO_RED) {
+		    gameRenderer.renderHitGradient(TAIKO_RED);
+		    gameRenderer.playSoundEffect(TAIKO_RED);
 		} else {
-		    gameRenderer.renderHitGradient(1);
-		    gameRenderer.playSoundEffect(1);
+		    gameRenderer.renderHitGradient(TAIKO_BLUE);
+		    gameRenderer.playSoundEffect(TAIKO_BLUE);
 		}
 	    }
 	}
@@ -88,6 +88,7 @@ void render() {
     
     SDL_RenderPresent(renderer);
     SDL_Delay(16); // aim for around 60FPS
+                   // (changeable FPS values are to be implemented)
     frame++;
 
 }
@@ -115,29 +116,18 @@ void main(string[] args) {
     string mapString = to!string(std.file.read("map.conf"));
     performance = new Performance(mapString, bpm);
 
-    /*writeln("Game will start in 5");
-    SDL_Delay(1000);
-    writeln("4");
-    SDL_Delay(1000);
-    writeln("3");
-    SDL_Delay(1000);
-    writeln("2");
-    SDL_Delay(1000);
-    writeln("1");
-    SDL_Delay(1000);*/
-
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
-			      640,
-			      480,
+			      1200,
+			      600,
 			      0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RaiseWindow(window);
 
-    gameRenderer = new EzRender(renderer, performance);
+    gameRenderer = new EzRender(renderer, window, performance);
     
     render();
     while (!(performance.drums[performance.drums.length - 1] is null)) {
