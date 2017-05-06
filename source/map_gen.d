@@ -5,8 +5,9 @@ import drums;
 class MapGen {
 
     /*
-      BPM value
-      Map structure (one line) (e.g DDK|D|D|KKD)
+      Map structure (one line): e.g "ddk|d|d|kkd"
+      or with spaces and small letters: "ddkd  d d kkdk"
+      any character that isn't designated acts as empty space
      */
 
     // Returns array of drum objects with desired properties
@@ -24,6 +25,7 @@ class MapGen {
 	return drumArray;
     }
 
+    // Calculate circle's position in milliseconds
     static double calculatePosition(int i, int bpm) {
 	return ((60 / (to!double(bpm))) * to!double(i)) * 1000.0;
     }

@@ -13,13 +13,11 @@ import derelict.util.exception : ShouldThrow;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 
-ShouldThrow myMissingSymCB( string symbolName ) {
-    /*if( symbolName == "SDL_QueueAudio" )
-    {
+// This should do something, but it doesn't
+ShouldThrow myMissingSymCB(string symbolName) {
+    /*if (symbolName == "something") {
         return ShouldThrow.No;
-    }
-    else
-    {
+    } else {
         return ShouldThrow.Yes;
     }*/
     return ShouldThrow.No;
@@ -33,10 +31,13 @@ EzRender gameRenderer;
 
 int frame;
 
+// Render a gameplay frame
 void render() {
     gameRenderer.renderBackground();
     int hitType = 3;
     SDL_Event event;
+    // Find which keys are being pressed, play sounds
+    // and render effects, do hit registration testing
     while (SDL_PollEvent(&event) == 1) {	
 	int buttonPressed = -1;
 	if (event.type == SDL_KEYDOWN) {
@@ -75,6 +76,8 @@ void render() {
     
     gameRenderer.renderAllCircles(frame);
 
+    // Skip checking if hit is way ahead of time,
+    // otherwise render the proper hit animation and play sound
     if (hitType != 3 || performance.checkTardiness(frame * 16)) {
 	if (hitType == 0 || hitType == 1) {
 	    gameRenderer.renderHitResult(hitType);
@@ -82,8 +85,6 @@ void render() {
 	    gameRenderer.renderHitResult(hitType);
 	    gameRenderer.playSoundEffect(3);
 	}
-	//SDL_Rect rect = {0, 150, 30, 30};
-	//SDL_RenderFillRect(renderer, &rect);
     }
     
     SDL_RenderPresent(renderer);
@@ -110,7 +111,7 @@ void main(string[] args) {
     try {
 	bpm = to!int(removechars(stdin.readln(), std.ascii.newline));
     } catch (Exception ConvException) {
-	writeln("You dip, that's not a number, I've set the BPM to 1337 for you instead so good luck playing the game now");
+	writeln("That's not a number, I've set the BPM to 1337 for you instead so good luck playing the game now");
 	bpm = 1337;
     }
     string mapString = to!string(std.file.read("map.conf"));
@@ -128,7 +129,8 @@ void main(string[] args) {
     SDL_RaiseWindow(window);
 
     gameRenderer = new EzRender(renderer, window, performance);
-    
+
+    // Render the game while there are drums left unhit
     render();
     while (!(performance.drums[performance.drums.length - 1] is null)) {
 	render();

@@ -10,10 +10,10 @@ import derelict.sdl2.ttf;
 import drums;
 
 enum {
-	TAIKO_RED = 0,
-	TAIKO_BLUE = 1,
-	TAIKO_RED_LARGE = 2,
-	TAIKO_BLUE_LARGE = 3,
+    TAIKO_RED = 0,
+    TAIKO_BLUE = 1,
+    TAIKO_RED_LARGE = 2,
+    TAIKO_BLUE_LARGE = 3,
 };
 
 class EzRender {
@@ -93,6 +93,7 @@ class EzRender {
 	TTF_Quit();
     }
 
+    // Render a specific drum circle for specified frame
     bool renderCircle(Drum drum, int frame) {
 	int drawCoord = to!int(drum.position - (frame * 16) + 100);
 	SDL_Rect rect = {drawCoord, 200, 60, 60};
@@ -108,6 +109,7 @@ class EzRender {
 	}
     }
 
+    // Render all the drum circles in the game for specified frame
     void renderAllCircles(int frame) {
 
 	foreach (Drum drum ; performance.drums) {
@@ -119,6 +121,7 @@ class EzRender {
 	}
     }
 
+    // Render gameplay background
     void renderBackground() {
 	SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
 	SDL_RenderClear(renderer);
@@ -147,6 +150,7 @@ class EzRender {
 	}
     }
 
+    // Play desired sound effect
     void playSoundEffect(int type) {
 	if (type == TAIKO_RED) {
 	    Mix_PlayChannel(0, redHit, 0);
@@ -156,7 +160,8 @@ class EzRender {
 	    Mix_PlayChannel(2, missEffect, 0);
 	}
     }
-	
+
+    // Fill a defined quadratic area with a specified colour
     void fillSurfaceArea(int x, int y, int w, int h, 
 			 ubyte r, ubyte g, ubyte b, ubyte a) {
 	
@@ -165,11 +170,13 @@ class EzRender {
 	SDL_RenderFillRect(renderer, &rect);
     }
 
+    // Render a texture already loaded in the game
     void renderTexture(SDL_Texture* texture, int x, int y, int w, int h) {
 	SDL_Rect rect = {x, y, w, h};
 	SDL_RenderCopy(renderer, texture, null, &rect);
     }
 
+    // Render hit result (good, bad, miss)
     void renderHitResult(int type) {
 	SDL_Rect rect = {80, 180, 100, 100};
 	if (type == 0) {
@@ -181,6 +188,7 @@ class EzRender {
 	}
     }
 
+    // Render some text with the default font and colour
     void renderText(string text, int x, int y) {
 	SDL_Texture* cachedText;
 	if ((text in textCache) is null) {
