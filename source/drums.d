@@ -18,6 +18,8 @@ class Performance {
 	i = 0;
     }
 
+    // Attempt to hit current drum circle
+    // and return result
     int hit(int key, int time) {
 	int hitResult = drums[i].hit(key, time);
 	if (hitResult == 0) {
@@ -30,6 +32,8 @@ class Performance {
 	return hitResult;
     }
 
+    // Return true if this circle should've
+    // been hit but wasn't
     bool checkTardiness(int time) {
 	if (i >= drums.length - 1) {
 	    return false;
@@ -45,11 +49,15 @@ class Performance {
 	}
     }
 
+    // Iterate to next drum circle in the
+    // game and remove the overdue one
     void nextDrum() {
 	drums[i] = null;
 	i++;
     }
 
+    // Return the player's score in the
+    // current game state
     int calculateScore() {
 	int result = (score.good * 300) + (score.ok * 100);
 	return result;
@@ -68,10 +76,14 @@ class Drum {
 	position = time;
     }
 
+    // Set the parent (performance) of all
+    // created drum objects
     static void setParent(Performance parent) {
 	this.parent = parent;
     }
-    
+
+    // Attempt to hit this drum circle,
+    // return result
     int hit(int key, int time) {
 	if (time < this.position - 200.0) {
 	    return 3;

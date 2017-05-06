@@ -13,61 +13,62 @@ import derelict.util.exception : ShouldThrow;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 
-ShouldThrow myMissingSymCB( string symbolName ) {
-    /*if( symbolName == "SDL_QueueAudio" )
-    {
+// This should do something, but it doesn't
+ShouldThrow myMissingSymCB(string symbolName) {
+    /*if (symbolName == "something") {
         return ShouldThrow.No;
-    }
-    else
-    {
+    } else {
         return ShouldThrow.Yes;
     }*/
     return ShouldThrow.No;
 }
 
-SDL_Window *window;
-SDL_Renderer *renderer;
+SDL_Window* window;
+SDL_Renderer* renderer;
 
 Performance performance;
 EzRender gameRenderer;
 
 int frame;
 
+// Render a gameplay frame
 void render() {
     gameRenderer.renderBackground();
     int hitType = 3;
     SDL_Event event;
+    // Find which keys are being pressed, play sounds
+    // and render effects, do hit registration testing
     while (SDL_PollEvent(&event) == 1) {	
 	int buttonPressed = -1;
 	if (event.type == SDL_KEYDOWN) {
 	    switch (event.key.keysym.sym) {
 	    case SDLK_f:
-		buttonPressed = 0;
+		buttonPressed = TAIKO_RED;
 		break;
 		
 	    case SDLK_j:
-		buttonPressed = 0;
+		buttonPressed = TAIKO_RED;
 		break;
 
 	    case SDLK_d:
-		buttonPressed = 1;
+		buttonPressed = TAIKO_BLUE;
 		break;
 
 	    case SDLK_k:
-		buttonPressed = 1;
+		buttonPressed = TAIKO_BLUE;
 		break;
 
 	    default:
 		break;
 	    }
-	    if (buttonPressed == 0 || buttonPressed == 1) {
+	    if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
 		hitType = performance.hit(buttonPressed, frame * 16);
-		if (buttonPressed == 0) {
-		    gameRenderer.renderHitGradient(0);
-		    gameRenderer.playSoundEffect(0);
+		if (buttonPressed == TAIKO_RED) {
+		    gameRenderer.renderHitGradient(TAIKO_RED);
+		    gameRenderer.playSoundEffect(TAIKO_RED);
 		} else {
-		    gameRenderer.renderHitGradient(1);
-		    gameRenderer.playSoundEffect(1);
+		    gameRenderer.renderHitGradient(TAIKO_BLUE);
+		    gameRenderer.playSoundEffect(TAIKO_BLUE);
 		}
 	    }
 	}
@@ -75,6 +76,8 @@ void render() {
     
     gameRenderer.renderAllCircles(frame);
 
+    // Skip checking if hit is way ahead of time,
+    // otherwise render the proper hit animation and play sound
     if (hitType != 3 || performance.checkTardiness(frame * 16)) {
 	if (hitType == 0 || hitType == 1) {
 	    gameRenderer.renderHitResult(hitType);
@@ -82,12 +85,11 @@ void render() {
 	    gameRenderer.renderHitResult(hitType);
 	    gameRenderer.playSoundEffect(3);
 	}
-	//SDL_Rect rect = {0, 150, 30, 30};
-	//SDL_RenderFillRect(renderer, &rect);
     }
     
     SDL_RenderPresent(renderer);
     SDL_Delay(16); // aim for around 60FPS
+                   // (changeable FPS values are to be implemented)
     frame++;
 
 }
@@ -109,38 +111,28 @@ void main(string[] args) {
     try {
 	bpm = to!int(removechars(stdin.readln(), std.ascii.newline));
     } catch (Exception ConvException) {
-	writeln("You dip, that's not a number, I've set the BPM to 1337 for you instead so good luck playing the game now");
+	writeln("That's not a number, I've set the BPM to 1337 for you instead so good luck playing the game now");
 	bpm = 1337;
     }
     string mapString = to!string(std.file.read("map.conf"));
     performance = new Performance(mapString, bpm);
 
-    /*writeln("Game will start in 5");
-    SDL_Delay(1000);
-    writeln("4");
-    SDL_Delay(1000);
-    writeln("3");
-    SDL_Delay(1000);
-    writeln("2");
-    SDL_Delay(1000);
-    writeln("1");
-    SDL_Delay(1000);*/
-
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
-			      640,
-			      480,
+			      1200,
+			      600,
 			      0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RaiseWindow(window);
 
-    gameRenderer = new EzRender(renderer, performance);
-    
+    gameRenderer = new EzRender(renderer, window, performance);
+
+    // Render the game while there are drums left unhit
     render();
-    while (/*frame * 16 < performance.drums[performance.drums.length - 1].position*/!(performance.drums[performance.drums.length - 1] is null)) {
+    while (!(performance.drums[performance.drums.length - 1] is null)) {
 	render();
     }
     SDL_Delay(2000);
