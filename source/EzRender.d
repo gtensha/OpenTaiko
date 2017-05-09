@@ -20,8 +20,15 @@ enum ASSET_DIR : string {
     DEFAULT = "assets/default/",
 };
 
-enum ASSET_FONT : string {
+enum ASSET_FONT_TYPE : string {
     DEFAULT = "Roboto-light.ttf",
+    MENUS = "Roboto-regular.ttf",
+};
+
+enum ASSET_FONT_SIZE : int {
+    SCORE = 48,
+    MENUS = 32,
+    INFO = 24,
 };
 
 enum ASSET_TEXTURE : string {
@@ -48,7 +55,7 @@ class EzRender {
     SDL_Renderer* renderer;
     SDL_Window* window;
     Performance performance;
-    Menu currentMenu;
+    Menu[] menus;
 
     SDL_Texture* redDrum;
     SDL_Texture* blueDrum;
@@ -60,14 +67,14 @@ class EzRender {
 
     Mix_Chunk* redHit, blueHit, missEffect;
 
-    TTF_Font* font;
+    TTF_Font* scoreFont, menuFont;
     SDL_Texture*[string] textCache; // this never gets emptied, must
                                     // be implemented in the future
 
     int windowHeight;
     int windowWidth;
     
-    this(SDL_Renderer* renderer, SDL_Window* window, Performance performance) {
+    this(SDL_Renderer* renderer, SDL_Window* window) {
 	this.renderer = renderer;
 	this.window = window;
 	this.performance = performance;
@@ -111,14 +118,20 @@ class EzRender {
 	missEffect = Mix_LoadWAV(toStringz(ASSET_DIR.DEFAULT ~ ASSET_SOUND.MISS));
 
 	TTF_Init();
-	font = TTF_OpenFont(toStringz(ASSET_DIR.DEFAULT ~ ASSET_FONT.DEFAULT), 48);
+	scoreFont = TTF_OpenFont(toStringz(ASSET_DIR.DEFAULT ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.SCORE);
+	menuFont = TTF_OpenFont(toStringz(ASSET_DIR.DEFAULT ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
 
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
     }
 
     ~this() {
-	TTF_CloseFont(font);
+	TTF_CloseFont(scoreFont);
+	TTF_CloseFont(menuFont);
 	TTF_Quit();
+    }
+
+    void setPerformance(Performance performance) {
+	this.performance = performance;
     }
 
     // Render a specific drum circle for specified frame
@@ -222,7 +235,7 @@ class EzRender {
 	if ((text in textCache) is null) {
 	    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	    SDL_Color color = {255, 255, 255, 255};
-	    SDL_Surface* textSurface = TTF_RenderText_Blended(font, toStringz(text), color);
+	    SDL_Surface* textSurface = TTF_RenderText_Blended(scoreFont, toStringz(text), color);
 	    cachedText = SDL_CreateTextureFromSurface(renderer, textSurface);
 	    textCache[text] = cachedText;
 	    SDL_FreeSurface(textSurface);
@@ -235,33 +248,57 @@ class EzRender {
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
     }
 
-    void createNewMenu(string[] titles) {
-	this.currentMenu = new Menu(titles, windowHeight, windowWidth);
+    int createNewMenu(string[] titles) {
+	this.menus ~= new Menu(titles, windowHeight, windowWidth);
+	return menus.length - 1;
     }
 
-    void renderCurrentMenu() {
-	this.currentMenu.render();
+    void renderMenu(int index) {
+	if (index < menus.length)
+	    this.menus[index].render();
     }
 
     class Menu {
 
 	MenuItem[] choices;
 	int w, h;
+	int index = 0;
 
-	this(string[] titles, int w, int h) {
-	    this.w = w - 100;
-	    this.h = h;
+	this(string[] titles, int h, int w) {
+	    this.w = w - 200;
+	    this.h = h - 200;
 
-	    int pos = w / titles.length;
-	    int i = -1;
+	    int pos = 200;//this.w / titles.length;
+	    int i = 0;
 	    foreach (string title ; titles) {
-		choices ~= new MenuItem(title, (pos * i++) + 100, 100);
+		choices ~= new MenuItem(title, (pos * i++) + 200, 100, this.h);
 	    }
 	}
 
+	void selectChoice(bool direction) {
+	    // Go right if true
+	    if (direction == true) {
+		if (index < choices.length)
+		    index++;
+	    } else {
+		if (index > 0)
+		    index--;
+	    }
+	    render();
+	}
+
+	int choose() {
+	    return index;
+	}
+
 	void render() {
+	    int i = 0;
 	    foreach (MenuItem item ; choices) {
-		item.render(false);
+		if (i == index)
+		    item.render(true);
+		else
+		    item.render(false);
+		i++;
 	    }
 	}
 	
@@ -271,39 +308,54 @@ class EzRender {
 	    int x;
 	    int y;
 	    int w, h;
-	    SDL_Texture* textu;
+	    int boxHeight;
+	    SDL_Texture* normal, highlighted;
 
-	    this(string text, int x, int y) {
+	    this(string text, int x, int y, int boxHeight) {
+		this.x = x;
+		this.y = y;
+		this.boxHeight = boxHeight;
 		string newText;
-		foreach (char character ; text) {
-		    newText ~= character ~ " ";
+	        foreach (char character ; text) {
+		    newText ~= character ~ "\n";
 		}
 		
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_Color color = {255, 255, 255, 255};
-		SDL_Surface* textSurface = TTF_RenderText_Blended(font, toStringz(newText), color);
-		textu = SDL_CreateTextureFromSurface(renderer, textSurface);
-		SDL_FreeSurface(textSurface);
-		SDL_QueryTexture(textu, null, null, &w, &h);
+		SDL_Surface* normalSurface = TTF_RenderText_Blended_Wrapped(menuFont,
+									  toStringz(newText),
+									  color,
+									  ASSET_FONT_SIZE.MENUS);
+		SDL_Color color2 = {240, 40, 40, 255};
+		SDL_Surface* highlightedSurface = TTF_RenderText_Blended_Wrapped(menuFont,
+										 toStringz(newText),
+										 color2,
+										 ASSET_FONT_SIZE.MENUS);
+		normal = SDL_CreateTextureFromSurface(renderer, normalSurface);
+		highlighted = SDL_CreateTextureFromSurface(renderer, highlightedSurface);
+		SDL_FreeSurface(normalSurface);
+		SDL_FreeSurface(highlightedSurface);
+		SDL_QueryTexture(normal, null, null, &w, &h);
 		if (h > highest) {
 		    highest = h;
 		}
 	    }
 	    
-	    void render(bool highlighted) {
-		ubyte r, g, b;
-		if (highlighted) {
+	    void render(bool isHighlighted) {
+		ubyte r, gb;
+		SDL_Texture* toRender;
+		if (isHighlighted) {
 		    r = 255;
-		    g = 40;
-		    b = 40;
+		    gb = 255;
+		    toRender = highlighted;
 		} else {
 		    r = 240;
-		    g = 40;
-		    b = 40;
+		    gb = 40;
+		    toRender = normal;
 		}
-		fillSurfaceArea(x - 10, y - 10, w + 20, h + 20,
-				r, g, b, 255);
-		renderTexture(textu, x, y, w, highest);
+		fillSurfaceArea(x - 10, y - 10, ASSET_FONT_SIZE.MENUS + 10, boxHeight + 10,
+				r, gb, gb, 255);
+		renderTexture(toRender, x, y, w, h);
 	    }
 	    
 	}
