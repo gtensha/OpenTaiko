@@ -12,8 +12,8 @@ class Performance {
 	int bad;
     }
 
-    this(string map, int bpm) {
-	drums = MapGen.parseMapFromFile(map, bpm);
+    this(string map) {
+	drums = MapGen.parseMapFromFile(map);
 	drums[0].setParent(this);
 	i = 0;
     }

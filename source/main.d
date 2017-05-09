@@ -32,7 +32,7 @@ EzRender gameRenderer;
 int frame;
 
 // Render a gameplay frame
-void render() {
+void renderGameplay() {
     gameRenderer.renderBackground();
     int hitType = 3;
     SDL_Event event;
@@ -62,7 +62,7 @@ void render() {
 		break;
 	    }
 	    if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
-		hitType = performance.hit(buttonPressed, frame * 16);
+		hitType = gameRenderer.performance.hit(buttonPressed, frame * 16);
 		if (buttonPressed == TAIKO_RED) {
 		    gameRenderer.renderHitGradient(TAIKO_RED);
 		    gameRenderer.playSoundEffect(TAIKO_RED);
@@ -78,7 +78,7 @@ void render() {
 
     // Skip checking if hit is way ahead of time,
     // otherwise render the proper hit animation and play sound
-    if (hitType != 3 || performance.checkTardiness(frame * 16)) {
+    if (hitType != 3 || gameRenderer.performance.checkTardiness(frame * 16)) {
 	if (hitType == 0 || hitType == 1) {
 	    gameRenderer.renderHitResult(hitType);
 	} else {
@@ -94,6 +94,50 @@ void render() {
 
 }
 
+bool renderMainMenu(int menuIndex) {
+
+    SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
+    SDL_RenderClear(renderer);
+    gameRenderer.menus[menuIndex].render();
+    SDL_RenderPresent(renderer);
+    int choice = -1;
+    while (true) {
+	SDL_Event event;
+	// Find which keys are being pressed, play sounds
+	// and render effects, do hit registration testing
+	while (SDL_PollEvent(&event) == 1) {	
+	    if (event.type == SDL_KEYDOWN) {
+		switch (event.key.keysym.sym) {
+		case SDLK_RIGHT:
+		    gameRenderer.menus[menuIndex].selectChoice(true);
+		    SDL_RenderPresent(renderer);
+		    break;
+		    
+		case SDLK_LEFT:
+		    gameRenderer.menus[menuIndex].selectChoice(false);
+		    SDL_RenderPresent(renderer);
+		    break;
+		    
+		case SDLK_RETURN:
+		    choice = gameRenderer.menus[menuIndex].choose();
+		    break;
+		    
+		default:
+		    break;
+		}
+	    }
+	    if (choice > -1) {
+		// Selected start
+		if (choice == 0)
+		    return true;
+		else
+		    return false;
+	    }
+	}
+	SDL_Delay(16);
+    }
+}
+
 void main(string[] args) {
 
     DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
@@ -106,17 +150,6 @@ void main(string[] args) {
     
     SDL_Init(SDL_INIT_VIDEO);
 
-    write("Enter desired BPM value (and press ENTER): ");
-    int bpm;
-    try {
-	bpm = to!int(removechars(stdin.readln(), std.ascii.newline));
-    } catch (Exception ConvException) {
-	writeln("That's not a number, I've set the BPM to 1337 for you instead so good luck playing the game now");
-	bpm = 1337;
-    }
-    string mapString = to!string(std.file.read("map.conf"));
-    performance = new Performance(mapString, bpm);
-
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
@@ -128,24 +161,29 @@ void main(string[] args) {
     SDL_RenderClear(renderer);
     SDL_RaiseWindow(window);
 
-    gameRenderer = new EzRender(renderer, window, performance);
+    gameRenderer = new EzRender(renderer, window);
 
-    // Render the game while there are drums left unhit
-    render();
-    while (!(performance.drums[performance.drums.length - 1] is null)) {
-	render();
+    // Create and render main menu
+    int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
+    while (renderMainMenu(mainMenuId)) {
+	gameRenderer.performance = new Performance("default");
+	performance = gameRenderer.performance;
+	// Render the game while there are drums left unhit
+	frame = 0;
+	renderGameplay();
+	while (!(performance.drums[performance.drums.length - 1] is null)) {
+	    renderGameplay();
+	}
+	SDL_Delay(2000);
+	writeln("Results:\n"
+		~ "Good: " ~ to!string(performance.score.good)
+		~ "\nOK: " ~ to!string(performance.score.ok)
+		~ "\nBad/Miss: " ~ to!string(performance.score.bad)
+		~ "\nScore: " ~ to!string(performance.calculateScore()));
     }
-    SDL_Delay(2000);
-    writeln("Results:\n"
-	    ~ "Good: " ~ to!string(performance.score.good)
-	    ~ "\nOK: " ~ to!string(performance.score.ok)
-	    ~ "\nBad/Miss: " ~ to!string(performance.score.bad)
-	    ~ "\nScore: " ~ to!string(performance.calculateScore()));
-
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-
-    writeln("Done.");
-
     SDL_Quit();
+    
+    writeln("Done.");
 }
