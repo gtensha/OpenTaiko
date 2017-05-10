@@ -13,13 +13,8 @@ import derelict.util.exception : ShouldThrow;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 
-// This should do something, but it doesn't
+// Keep going even if something is missing
 ShouldThrow myMissingSymCB(string symbolName) {
-    /*if (symbolName == "something") {
-        return ShouldThrow.No;
-    } else {
-        return ShouldThrow.Yes;
-    }*/
     return ShouldThrow.No;
 }
 
@@ -30,6 +25,7 @@ Performance performance;
 EzRender gameRenderer;
 
 int frame;
+bool quit = false;
 
 // Render a gameplay frame
 void renderGameplay() {
@@ -38,8 +34,8 @@ void renderGameplay() {
     SDL_Event event;
     // Find which keys are being pressed, play sounds
     // and render effects, do hit registration testing
+    int buttonPressed = -1;
     while (SDL_PollEvent(&event) == 1) {	
-	int buttonPressed = -1;
 	if (event.type == SDL_KEYDOWN) {
 	    switch (event.key.keysym.sym) {
 	    case SDLK_f:
@@ -58,19 +54,28 @@ void renderGameplay() {
 		buttonPressed = TAIKO_BLUE;
 		break;
 
+	    case SDLK_ESCAPE:
+		quit = true;
+		break;
+
 	    default:
 		break;
 	    }
-	    if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
-		hitType = gameRenderer.performance.hit(buttonPressed, frame * 16);
-		if (buttonPressed == TAIKO_RED) {
-		    gameRenderer.renderHitGradient(TAIKO_RED);
-		    gameRenderer.playSoundEffect(TAIKO_RED);
-		} else {
-		    gameRenderer.renderHitGradient(TAIKO_BLUE);
-		    gameRenderer.playSoundEffect(TAIKO_BLUE);
-		}
-	    }
+	    
+	} else if (event.type == SDL_QUIT) {
+	    quit = true;
+	}
+	
+    }
+
+    if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
+	hitType = gameRenderer.performance.hit(buttonPressed, frame * 16);
+	if (buttonPressed == TAIKO_RED) {
+	    gameRenderer.renderHitGradient(TAIKO_RED);
+	    gameRenderer.playSoundEffect(TAIKO_RED);
+	} else {
+	    gameRenderer.renderHitGradient(TAIKO_BLUE);
+	    gameRenderer.playSoundEffect(TAIKO_BLUE);
 	}
     }
     
@@ -101,10 +106,11 @@ bool renderMainMenu(int menuIndex) {
     gameRenderer.menus[menuIndex].render();
     SDL_RenderPresent(renderer);
     int choice = -1;
+    quit = false;
     while (true) {
 	SDL_Event event;
-	// Find which keys are being pressed, play sounds
-	// and render effects, do hit registration testing
+	// Detect menu navigation and render new
+	// menu state
 	while (SDL_PollEvent(&event) == 1) {	
 	    if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
@@ -121,10 +127,16 @@ bool renderMainMenu(int menuIndex) {
 		case SDLK_RETURN:
 		    choice = gameRenderer.menus[menuIndex].choose();
 		    break;
+
+		case SDLK_ESCAPE:
+		    choice = 1;
+		    break;
 		    
 		default:
 		    break;
 		}
+	    } else if (event.type == SDL_QUIT) {
+		choice = 1;
 	    }
 	    if (choice > -1) {
 		// Selected start
@@ -134,7 +146,7 @@ bool renderMainMenu(int menuIndex) {
 		    return false;
 	    }
 	}
-	SDL_Delay(16);
+	SDL_Delay(16); // poll approx. 60 times/second
     }
 }
 
@@ -148,7 +160,10 @@ void main(string[] args) {
 	writeln(SharedLibLoadException.toString());
     }
     
-    SDL_Init(SDL_INIT_VIDEO);
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	writeln("Failed to initialise SDL: ", fromStringz(SDL_GetError()));
+	return;
+    }
 
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
@@ -156,31 +171,51 @@ void main(string[] args) {
 			      1200,
 			      600,
 			      0);
+    if (window is null) {
+	writeln("Failed to create window: ", fromStringz(SDL_GetError()));
+    }
+    
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer is null) {
+	writeln("Failed to create renderer: ", fromStringz(SDL_GetError()));
+    }
+    
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RaiseWindow(window);
 
-    gameRenderer = new EzRender(renderer, window);
-
-    // Create and render main menu
-    int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
-    while (renderMainMenu(mainMenuId)) {
-	gameRenderer.performance = new Performance("default");
-	performance = gameRenderer.performance;
-	// Render the game while there are drums left unhit
-	frame = 0;
-	renderGameplay();
-	while (!(performance.drums[performance.drums.length - 1] is null)) {
-	    renderGameplay();
-	}
-	SDL_Delay(2000);
-	writeln("Results:\n"
-		~ "Good: " ~ to!string(performance.score.good)
-		~ "\nOK: " ~ to!string(performance.score.ok)
-		~ "\nBad/Miss: " ~ to!string(performance.score.bad)
-		~ "\nScore: " ~ to!string(performance.calculateScore()));
+    bool canPlay = true;
+    try {
+	gameRenderer = new EzRender(renderer, window);
+    } catch (Exception e) {
+	writeln(e.toString());
+	writeln("\nGame load FAILED");
+	canPlay = false;
     }
+
+    if (canPlay) {
+	// Create and render main menu
+	int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
+	while (renderMainMenu(mainMenuId)) {
+	    gameRenderer.performance = new Performance("default");
+	    performance = gameRenderer.performance;
+	    // Render the game while there are drums left unhit
+	    frame = 0;
+	    renderGameplay();
+	    while (!quit && performance.i < performance.drums.length) {
+		renderGameplay();
+	    }
+	    if (!quit) {
+		SDL_Delay(2000);
+		writeln("Results:\n"
+			~ "Good: " ~ to!string(performance.score.good)
+			~ "\nOK: " ~ to!string(performance.score.ok)
+			~ "\nBad/Miss: " ~ to!string(performance.score.bad)
+			~ "\nScore: " ~ to!string(performance.calculateScore()));
+	    }
+	}
+    }
+    
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
