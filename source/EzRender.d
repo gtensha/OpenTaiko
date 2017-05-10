@@ -1,6 +1,7 @@
 import std.stdio;
 import std.conv;
 import std.string;
+import std.file;
 
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
@@ -8,6 +9,18 @@ import derelict.sdl2.mixer;
 import derelict.sdl2.ttf;
 
 import drums;
+
+class SDLLibLoadException : Exception {
+
+    this(string msg) {
+	super("SDLLibLoadException: " ~ msg);
+    }
+
+    override string toString() {
+	return msg;
+    }
+
+}
 
 enum {
     TAIKO_RED = 0,
@@ -77,20 +90,40 @@ class EzRender {
     this(SDL_Renderer* renderer, SDL_Window* window) {
 	this.renderer = renderer;
 	this.window = window;
-	this.performance = performance;
 
+	string dir = ASSET_DIR.DEFAULT;
+
+	foreach (string asset ; [ASSET_TEXTURE.RED,
+				 //ASSET_TEXTURE.RED_LARGE,
+				 ASSET_TEXTURE.BLUE,
+				 //ASSET_TEXTURE.BLUE_LARGE,
+				 ASSET_TEXTURE.GRAD_HIT_R,
+				 ASSET_TEXTURE.GRAD_HIT_B,
+				 ASSET_TEXTURE.HIT_GOOD,
+				 ASSET_TEXTURE.HIT_OK,
+				 ASSET_TEXTURE.HIT_BAD,
+				 ASSET_TEXTURE.RECEPTION,
+				 ASSET_SOUND.RED_HIT,
+				 ASSET_SOUND.BLUE_HIT,
+				 ASSET_SOUND.MISS,
+				 ASSET_FONT_TYPE.DEFAULT,
+				 ASSET_FONT_TYPE.MENUS]) {
+	    
+	    assert((dir ~ asset).isFile);
+	}
+	
 	DerelictSDL2Image.load();
 	DerelictSDL2Mixer.load();
 	DerelictSDL2ttf.load();
-
-	SDL_Surface* redSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.RED));
-	SDL_Surface* blueSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.BLUE));
-	SDL_Surface* redGradSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.GRAD_HIT_R));
-	SDL_Surface* blueGradSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.GRAD_HIT_B));
-	SDL_Surface* receptionSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.RECEPTION));
-	SDL_Surface* goodSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.HIT_GOOD));
-	SDL_Surface* okSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.HIT_OK));
-	SDL_Surface* badSurface = IMG_Load(toStringz(ASSET_DIR.DEFAULT ~ ASSET_TEXTURE.HIT_BAD));
+	
+	SDL_Surface* redSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.RED));
+	SDL_Surface* blueSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.BLUE));
+	SDL_Surface* redGradSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.GRAD_HIT_R));
+	SDL_Surface* blueGradSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.GRAD_HIT_B));
+	SDL_Surface* receptionSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.RECEPTION));
+	SDL_Surface* goodSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.HIT_GOOD));
+	SDL_Surface* okSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.HIT_OK));
+	SDL_Surface* badSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.HIT_BAD));
 
 	redDrum = SDL_CreateTextureFromSurface(renderer, redSurface);
 	blueDrum = SDL_CreateTextureFromSurface(renderer, blueSurface);
@@ -111,27 +144,34 @@ class EzRender {
 	SDL_FreeSurface(okSurface);
 	SDL_FreeSurface(badSurface);
 
-	Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024);
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,
+			  MIX_DEFAULT_FORMAT,
+			  MIX_DEFAULT_CHANNELS,
+			  1024) < 0) {
+	    
+	    throw new SDLLibLoadException("SDL_mixer failed to load");
+	}
+	    
 
-	redHit = Mix_LoadWAV(toStringz(ASSET_DIR.DEFAULT ~ ASSET_SOUND.RED_HIT));
-	blueHit = Mix_LoadWAV(toStringz(ASSET_DIR.DEFAULT ~ ASSET_SOUND.BLUE_HIT));
-	missEffect = Mix_LoadWAV(toStringz(ASSET_DIR.DEFAULT ~ ASSET_SOUND.MISS));
+	redHit = Mix_LoadWAV(toStringz(dir ~ ASSET_SOUND.RED_HIT));
+	blueHit = Mix_LoadWAV(toStringz(dir ~ ASSET_SOUND.BLUE_HIT));
+	missEffect = Mix_LoadWAV(toStringz(dir ~ ASSET_SOUND.MISS));
 
-	TTF_Init();
-	scoreFont = TTF_OpenFont(toStringz(ASSET_DIR.DEFAULT ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.SCORE);
-	menuFont = TTF_OpenFont(toStringz(ASSET_DIR.DEFAULT ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
+	if (TTF_Init() < 0) {
+	    throw new SDLLibLoadException("SDL_ttf failed to load");
+	}
+	
+	scoreFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.SCORE);
+	menuFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
 
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
     }
 
     ~this() {
+	Mix_CloseAudio();
 	TTF_CloseFont(scoreFont);
 	TTF_CloseFont(menuFont);
 	TTF_Quit();
-    }
-
-    void setPerformance(Performance performance) {
-	this.performance = performance;
     }
 
     // Render a specific drum circle for specified frame
@@ -153,11 +193,9 @@ class EzRender {
     // Render all the drum circles in the game for specified frame
     void renderAllCircles(int frame) {
 
-	foreach (Drum drum ; performance.drums) {
-	    if (!(drum is null)) {
-		if (renderCircle(drum, frame) == false) {
-		    break;
-		}
+	for (int i = performance.i; i < performance.drums.length; i++) {
+	    if (renderCircle(performance.drums[i], frame) == false) {
+		break;
 	    }
 	}
     }
@@ -248,11 +286,15 @@ class EzRender {
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
     }
 
+    // Create new menu with given titles,
+    // return its index in game renderer's array
     int createNewMenu(string[] titles) {
 	this.menus ~= new Menu(titles, windowHeight, windowWidth);
 	return menus.length - 1;
     }
 
+    // Render the menu at given index
+    // in game renderer's array
     void renderMenu(int index) {
 	if (index < menus.length)
 	    this.menus[index].render();
@@ -275,6 +317,7 @@ class EzRender {
 	    }
 	}
 
+	// Select to the right or left in menu
 	void selectChoice(bool direction) {
 	    // Go right if true
 	    if (direction == true) {
@@ -287,10 +330,13 @@ class EzRender {
 	    render();
 	}
 
+	// Return the index of the currently
+	// selected button
 	int choose() {
 	    return index;
 	}
 
+	// Render the menu
 	void render() {
 	    int i = 0;
 	    foreach (MenuItem item ; choices) {

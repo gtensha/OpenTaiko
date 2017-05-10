@@ -4,7 +4,7 @@ class Performance {
 
     Drum[] drums;
     Score score;
-    private int i;
+    int i;
 
     struct Score {
 	int good;
@@ -52,7 +52,6 @@ class Performance {
     // Iterate to next drum circle in the
     // game and remove the overdue one
     void nextDrum() {
-	drums[i] = null;
 	i++;
     }
 
