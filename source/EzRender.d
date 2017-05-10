@@ -21,8 +21,8 @@ enum ASSET_DIR : string {
 };
 
 enum ASSET_FONT_TYPE : string {
-    DEFAULT = "Roboto-light.ttf",
-    MENUS = "Roboto-regular.ttf",
+    DEFAULT = "Roboto-Light.ttf",
+    MENUS = "Roboto-Regular.ttf",
 };
 
 enum ASSET_FONT_SIZE : int {
