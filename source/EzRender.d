@@ -290,7 +290,7 @@ class EzRender {
     // return its index in game renderer's array
     int createNewMenu(string[] titles) {
 	this.menus ~= new Menu(titles, windowHeight, windowWidth);
-	return menus.length - 1;
+	return to!int(menus.length) - 1;
     }
 
     // Render the menu at given index
