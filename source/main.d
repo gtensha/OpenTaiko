@@ -205,6 +205,7 @@ void main(string[] args) {
 	    while (!quit && performance.i < performance.drums.length) {
 		renderGameplay();
 	    }
+	    gameRenderer.destroyAnimations();
 	    if (!quit) {
 		SDL_Delay(2000);
 		writeln("Results:\n"
