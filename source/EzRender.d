@@ -10,18 +10,6 @@ import derelict.sdl2.ttf;
 
 import drums;
 
-class SDLLibLoadException : Exception {
-
-    this(string msg) {
-	super("SDLLibLoadException: " ~ msg);
-    }
-
-    override string toString() {
-	return msg;
-    }
-
-}
-
 enum {
     TAIKO_RED = 0,
     TAIKO_BLUE = 1,
@@ -55,6 +43,7 @@ enum ASSET_TEXTURE : string {
     HIT_OK = "ok.png",
     HIT_BAD = "bad.png",
     RECEPTION = "reception.png",
+    SOUL = "soul.png",
 };
 
 enum ASSET_SOUND : string {
@@ -69,12 +58,14 @@ class EzRender {
     SDL_Window* window;
     Performance performance;
     Menu[] menus;
+    Animation[] animations;
 
     SDL_Texture* redDrum;
     SDL_Texture* blueDrum;
     SDL_Texture* redGrad;
     SDL_Texture* blueGrad;
     SDL_Texture* reception, good, ok, bad;
+    SDL_Texture* soul;
     //SDL_Texture redLargeDrum;
     //SDL_Texture blueLargeDrum;
 
@@ -86,6 +77,7 @@ class EzRender {
 
     int windowHeight;
     int windowWidth;
+    bool hasLoaded = false;
     
     this(SDL_Renderer* renderer, SDL_Window* window) {
 	this.renderer = renderer;
@@ -103,6 +95,7 @@ class EzRender {
 				 ASSET_TEXTURE.HIT_OK,
 				 ASSET_TEXTURE.HIT_BAD,
 				 ASSET_TEXTURE.RECEPTION,
+				 ASSET_TEXTURE.SOUL,
 				 ASSET_SOUND.RED_HIT,
 				 ASSET_SOUND.BLUE_HIT,
 				 ASSET_SOUND.MISS,
@@ -124,6 +117,7 @@ class EzRender {
 	SDL_Surface* goodSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.HIT_GOOD));
 	SDL_Surface* okSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.HIT_OK));
 	SDL_Surface* badSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.HIT_BAD));
+	SDL_Surface* soulSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.SOUL));
 
 	redDrum = SDL_CreateTextureFromSurface(renderer, redSurface);
 	blueDrum = SDL_CreateTextureFromSurface(renderer, blueSurface);
@@ -133,7 +127,7 @@ class EzRender {
 	good = SDL_CreateTextureFromSurface(renderer, goodSurface);
 	ok = SDL_CreateTextureFromSurface(renderer, okSurface);
 	bad = SDL_CreateTextureFromSurface(renderer, badSurface);
-	
+	soul = SDL_CreateTextureFromSurface(renderer, soulSurface);
 
 	SDL_FreeSurface(redSurface);
 	SDL_FreeSurface(blueSurface);
@@ -143,6 +137,7 @@ class EzRender {
 	SDL_FreeSurface(goodSurface);
 	SDL_FreeSurface(okSurface);
 	SDL_FreeSurface(badSurface);
+	SDL_FreeSurface(soulSurface);
 
 	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,
 			  MIX_DEFAULT_FORMAT,
@@ -165,13 +160,16 @@ class EzRender {
 	menuFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
 
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+	hasLoaded = true;
     }
 
     ~this() {
-	Mix_CloseAudio();
-	TTF_CloseFont(scoreFont);
-	TTF_CloseFont(menuFont);
-	TTF_Quit();
+	if (hasLoaded) {
+	    Mix_CloseAudio();
+	    TTF_CloseFont(scoreFont);
+	    TTF_CloseFont(menuFont);
+	    TTF_Quit();
+	}
     }
 
     // Render a specific drum circle for specified frame
@@ -214,9 +212,14 @@ class EzRender {
 	// Draw "reception" box
 	this.renderTexture(reception,
 			   97, 200, 65, 65);
-
+	
 	// Draw score display
-	this.renderText(to!string(performance.calculateScore()), windowWidth - 200, 95);
+	this.renderText(to!string(performance.calculateScore()), windowWidth - 250, 95);
+	this.renderTexture(soul,
+			   windowWidth - 85, 70, 80, 80);
+
+	// Render animations
+	animateRenderAll();
     }
 
     // Render red or blue hit gradient
@@ -258,12 +261,19 @@ class EzRender {
     // Render hit result (good, bad, miss)
     void renderHitResult(int type) {
 	SDL_Rect rect = {80, 180, 100, 100};
-	if (type == 0) {
+	if (type == TAIKO_RED) {
 	    SDL_RenderCopy(renderer, good, null, &rect);
-	} else if (type == 1) {
+	} else if (type == TAIKO_BLUE) {
 	    SDL_RenderCopy(renderer, ok, null, &rect);
 	} else {
 	    SDL_RenderCopy(renderer, bad, null, &rect);
+	}
+	if (type == TAIKO_RED || type == TAIKO_BLUE) {
+	    if (performance.drums[performance.i - 1].color == TAIKO_RED) {
+		addAnimation(redDrum, 97, 200);
+	    } else {
+		addAnimation(blueDrum, 97, 200);
+	    }
 	}
     }
 
@@ -284,6 +294,21 @@ class EzRender {
 	SDL_QueryTexture(cachedText, null, null, &w, &h);
 	SDL_Rect rect = {x, y, w, h};
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
+    }
+
+    // Adds new animation to the queue
+    void addAnimation(SDL_Texture* texture, int x, int y) {
+	animations ~= new Animation(texture, x, y, 1115);
+    }
+
+    void animateRenderAll() {
+	foreach (Animation animation ; animations) {
+	    animation.animateFrame();
+	}
+    }
+
+    void destroyAnimations() {
+	animations = null;
     }
 
     // Create new menu with given titles,
@@ -406,5 +431,54 @@ class EzRender {
 	    
 	}
     }
+
+    class Animation {
 	
+	SDL_Texture* texture;
+	SDL_Rect rect;
+	int limitX;
+	bool canRender = true;
+	
+	this(SDL_Texture* texture, int x, int y, int limitX) {
+	    this.texture = texture;
+	    int w, h;
+	    this.limitX = limitX;
+	    SDL_QueryTexture(texture, null, null, &w, &h);
+	    rect.x = x;
+	    rect.y = y;
+	    rect.w = w;
+	    rect.h = h;
+	    x = 100;
+	}
+	
+	// For now only works for default resolution
+	void animateFrame() {
+	    if (canRender) {
+		rect.y = to!int((0.0005 * (rect.x*rect.x)) - (0.71 * rect.x) + 264.01);
+		this.render();
+		rect.x += 30;
+		if (rect.x >= limitX) {
+		    canRender = false;
+		}
+	    }
+	}
+	
+	void render() {
+	    SDL_RenderCopy(renderer, texture, null, &rect);
+	}
+	
+    }
+    
+}
+
+class SDLLibLoadException : Exception {
+
+    this(string msg) {
+	super("SDLLibLoadException: " ~ msg);
+    }
+
+    override string toString() {
+	return msg;
+    }
+
 }
