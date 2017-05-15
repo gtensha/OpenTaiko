@@ -12,7 +12,7 @@ Once the game has reached maturity/is actually fun and playable, pre-compiled bi
 
 コンパイルとインストールするにはＤ言語のＤＵＢとＤＭＤを使って、ファイルがダウンロードされたディレクトリで「dub　build」のコマンドを実行してください。持ってないなら[dlang.org][1]からダウンロードすることができます。Windowsを使ってる場合はその上に[libsdl.org][2]から様々な.dllファイルを手に入れる必要もあります。SDL2の本ライブラリー、SDL_Mixer, SDL_ImageとSDL_ttfの必要があります。Linuxの場合はディストリビューションのlibsdl2のdevパッケージをインストールだけで十分でしょう。
 
-ちゃんと楽しいゲームになったら、すでにコンパイルされたファイルも配信ことになります。
+ちゃんと楽しいゲームになったら、すでにコンパイルされたファイルも配信することになります。
 
 # Goals/目的
 A fully working Taiko no Tatsujin clone with the elements (and more) from the game we all know and love. The main goal of this project is to do just that while being platform agnostic. While Linux, Windows and Mac are obvious targets, other platforms such as devices running Android would be interesting in the long run. But support for the three major personal computer platforms is the biggest priority. Performance is also essential, it should be able to run alright on poorer/older hardware, and run splendidly without hiccups on cutting-edge systems.
