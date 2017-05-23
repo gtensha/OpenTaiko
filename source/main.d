@@ -73,10 +73,10 @@ void renderGameplay() {
     if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
 	hitType = gameRenderer.performance.hit(buttonPressed, currentTime);
 	if (buttonPressed == TAIKO_RED) {
-	    gameRenderer.renderHitGradient(TAIKO_RED);
+	    gameRenderer.renderHitGradient(TAIKO_RED, currentTime);
 	    gameRenderer.playSoundEffect(TAIKO_RED);
 	} else {
-	    gameRenderer.renderHitGradient(TAIKO_BLUE);
+	    gameRenderer.renderHitGradient(TAIKO_BLUE, currentTime);
 	    gameRenderer.playSoundEffect(TAIKO_BLUE);
 	}
     }
@@ -87,12 +87,14 @@ void renderGameplay() {
     // otherwise render the proper hit animation and play sound
     if (hitType != 3 || gameRenderer.performance.checkTardiness(currentTime)) {
 	if (hitType == 0 || hitType == 1) {
-	    gameRenderer.renderHitResult(hitType);
+	    gameRenderer.renderHitResult(hitType, currentTime);
 	} else {
-	    gameRenderer.renderHitResult(hitType);
+	    gameRenderer.renderHitResult(hitType, currentTime);
 	    gameRenderer.playSoundEffect(3);
 	}
     }
+
+    gameRenderer.renderAllEffects(currentTime);
     
     SDL_RenderPresent(renderer);
     // Push as many frames as possible for now,
@@ -213,6 +215,7 @@ void main(string[] args) {
 		renderGameplay();
 	    }
 	    gameRenderer.destroyAnimations();
+	    gameRenderer.resetEffects();
 	    gameRenderer.stopMusic();
 	    if (!quit) {
 		SDL_Delay(2000);

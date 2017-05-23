@@ -28,6 +28,8 @@ class Performance {
 	    score.good++;
 	} else if (hitResult == 1) {
 	    score.ok++;
+	} else if (hitResult == 3) {
+	    return hitResult;
 	} else {
 	    score.bad++;
 	}

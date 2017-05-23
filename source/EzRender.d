@@ -61,6 +61,7 @@ class EzRender {
     Menu[] menus;
     Animation[] animations;
     Renderable[] renderableObjects;
+    Effect[] effects;
 
     SDL_Texture* redDrum;
     SDL_Texture* blueDrum;
@@ -163,6 +164,16 @@ class EzRender {
 	menuFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
 
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+	effects ~= new FadeEffect(redGrad, 68,
+				  0, 150, 400, 150);
+	effects ~= new FadeEffect(blueGrad, 68,
+				  0, 150, 400, 150);
+	effects ~= new FadeEffect(good, 68,
+				  80, 180, 100, 100);
+	effects ~= new FadeEffect(ok, 68,
+				  80, 180, 100, 100);
+	effects ~= new FadeEffect(bad, 68,
+				  80, 180, 100, 100);
 	hasLoaded = true;
     }
 
@@ -232,13 +243,8 @@ class EzRender {
     }
 
     // Render red or blue hit gradient
-    void renderHitGradient(int color) {
-	SDL_Rect rect = {0, 150, 400, 150};
-	if (color == TAIKO_RED) {
-	    SDL_RenderCopy(renderer, redGrad, null, &rect);
-	} else {
-	    SDL_RenderCopy(renderer, blueGrad, null, &rect);
-	}
+    void renderHitGradient(int color, int time) {
+        effects[color].reset(time);
     }
 
     // Play desired sound effect
@@ -279,14 +285,13 @@ class EzRender {
     }
 
     // Render hit result (good, bad, miss)
-    void renderHitResult(int type) {
-	SDL_Rect rect = {80, 180, 100, 100};
-	if (type == TAIKO_RED) {
-	    SDL_RenderCopy(renderer, good, null, &rect);
-	} else if (type == TAIKO_BLUE) {
-	    SDL_RenderCopy(renderer, ok, null, &rect);
+    void renderHitResult(int type, int time) {
+	if (type == 0) {
+	    effects[2].reset(time);
+	} else if (type == 1) {
+	    effects[3].reset(time);
 	} else {
-	    SDL_RenderCopy(renderer, bad, null, &rect);
+	    effects[4].reset(time);
 	}
 	if (type == TAIKO_RED || type == TAIKO_BLUE) {
 	    if (performance.drums[performance.i - 1].color == TAIKO_RED) {
@@ -501,6 +506,61 @@ class EzRender {
 	    SDL_RenderCopy(renderer, texture, null, &rect);
 	}
 	
+    }
+
+    void renderAllEffects(int time) {
+	foreach (Effect effect ; effects) {
+	    effect.renderFrame(time);
+	}
+    }
+
+    void resetEffects() {
+	foreach (Effect effect ; effects) {
+	    effect.reset(0);
+	}
+    }
+    
+    class Effect {
+
+	SDL_Rect rect;
+	SDL_Texture* texture;
+	int duration; // milliseconds
+	int startTime;
+
+	this(SDL_Texture* texture, int duration,
+	     int x, int y, int w, int h) {
+
+	    rect.x = x;
+	    rect.y = y;
+	    rect.w = w;
+	    rect.h = h;
+	    this.duration = duration;
+	    this.texture = texture;
+	}
+
+	void reset(int time) {
+	    startTime = time;
+	}
+	
+	abstract void renderFrame(int time);
+    }
+
+    class FadeEffect : Effect {
+
+	this(SDL_Texture* texture, int duration,
+	     int x, int y, int w, int h) {
+
+	    super(texture, duration, x, y, w, h);
+	}
+	
+	override void renderFrame(int time) {
+	    int x = ((time - startTime) / duration) * 100;
+	    if (x < 100) {
+		int y = to!int((-0.0225 * (x*x)) + (1.5 * x) + 75);
+		SDL_SetTextureAlphaMod(texture, to!ubyte(255 * 0.01 * y));
+		SDL_RenderCopy(renderer, this.texture, null, &rect);
+	    }
+	}
     }
 
     // A basic class for use in rendering
