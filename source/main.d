@@ -201,17 +201,19 @@ void main(string[] args) {
 	// Create and render main menu
 	int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
 	while (renderMainMenu(mainMenuId)) {
-	    gameRenderer.performance = new Performance("default");
+	    gameRenderer.setPerformance(new Performance("finish_line"));
 	    performance = gameRenderer.performance;
 	    // Render the game while there are drums left unhit
 	    frame = 0;
-	    gameplayTime = SDL_GetTicks();
 	    gameRenderer.populateRenderables();
+	    gameRenderer.playMusic();
+	    gameplayTime = SDL_GetTicks();
 	    renderGameplay();
 	    while (!quit && performance.i < performance.drums.length) {
 		renderGameplay();
 	    }
 	    gameRenderer.destroyAnimations();
+	    gameRenderer.stopMusic();
 	    if (!quit) {
 		SDL_Delay(2000);
 		writeln("Results:\n"

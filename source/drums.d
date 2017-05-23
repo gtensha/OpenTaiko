@@ -2,6 +2,7 @@ import map_gen;
 
 class Performance {
 
+    string mapTitle;
     Drum[] drums;
     Score score;
     int i;
@@ -13,6 +14,7 @@ class Performance {
     }
 
     this(string map) {
+	mapTitle = map;
 	drums = MapGen.parseMapFromFile(map);
 	drums[0].setParent(this);
 	i = 0;

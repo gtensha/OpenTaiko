@@ -9,6 +9,7 @@ import derelict.sdl2.mixer;
 import derelict.sdl2.ttf;
 
 import drums;
+import map_gen;
 
 enum {
     TAIKO_RED = 0,
@@ -71,6 +72,7 @@ class EzRender {
     //SDL_Texture blueLargeDrum;
 
     Mix_Chunk* redHit, blueHit, missEffect;
+    Mix_Music* track;
 
     TTF_Font* scoreFont, menuFont;
     SDL_Texture*[string] textCache; // this never gets emptied, must
@@ -250,6 +252,17 @@ class EzRender {
 	}
     }
 
+    void playMusic() {
+	if (Mix_PlayMusic(track, 1) < 0) {
+	    writeln("Failed to play music: " ~ fromStringz(Mix_GetError()));
+	}
+    }
+
+    void stopMusic() {
+	Mix_PauseMusic();
+	Mix_RewindMusic();
+    }
+
     // Fill a defined quadratic area with a specified colour
     void fillSurfaceArea(int x, int y, int w, int h, 
 			 ubyte r, ubyte g, ubyte b, ubyte a) {
@@ -330,6 +343,20 @@ class EzRender {
     void renderMenu(int index) {
 	if (index < menus.length)
 	    this.menus[index].render();
+    }
+
+    void setPerformance(Performance performance) {
+	this.performance = performance;
+	try {
+	    assert((MAP_DIR ~ performance.mapTitle ~ "/track.ogg").isFile);
+	} catch (Exception e) {
+	    writeln("No music was detected");
+	    return;
+	}
+	track = Mix_LoadMUS(toStringz(MAP_DIR ~ performance.mapTitle ~ "/track.ogg"));
+	if (track is null) {
+	    writeln("Failed to load music");
+	}
     }
 
     class Menu {
