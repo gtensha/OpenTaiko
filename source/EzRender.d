@@ -173,8 +173,8 @@ class EzRender {
     }
 
     // Render a specific drum circle for specified frame
-    bool renderCircle(Drum drum, int frame) {
-	int drawCoord = to!int(drum.position - (frame * 16) + 100);
+    bool renderCircle(Drum drum, int time) {
+	int drawCoord = to!int(drum.position - time + 100);
 	SDL_Rect rect = {drawCoord, 200, 60, 60};
 	if (drum.color() == 0) {
 	    SDL_RenderCopy(renderer, redDrum, null, &rect);
@@ -189,10 +189,10 @@ class EzRender {
     }
 
     // Render all the drum circles in the game for specified frame
-    void renderAllCircles(int frame) {
+    void renderAllCircles(int time) {
 
 	for (int i = performance.i; i < performance.drums.length; i++) {
-	    if (renderCircle(performance.drums[i], frame) == false) {
+	    if (renderCircle(performance.drums[i], time) == false) {
 		break;
 	    }
 	}
@@ -456,7 +456,7 @@ class EzRender {
 	    if (canRender) {
 		rect.y = to!int((0.0005 * (rect.x*rect.x)) - (0.71 * rect.x) + 264.01);
 		this.render();
-		rect.x += 30;
+		rect.x += 5;
 		if (rect.x >= limitX) {
 		    canRender = false;
 		}
