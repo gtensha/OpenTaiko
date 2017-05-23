@@ -59,6 +59,7 @@ class EzRender {
     Performance performance;
     Menu[] menus;
     Animation[] animations;
+    Renderable[] renderableObjects;
 
     SDL_Texture* redDrum;
     SDL_Texture* blueDrum;
@@ -171,7 +172,8 @@ class EzRender {
 	    TTF_Quit();
 	}
     }
-
+    
+    // (Obsolete function)
     // Render a specific drum circle for specified frame
     bool renderCircle(Drum drum, int time) {
 	int drawCoord = to!int(drum.position - time + 100);
@@ -191,8 +193,13 @@ class EzRender {
     // Render all the drum circles in the game for specified frame
     void renderAllCircles(int time) {
 
-	for (int i = performance.i; i < performance.drums.length; i++) {
+	/*for (int i = performance.i; i < performance.drums.length; i++) {
 	    if (renderCircle(performance.drums[i], time) == false) {
+		break;
+	    }
+	    }*/
+	for (int i = performance.i; i < renderableObjects.length; i++) {
+	    if (renderableObjects[i].render(time) == false) {
 		break;
 	    }
 	}
@@ -467,6 +474,47 @@ class EzRender {
 	    SDL_RenderCopy(renderer, texture, null, &rect);
 	}
 	
+    }
+
+    // A basic class for use in rendering
+    abstract class Renderable {
+
+	SDL_Rect rect;
+	SDL_Texture* texture;
+	int position;
+	
+	bool render(int time) {
+	    rect.x = position - time + 100;
+	    SDL_RenderCopy(renderer, this.texture, null, &rect);
+	    if (rect.x > windowWidth) {
+		return false;
+	    } else {
+		return true;
+	    }
+	}
+    }
+    
+    class RenderableDrum : Renderable {
+	this(Drum drum) {
+	    rect.x = to!int(drum.position + 100);
+	    rect.y = 200;
+	    rect.w = 60;
+	    rect.h = 60;
+	    position = to!int(drum.position);
+
+	    if (drum.color() == TAIKO_RED) {
+		this.texture = redDrum;
+	    } else {
+		this.texture = blueDrum;
+	    }
+	}
+    }
+
+    void populateRenderables() {
+	renderableObjects = null;
+	foreach (Drum drum ; performance.drums) {
+	    renderableObjects ~= new RenderableDrum(drum);
+	}
     }
     
 }

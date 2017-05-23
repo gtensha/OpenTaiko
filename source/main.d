@@ -95,8 +95,10 @@ void renderGameplay() {
     }
     
     SDL_RenderPresent(renderer);
+    // Push as many frames as possible for now,
+    // burns your CPU but gives a very good image
     //SDL_Delay(0); // aim for around 60FPS
-                   // (changeable FPS values are to be implemented)
+    // (changeable FPS values are to be implemented)
     frame++;
 
 }
@@ -204,6 +206,7 @@ void main(string[] args) {
 	    // Render the game while there are drums left unhit
 	    frame = 0;
 	    gameplayTime = SDL_GetTicks();
+	    gameRenderer.populateRenderables();
 	    renderGameplay();
 	    while (!quit && performance.i < performance.drums.length) {
 		renderGameplay();
