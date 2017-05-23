@@ -31,6 +31,7 @@ class MapGen {
 	Drum[] drumArray;
 
 	int i;
+	int offset;
 	bool processAttrs = true;
 	bool processMap = false;
 	foreach (string line ; lines) {
@@ -39,8 +40,9 @@ class MapGen {
 	    if (!line.equal("") && line[0] != '#') {
 
 		bool foundTag = false;
+		string[] formattedLine = split(line);
 		// Check if should still/again check attributes
-		switch (line) {
+		switch (formattedLine[0]) {
 		    case "!attrs":
 			processAttrs = true;
 			processMap = false;
@@ -64,6 +66,14 @@ class MapGen {
 			foundTag = true;
 			break;
 
+		    case "!offset":
+			// This has no mercy, you MUST make sure your
+			// offset is behind all circles placed so far
+			offset = to!int(formattedLine[1]);
+			i = 0;
+			foundTag = true;
+			break;
+			
 		    default:
 			// Quit early if funky situation occurs
 			if (processAttrs == processMap) {
@@ -82,7 +92,7 @@ class MapGen {
 			zoom = to!int(vars[1]);
 		    }
 		} else if (!foundTag && processMap) { // else process as map data
-		    drumArray ~= readMapSection(line, bpm, &i);
+		    drumArray ~= readMapSection(line, bpm, &i, offset);
 		}
 	    }
 	}
@@ -90,18 +100,18 @@ class MapGen {
     }
 
     // Calculate circle's position in milliseconds
-    static double calculatePosition(int i, int bpm) {
-	return ((60 / (to!double(bpm))) * to!double(i)) * 1000.0;
+    static double calculatePosition(int i, int offset, int bpm) {
+	return (((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
     }
 
-    static Drum[] readMapSection(string section, int bpm, int* i) {
+    static Drum[] readMapSection(string section, int bpm, int* i, int offset) {
 	int index = *i;
 	Drum[] drumArray;
         foreach (char type ; section) {
 	    if (type == 'D' || type == 'd') {
-		drumArray ~= new Red(calculatePosition(index, bpm));
+		drumArray ~= new Red(calculatePosition(index, offset, bpm));
 	    } else if (type == 'K' || type == 'k') {
-		drumArray ~= new Blue(calculatePosition(index, bpm));
+		drumArray ~= new Blue(calculatePosition(index, offset, bpm));
 	    }
 	    index++;
 	}
