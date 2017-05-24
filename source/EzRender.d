@@ -9,6 +9,7 @@ import derelict.sdl2.mixer;
 import derelict.sdl2.ttf;
 
 import drums;
+import map_gen;
 
 enum {
     TAIKO_RED = 0,
@@ -59,6 +60,10 @@ class EzRender {
     Performance performance;
     Menu[] menus;
     Animation[] animations;
+    Renderable[] renderableObjects;
+    Effect[] effects;
+
+    int circleIndex;
 
     SDL_Texture* redDrum;
     SDL_Texture* blueDrum;
@@ -70,6 +75,7 @@ class EzRender {
     //SDL_Texture blueLargeDrum;
 
     Mix_Chunk* redHit, blueHit, missEffect;
+    Mix_Music* track;
 
     TTF_Font* scoreFont, menuFont;
     SDL_Texture*[string] textCache; // this never gets emptied, must
@@ -160,6 +166,16 @@ class EzRender {
 	menuFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
 
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+	effects ~= new FadeEffect(redGrad, 68,
+				  0, 150, 400, 150);
+	effects ~= new FadeEffect(blueGrad, 68,
+				  0, 150, 400, 150);
+	effects ~= new FadeEffect(good, 100,
+				  80, 180, 100, 100);
+	effects ~= new FadeEffect(ok, 100,
+				  80, 180, 100, 100);
+	effects ~= new FadeEffect(bad, 100,
+				  80, 180, 100, 100);
 	hasLoaded = true;
     }
 
@@ -171,10 +187,11 @@ class EzRender {
 	    TTF_Quit();
 	}
     }
-
+    
+    // (Obsolete function)
     // Render a specific drum circle for specified frame
-    bool renderCircle(Drum drum, int frame) {
-	int drawCoord = to!int(drum.position - (frame * 16) + 100);
+    bool renderCircle(Drum drum, int time) {
+	int drawCoord = to!int(drum.position - time + 100);
 	SDL_Rect rect = {drawCoord, 200, 60, 60};
 	if (drum.color() == 0) {
 	    SDL_RenderCopy(renderer, redDrum, null, &rect);
@@ -189,10 +206,15 @@ class EzRender {
     }
 
     // Render all the drum circles in the game for specified frame
-    void renderAllCircles(int frame) {
+    void renderAllCircles(int time) {
 
-	for (int i = performance.i; i < performance.drums.length; i++) {
-	    if (renderCircle(performance.drums[i], frame) == false) {
+	/*for (int i = performance.i; i < performance.drums.length; i++) {
+	    if (renderCircle(performance.drums[i], time) == false) {
+		break;
+	    }
+	    }*/
+	for (int i = circleIndex; i < renderableObjects.length; i++) {
+	    if (renderableObjects[i].render(time) == false) {
 		break;
 	    }
 	}
@@ -223,13 +245,8 @@ class EzRender {
     }
 
     // Render red or blue hit gradient
-    void renderHitGradient(int color) {
-	SDL_Rect rect = {0, 150, 400, 150};
-	if (color == TAIKO_RED) {
-	    SDL_RenderCopy(renderer, redGrad, null, &rect);
-	} else {
-	    SDL_RenderCopy(renderer, blueGrad, null, &rect);
-	}
+    void renderHitGradient(int color, int time) {
+        effects[color].reset(time);
     }
 
     // Play desired sound effect
@@ -241,6 +258,17 @@ class EzRender {
 	} else {
 	    Mix_PlayChannel(2, missEffect, 0);
 	}
+    }
+
+    void playMusic() {
+	if (Mix_PlayMusic(track, 1) < 0) {
+	    writeln("Failed to play music: " ~ fromStringz(Mix_GetError()));
+	}
+    }
+
+    void stopMusic() {
+	Mix_PauseMusic();
+	Mix_RewindMusic();
     }
 
     // Fill a defined quadratic area with a specified colour
@@ -259,22 +287,21 @@ class EzRender {
     }
 
     // Render hit result (good, bad, miss)
-    void renderHitResult(int type) {
-	SDL_Rect rect = {80, 180, 100, 100};
-	if (type == TAIKO_RED) {
-	    SDL_RenderCopy(renderer, good, null, &rect);
-	} else if (type == TAIKO_BLUE) {
-	    SDL_RenderCopy(renderer, ok, null, &rect);
+    void renderHitResult(int type, int time) {
+	if (type == 0) {
+	    effects[2].reset(time);
+	} else if (type == 1) {
+	    effects[3].reset(time);
 	} else {
-	    SDL_RenderCopy(renderer, bad, null, &rect);
+	    effects[4].reset(time);
 	}
-	if (type == TAIKO_RED || type == TAIKO_BLUE) {
+	/*if (type == TAIKO_RED || type == TAIKO_BLUE) {
 	    if (performance.drums[performance.i - 1].color == TAIKO_RED) {
 		addAnimation(redDrum, 97, 200);
 	    } else {
 		addAnimation(blueDrum, 97, 200);
 	    }
-	}
+	    }*/
     }
 
     // Render some text with the default font and colour
@@ -323,6 +350,20 @@ class EzRender {
     void renderMenu(int index) {
 	if (index < menus.length)
 	    this.menus[index].render();
+    }
+
+    void setPerformance(Performance performance) {
+	this.performance = performance;
+	try {
+	    assert((MAP_DIR ~ performance.mapTitle ~ "/track.ogg").isFile);
+	} catch (Exception e) {
+	    writeln("No music was detected");
+	    return;
+	}
+	track = Mix_LoadMUS(toStringz(MAP_DIR ~ performance.mapTitle ~ "/track.ogg"));
+	if (track is null) {
+	    writeln("Failed to load music");
+	}
     }
 
     class Menu {
@@ -456,7 +497,7 @@ class EzRender {
 	    if (canRender) {
 		rect.y = to!int((0.0005 * (rect.x*rect.x)) - (0.71 * rect.x) + 264.01);
 		this.render();
-		rect.x += 30;
+		rect.x += 5;
 		if (rect.x >= limitX) {
 		    canRender = false;
 		}
@@ -467,6 +508,155 @@ class EzRender {
 	    SDL_RenderCopy(renderer, texture, null, &rect);
 	}
 	
+    }
+
+    void renderAllEffects(int time) {
+	foreach (Effect effect ; effects) {
+	    effect.renderFrame(time);
+	}
+    }
+
+    void resetEffects() {
+	foreach (Effect effect ; effects) {
+	    effect.reset(0);
+	}
+    }
+    
+    class Effect {
+
+	SDL_Rect rect;
+	SDL_Texture* texture;
+	int duration; // milliseconds
+	int startTime;
+
+	this(SDL_Texture* texture, int duration,
+	     int x, int y, int w, int h) {
+
+	    rect.x = x;
+	    rect.y = y;
+	    rect.w = w;
+	    rect.h = h;
+	    this.duration = duration;
+	    this.texture = texture;
+	}
+
+	void reset(int time) {
+	    startTime = time;
+	}
+	
+	abstract void renderFrame(int time);
+    }
+
+    class FadeEffect : Effect {
+
+	this(SDL_Texture* texture, int duration,
+	     int x, int y, int w, int h) {
+
+	    super(texture, duration, x, y, w, h);
+	}
+	
+	override void renderFrame(int time) {
+	    double x = (to!double(time - startTime) / duration) * 100;
+	    if (x < 100) {
+		int y = to!int((-0.0225 * (x*x)) + (1.5 * x) + 75);
+		SDL_SetTextureAlphaMod(texture, to!ubyte(255 * 0.01 * y));
+		SDL_RenderCopy(renderer, this.texture, null, &rect);
+	    }
+	}
+    }
+
+    // A basic class for use in rendering
+    abstract class Renderable {
+
+	SDL_Rect rect;
+	SDL_Texture* texture;
+	int position;
+	
+	bool render(int time) {
+	    rect.x = position - time + 100;
+	    SDL_RenderCopy(renderer, this.texture, null, &rect);
+	    if (rect.x > windowWidth) {
+		return false;
+	    } else {
+		return true;
+	    }
+	}
+    }
+    
+    class RenderableDrum : Renderable {
+
+	HitAnimation animation;
+	int index;
+	
+	this(Drum drum, int index) {
+	    rect.x = to!int(drum.position + 100);
+	    rect.y = 200;
+	    rect.w = 60;
+	    rect.h = 60;
+	    position = to!int(drum.position);
+	    this.index = index;
+
+	    if (drum.color() == TAIKO_RED) {
+		this.texture = redDrum;
+	    } else {
+		this.texture = blueDrum;
+	    }
+	    
+	    animation = new HitAnimation(texture, 250, to!int(drum.position),
+					 rect.x, rect.y, rect.w, rect.h);
+	}
+
+	override bool render(int time) {
+	    if (performance.i <= index) {
+		rect.x = position - time + 100;
+		SDL_RenderCopy(renderer, this.texture, null, &rect);
+		if (rect.x > windowWidth) {
+		    return false;
+		} else {
+		    return true;
+		}
+	    } else {
+		animation.renderFrame(time);
+		return true;
+	    }
+	}
+    }
+    
+    class HitAnimation : Effect {
+
+	bool hasStarted = false;
+	
+	this(SDL_Texture* texture, int duration, int startTime,
+	     int x, int y, int w, int h) {
+
+	    super(texture, 250, x, y, w - 10, h - 10);
+	    this.startTime = startTime;
+	}
+	
+	override void renderFrame(int time) {
+	    if (!hasStarted) {
+		startTime = time;
+		hasStarted = true;
+	    }
+	    double x = (to!double(time - startTime) / duration) * 100;
+	    if (x < 100) {
+		this.rect.y = to!int((0.04625 * (x*x)) - (5.925 * x) + 200);
+		this.rect.x = to!int(100 + ((windowWidth - 185) * 0.01 * x));
+		SDL_RenderCopy(renderer, this.texture, null, &this.rect);
+	    } else {
+		circleIndex++;
+	    }
+	}
+    }
+    
+    void populateRenderables() {
+	renderableObjects = null;
+	circleIndex = 0;
+	int i = 0;
+	foreach (Drum drum ; performance.drums) {
+	    renderableObjects ~= new RenderableDrum(drum, i);
+	    i++;
+	}
     }
     
 }

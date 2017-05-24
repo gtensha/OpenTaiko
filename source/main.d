@@ -25,11 +25,13 @@ Performance performance;
 EzRender gameRenderer;
 
 int frame;
+int gameplayTime;
 bool quit = false;
 
 // Render a gameplay frame
 void renderGameplay() {
     gameRenderer.renderBackground();
+    int currentTime = SDL_GetTicks() - gameplayTime;
     int hitType = 3;
     SDL_Event event;
     // Find which keys are being pressed, play sounds
@@ -69,32 +71,36 @@ void renderGameplay() {
     }
 
     if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
-	hitType = gameRenderer.performance.hit(buttonPressed, frame * 16);
+	hitType = gameRenderer.performance.hit(buttonPressed, currentTime);
 	if (buttonPressed == TAIKO_RED) {
-	    gameRenderer.renderHitGradient(TAIKO_RED);
+	    gameRenderer.renderHitGradient(TAIKO_RED, currentTime);
 	    gameRenderer.playSoundEffect(TAIKO_RED);
 	} else {
-	    gameRenderer.renderHitGradient(TAIKO_BLUE);
+	    gameRenderer.renderHitGradient(TAIKO_BLUE, currentTime);
 	    gameRenderer.playSoundEffect(TAIKO_BLUE);
 	}
     }
     
-    gameRenderer.renderAllCircles(frame);
+    gameRenderer.renderAllCircles(currentTime);
 
     // Skip checking if hit is way ahead of time,
     // otherwise render the proper hit animation and play sound
-    if (hitType != 3 || gameRenderer.performance.checkTardiness(frame * 16)) {
+    if (hitType != 3 || gameRenderer.performance.checkTardiness(currentTime)) {
 	if (hitType == 0 || hitType == 1) {
-	    gameRenderer.renderHitResult(hitType);
+	    gameRenderer.renderHitResult(hitType, currentTime);
 	} else {
-	    gameRenderer.renderHitResult(hitType);
+	    gameRenderer.renderHitResult(hitType, currentTime);
 	    gameRenderer.playSoundEffect(3);
 	}
     }
+
+    gameRenderer.renderAllEffects(currentTime);
     
     SDL_RenderPresent(renderer);
-    SDL_Delay(16); // aim for around 60FPS
-                   // (changeable FPS values are to be implemented)
+    // Push as many frames as possible for now,
+    // burns your CPU but gives a very good image
+    //SDL_Delay(0); // aim for around 60FPS
+    // (changeable FPS values are to be implemented)
     frame++;
 
 }
@@ -197,15 +203,20 @@ void main(string[] args) {
 	// Create and render main menu
 	int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
 	while (renderMainMenu(mainMenuId)) {
-	    gameRenderer.performance = new Performance("default");
+	    gameRenderer.setPerformance(new Performance("finish_line"));
 	    performance = gameRenderer.performance;
 	    // Render the game while there are drums left unhit
 	    frame = 0;
+	    gameRenderer.populateRenderables();
+	    gameRenderer.playMusic();
+	    gameplayTime = SDL_GetTicks();
 	    renderGameplay();
 	    while (!quit && performance.i < performance.drums.length) {
 		renderGameplay();
 	    }
 	    gameRenderer.destroyAnimations();
+	    gameRenderer.resetEffects();
+	    gameRenderer.stopMusic();
 	    if (!quit) {
 		SDL_Delay(2000);
 		writeln("Results:\n"

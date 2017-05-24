@@ -2,6 +2,7 @@ import map_gen;
 
 class Performance {
 
+    string mapTitle;
     Drum[] drums;
     Score score;
     int i;
@@ -13,6 +14,7 @@ class Performance {
     }
 
     this(string map) {
+	mapTitle = map;
 	drums = MapGen.parseMapFromFile(map);
 	drums[0].setParent(this);
 	i = 0;
@@ -26,6 +28,8 @@ class Performance {
 	    score.good++;
 	} else if (hitResult == 1) {
 	    score.ok++;
+	} else if (hitResult == 3) {
+	    return hitResult;
 	} else {
 	    score.bad++;
 	}
