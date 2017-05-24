@@ -63,6 +63,8 @@ class EzRender {
     Renderable[] renderableObjects;
     Effect[] effects;
 
+    int circleIndex;
+
     SDL_Texture* redDrum;
     SDL_Texture* blueDrum;
     SDL_Texture* redGrad;
@@ -168,11 +170,11 @@ class EzRender {
 				  0, 150, 400, 150);
 	effects ~= new FadeEffect(blueGrad, 68,
 				  0, 150, 400, 150);
-	effects ~= new FadeEffect(good, 68,
+	effects ~= new FadeEffect(good, 100,
 				  80, 180, 100, 100);
-	effects ~= new FadeEffect(ok, 68,
+	effects ~= new FadeEffect(ok, 100,
 				  80, 180, 100, 100);
-	effects ~= new FadeEffect(bad, 68,
+	effects ~= new FadeEffect(bad, 100,
 				  80, 180, 100, 100);
 	hasLoaded = true;
     }
@@ -211,7 +213,7 @@ class EzRender {
 		break;
 	    }
 	    }*/
-	for (int i = performance.i; i < renderableObjects.length; i++) {
+	for (int i = circleIndex; i < renderableObjects.length; i++) {
 	    if (renderableObjects[i].render(time) == false) {
 		break;
 	    }
@@ -293,13 +295,13 @@ class EzRender {
 	} else {
 	    effects[4].reset(time);
 	}
-	if (type == TAIKO_RED || type == TAIKO_BLUE) {
+	/*if (type == TAIKO_RED || type == TAIKO_BLUE) {
 	    if (performance.drums[performance.i - 1].color == TAIKO_RED) {
 		addAnimation(redDrum, 97, 200);
 	    } else {
 		addAnimation(blueDrum, 97, 200);
 	    }
-	}
+	    }*/
     }
 
     // Render some text with the default font and colour
@@ -554,7 +556,7 @@ class EzRender {
 	}
 	
 	override void renderFrame(int time) {
-	    int x = ((time - startTime) / duration) * 100;
+	    double x = (to!double(time - startTime) / duration) * 100;
 	    if (x < 100) {
 		int y = to!int((-0.0225 * (x*x)) + (1.5 * x) + 75);
 		SDL_SetTextureAlphaMod(texture, to!ubyte(255 * 0.01 * y));
@@ -582,25 +584,78 @@ class EzRender {
     }
     
     class RenderableDrum : Renderable {
-	this(Drum drum) {
+
+	HitAnimation animation;
+	int index;
+	
+	this(Drum drum, int index) {
 	    rect.x = to!int(drum.position + 100);
 	    rect.y = 200;
 	    rect.w = 60;
 	    rect.h = 60;
 	    position = to!int(drum.position);
+	    this.index = index;
 
 	    if (drum.color() == TAIKO_RED) {
 		this.texture = redDrum;
 	    } else {
 		this.texture = blueDrum;
 	    }
+	    
+	    animation = new HitAnimation(texture, 250, to!int(drum.position),
+					 rect.x, rect.y, rect.w, rect.h);
+	}
+
+	override bool render(int time) {
+	    if (performance.i <= index) {
+		rect.x = position - time + 100;
+		SDL_RenderCopy(renderer, this.texture, null, &rect);
+		if (rect.x > windowWidth) {
+		    return false;
+		} else {
+		    return true;
+		}
+	    } else {
+		animation.renderFrame(time);
+		return true;
+	    }
 	}
     }
+    
+    class HitAnimation : Effect {
 
+	bool hasStarted = false;
+	
+	this(SDL_Texture* texture, int duration, int startTime,
+	     int x, int y, int w, int h) {
+
+	    super(texture, 250, x, y, w - 10, h - 10);
+	    this.startTime = startTime;
+	}
+	
+	override void renderFrame(int time) {
+	    if (!hasStarted) {
+		startTime = time;
+		hasStarted = true;
+	    }
+	    double x = (to!double(time - startTime) / duration) * 100;
+	    if (x < 100) {
+		this.rect.y = to!int((0.04625 * (x*x)) - (5.925 * x) + 200);
+		this.rect.x = to!int(100 + ((windowWidth - 185) * 0.01 * x));
+		SDL_RenderCopy(renderer, this.texture, null, &this.rect);
+	    } else {
+		circleIndex++;
+	    }
+	}
+    }
+    
     void populateRenderables() {
 	renderableObjects = null;
+	circleIndex = 0;
+	int i = 0;
 	foreach (Drum drum ; performance.drums) {
-	    renderableObjects ~= new RenderableDrum(drum);
+	    renderableObjects ~= new RenderableDrum(drum, i);
+	    i++;
 	}
     }
     
