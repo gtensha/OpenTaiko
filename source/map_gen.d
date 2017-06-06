@@ -10,7 +10,26 @@ import drums;
 
 enum {
     string MAP_DIR = "maps/",
+    int WIDTH = 0,
+    int HEIGHT = 1,
+    int RED1 = 0,
+    int RED2 = 1,
+    int BLUE1 = 2,
+    int BLUE2 = 3,
 };
+
+struct GameVars {
+
+    // Keyboard mapping
+    int[4] p1;
+    int[4] p2;
+
+    // Display options
+    int[2] resolution;
+    // int maxFPS
+    bool vsync;
+    
+}
 
 class MapGen {
 
@@ -118,5 +137,48 @@ class MapGen {
 	*i = index;
 	return drumArray;
     }
-	    
+
+    static GameVars readConfFile(string file) {
+	GameVars gameVars;
+	string input = to!string(std.file.read(file));
+	string[] lines = split(input, "\n");
+	
+	foreach (string line ; lines) {
+
+	    // Ignore lines starting with '#' (comments)
+	    if (!line.equal("") && line[0] != '#') {
+		string[] formattedLine = split(line);
+		string[] vars = split(line);
+		switch (line[0]) {
+		    
+		case 'r':
+		    gameVars.resolution[WIDTH] = to!int(vars[1]);
+		    gameVars.resolution[HEIGHT] = to!int(vars[2]);
+		    break;
+		  
+		case 'k':
+		    int[4] keys;
+		    int i;
+		    foreach (string number ; vars[2..6]) {
+			keys[i] = to!int(number);
+			i++;
+		    }
+		    if (vars[1].equal("p1")) {
+			gameVars.p1 = keys;
+		    } else if (vars[1].equal("p2")) {
+			gameVars.p2 = keys;
+		    }
+		    break;
+
+		case 'v':
+		    gameVars.vsync = to!bool(to!int(vars[1]));
+		    break;
+
+		default:
+		    break;
+		}
+	    }
+	}
+	return gameVars;
+    }	    
 }

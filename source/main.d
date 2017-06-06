@@ -24,14 +24,27 @@ SDL_Renderer* renderer;
 Performance performance;
 EzRender gameRenderer;
 
+GameVars vars;
+
 int frame;
 int gameplayTime;
+int seconds;
+int fps;
+int prevFrames;
+int targetFPS = -1;
+int frameSleepTime;
 bool quit = false;
 
 // Render a gameplay frame
 void renderGameplay() {
     gameRenderer.renderBackground();
     int currentTime = SDL_GetTicks() - gameplayTime;
+    if (currentTime - (seconds * 1000) > 0) {
+	fps = frame - prevFrames;
+	prevFrames = frame;
+	seconds++;
+    }
+    gameRenderer.renderQuickText("FPS: " ~ to!string(fps), 0, 0);
     int hitType = 3;
     SDL_Event event;
     // Find which keys are being pressed, play sounds
@@ -39,31 +52,13 @@ void renderGameplay() {
     int buttonPressed = -1;
     while (SDL_PollEvent(&event) == 1) {	
 	if (event.type == SDL_KEYDOWN) {
-	    switch (event.key.keysym.sym) {
-	    case SDLK_f:
+	    if (event.key.keysym.sym == vars.p1[RED1] || event.key.keysym.sym == vars.p1[RED2]) {
 		buttonPressed = TAIKO_RED;
-		break;
-		
-	    case SDLK_j:
-		buttonPressed = TAIKO_RED;
-		break;
-
-	    case SDLK_d:
+	    } else if (event.key.keysym.sym == vars.p1[BLUE1] || event.key.keysym.sym == vars.p1[BLUE2]) {
 		buttonPressed = TAIKO_BLUE;
-		break;
-
-	    case SDLK_k:
-		buttonPressed = TAIKO_BLUE;
-		break;
-
-	    case SDLK_ESCAPE:
+	    } else if (event.key.keysym.sym == SDLK_ESCAPE) {
 		quit = true;
-		break;
-
-	    default:
-		break;
 	    }
-	    
 	} else if (event.type == SDL_QUIT) {
 	    quit = true;
 	}
@@ -97,10 +92,18 @@ void renderGameplay() {
     gameRenderer.renderAllEffects(currentTime);
     
     SDL_RenderPresent(renderer);
-    // Push as many frames as possible for now,
-    // burns your CPU but gives a very good image
-    //SDL_Delay(0); // aim for around 60FPS
-    // (changeable FPS values are to be implemented)
+
+    // This works nowhere near as good as I want it to, the image
+    // is very choppy. Best to just play without a limiter for now...
+    /*
+    if (frameSleepTime > 0) {
+	int frameEndTime = SDL_GetTicks() - gameplayTime;
+	int toSleep = frameEndTime - currentTime;
+	if (toSleep < frameSleepTime) {
+	    SDL_Delay(frameSleepTime - toSleep);
+	}
+    }
+    */
     frame++;
 
 }
@@ -158,6 +161,26 @@ bool renderMainMenu(int menuIndex) {
 
 void main(string[] args) {
 
+    try {
+	vars = MapGen.readConfFile("settings.conf");
+	if (vars.resolution[0] == 0 || vars.resolution[1] == 0) {
+	    vars.resolution = [1200, 600];
+	}
+    } catch (Exception e) {
+	vars.p1 = [106, 102, 107, 100];
+	vars.p2 = [0, 0, 0, 0];
+	vars.resolution = [1200, 600];
+	vars.vsync = false;
+
+	writeln("Error reading config file, using default settings.");
+    }
+    int rendererFlags;
+    if (vars.vsync == true) {
+	rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+    } else {
+	rendererFlags = SDL_RENDERER_ACCELERATED;
+    }
+    
     DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
     
     try {
@@ -170,18 +193,18 @@ void main(string[] args) {
 	writeln("Failed to initialise SDL: ", fromStringz(SDL_GetError()));
 	return;
     }
-
+    
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
-			      1200,
-			      600,
+			      vars.resolution[WIDTH],
+			      vars.resolution[HEIGHT],
 			      0);
     if (window is null) {
 	writeln("Failed to create window: ", fromStringz(SDL_GetError()));
     }
     
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1, rendererFlags);
     if (renderer is null) {
 	writeln("Failed to create renderer: ", fromStringz(SDL_GetError()));
     }
@@ -199,6 +222,10 @@ void main(string[] args) {
 	canPlay = false;
     }
 
+    if (targetFPS > 0) {
+	frameSleepTime = 1000 / targetFPS;
+    }
+
     if (canPlay) {
 	// Create and render main menu
 	int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
@@ -207,6 +234,7 @@ void main(string[] args) {
 	    performance = gameRenderer.performance;
 	    // Render the game while there are drums left unhit
 	    frame = 0;
+	    seconds = 0;
 	    gameRenderer.populateRenderables();
 	    gameRenderer.playMusic();
 	    gameplayTime = SDL_GetTicks();
@@ -214,9 +242,8 @@ void main(string[] args) {
 	    while (!quit && performance.i < performance.drums.length) {
 		renderGameplay();
 	    }
-	    gameRenderer.destroyAnimations();
 	    gameRenderer.resetEffects();
-	    gameRenderer.stopMusic();
+	    //gameRenderer.stopMusic();
 	    if (!quit) {
 		SDL_Delay(2000);
 		writeln("Results:\n"

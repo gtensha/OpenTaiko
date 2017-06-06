@@ -59,9 +59,14 @@ class EzRender {
     SDL_Window* window;
     Performance performance;
     Menu[] menus;
-    Animation[] animations;
     Renderable[] renderableObjects;
     Effect[] effects;
+    TextBuffer debugText;
+
+    struct TextBuffer {
+	SDL_Texture* texture;
+	string text;
+    }
 
     int circleIndex;
 
@@ -77,7 +82,7 @@ class EzRender {
     Mix_Chunk* redHit, blueHit, missEffect;
     Mix_Music* track;
 
-    TTF_Font* scoreFont, menuFont;
+    TTF_Font* scoreFont, menuFont, infoFont;
     SDL_Texture*[string] textCache; // this never gets emptied, must
                                     // be implemented in the future
 
@@ -164,6 +169,7 @@ class EzRender {
 	
 	scoreFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.SCORE);
 	menuFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
+	infoFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.INFO);
 
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 	effects ~= new FadeEffect(redGrad, 68,
@@ -184,6 +190,7 @@ class EzRender {
 	    Mix_CloseAudio();
 	    TTF_CloseFont(scoreFont);
 	    TTF_CloseFont(menuFont);
+	    TTF_CloseFont(infoFont);
 	    TTF_Quit();
 	}
     }
@@ -226,22 +233,21 @@ class EzRender {
 	SDL_RenderClear(renderer);
 
 	// Draw overhead background
-	this.fillSurfaceArea(0, 0, 1200, 150,
+	this.fillSurfaceArea(0, 0, windowWidth, 150,
 			     255, 150, 0, 255);
 	// Draw play area
-	this.fillSurfaceArea(0, 150, 1200, 150,
+	this.fillSurfaceArea(0, 150, windowWidth, 150,
 			     20, 20, 20, 255);
 	// Draw "reception" box
 	this.renderTexture(reception,
 			   97, 200, 65, 65);
 	
 	// Draw score display
-	this.renderText(to!string(performance.calculateScore()), windowWidth - 250, 95);
+	this.renderText(rightJustify(to!string(performance.calculateScore()),
+				     7, '0'), windowWidth - 290, 95);
 	this.renderTexture(soul,
 			   windowWidth - 85, 70, 80, 80);
 
-	// Render animations
-	animateRenderAll();
     }
 
     // Render red or blue hit gradient
@@ -261,6 +267,8 @@ class EzRender {
     }
 
     void playMusic() {
+	Mix_PauseMusic();
+	Mix_RewindMusic();
 	if (Mix_PlayMusic(track, 1) < 0) {
 	    writeln("Failed to play music: " ~ fromStringz(Mix_GetError()));
 	}
@@ -301,7 +309,7 @@ class EzRender {
 	    } else {
 		addAnimation(blueDrum, 97, 200);
 	    }
-	    }*/
+	  }*/
     }
 
     // Render some text with the default font and colour
@@ -323,19 +331,19 @@ class EzRender {
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
     }
 
-    // Adds new animation to the queue
-    void addAnimation(SDL_Texture* texture, int x, int y) {
-	animations ~= new Animation(texture, x, y, 1115);
-    }
-
-    void animateRenderAll() {
-	foreach (Animation animation ; animations) {
-	    animation.animateFrame();
+    void renderQuickText(string text, int x, int y) {
+	if (debugText.text is null || text != debugText.text) {
+	    debugText.text = text;
+	    SDL_Color color = {255, 255, 255, 255};
+	    SDL_Surface* textSurface = TTF_RenderText_Solid(infoFont, toStringz(text), color);
+	    SDL_DestroyTexture(debugText.texture);
+	    debugText.texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+	    SDL_FreeSurface(textSurface);
 	}
-    }
-
-    void destroyAnimations() {
-	animations = null;
+	int w, h;
+	SDL_QueryTexture(debugText.texture, null, null, &w, &h);
+	SDL_Rect rect = {x, y, w, h};
+	SDL_RenderCopy(renderer, debugText.texture, null, &rect);
     }
 
     // Create new menu with given titles,
@@ -471,43 +479,6 @@ class EzRender {
 	    }
 	    
 	}
-    }
-
-    class Animation {
-	
-	SDL_Texture* texture;
-	SDL_Rect rect;
-	int limitX;
-	bool canRender = true;
-	
-	this(SDL_Texture* texture, int x, int y, int limitX) {
-	    this.texture = texture;
-	    int w, h;
-	    this.limitX = limitX;
-	    SDL_QueryTexture(texture, null, null, &w, &h);
-	    rect.x = x;
-	    rect.y = y;
-	    rect.w = w;
-	    rect.h = h;
-	    x = 100;
-	}
-	
-	// For now only works for default resolution
-	void animateFrame() {
-	    if (canRender) {
-		rect.y = to!int((0.0005 * (rect.x*rect.x)) - (0.71 * rect.x) + 264.01);
-		this.render();
-		rect.x += 5;
-		if (rect.x >= limitX) {
-		    canRender = false;
-		}
-	    }
-	}
-	
-	void render() {
-	    SDL_RenderCopy(renderer, texture, null, &rect);
-	}
-	
     }
 
     void renderAllEffects(int time) {
