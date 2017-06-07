@@ -6,6 +6,7 @@ import std.algorithm.comparison;
 import std.array;
 import std.string;
 import std.ascii;
+import std.json;
 import drums;
 
 enum {
@@ -139,46 +140,45 @@ class MapGen {
     }
 
     static GameVars readConfFile(string file) {
+
 	GameVars gameVars;
 	string input = to!string(std.file.read(file));
-	string[] lines = split(input, "\n");
 	
-	foreach (string line ; lines) {
+	JSONValue vars = parseJSON(input);
 
-	    // Ignore lines starting with '#' (comments)
-	    if (!line.equal("") && line[0] != '#') {
-		string[] formattedLine = split(line);
-		string[] vars = split(line);
-		switch (line[0]) {
-		    
-		case 'r':
-		    gameVars.resolution[WIDTH] = to!int(vars[1]);
-		    gameVars.resolution[HEIGHT] = to!int(vars[2]);
-		    break;
-		  
-		case 'k':
-		    int[4] keys;
-		    int i;
-		    foreach (string number ; vars[2..6]) {
-			keys[i] = to!int(number);
-			i++;
-		    }
-		    if (vars[1].equal("p1")) {
-			gameVars.p1 = keys;
-		    } else if (vars[1].equal("p2")) {
-			gameVars.p2 = keys;
-		    }
-		    break;
-
-		case 'v':
-		    gameVars.vsync = to!bool(to!int(vars[1]));
-		    break;
-
-		default:
-		    break;
-		}
-	    }
+	if (!(vars["p1"].array.length == 4
+	      &&
+	      vars["p2"].array.length == 4
+	      &&
+	      vars["resolution"].array.length == 2
+	      &&
+	      (vars["vsync"].type == JSON_TYPE.TRUE || vars["vsync"].type == JSON_TYPE.FALSE))) {
+	    
+	    throw new Exception("Incorrect parameters in config file");
 	}
+	
+	int i;
+	foreach (JSONValue key ; vars["p1"].array) {
+	    gameVars.p1[i] = to!int(key.integer);
+	    i++;
+	} i = 0;
+	
+	foreach (JSONValue key ; vars["p2"].array) {
+	    gameVars.p2[i] = to!int(key.integer);
+	    i++;
+	} i = 0;
+	
+	foreach (JSONValue dimension ; vars["resolution"].array) {
+	    gameVars.resolution[i] = to!int(dimension.integer);
+	    i++;
+	} i = 0;
+
+	if (vars["vsync"].type == JSON_TYPE.TRUE) {
+	    gameVars.vsync = true;
+	} else {
+	    gameVars.vsync = false;
+	}
+	
 	return gameVars;
-    }	    
+    }
 }

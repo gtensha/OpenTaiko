@@ -162,8 +162,8 @@ bool renderMainMenu(int menuIndex) {
 void main(string[] args) {
 
     try {
-	vars = MapGen.readConfFile("settings.conf");
-	if (vars.resolution[0] == 0 || vars.resolution[1] == 0) {
+	vars = MapGen.readConfFile("settings.json");
+	if (vars.resolution[0] < 0 || vars.resolution[1] < 0) {
 	    vars.resolution = [1200, 600];
 	}
     } catch (Exception e) {
@@ -172,8 +172,10 @@ void main(string[] args) {
 	vars.resolution = [1200, 600];
 	vars.vsync = false;
 
+	writeln(e.msg);
 	writeln("Error reading config file, using default settings.");
     }
+    
     int rendererFlags;
     if (vars.vsync == true) {
 	rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
@@ -202,11 +204,13 @@ void main(string[] args) {
 			      0);
     if (window is null) {
 	writeln("Failed to create window: ", fromStringz(SDL_GetError()));
+	return;
     }
     
     renderer = SDL_CreateRenderer(window, -1, rendererFlags);
     if (renderer is null) {
 	writeln("Failed to create renderer: ", fromStringz(SDL_GetError()));
+	return;
     }
     
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
