@@ -25,6 +25,7 @@ Performance performance;
 EzRender gameRenderer;
 
 GameVars vars;
+string currentMap;
 
 int frame;
 int gameplayTime;
@@ -116,7 +117,7 @@ bool renderMainMenu(int menuIndex) {
     SDL_RenderPresent(renderer);
     int choice = -1;
     quit = false;
-    while (true) {
+    while (choice != 0) {
 	SDL_Event event;
 	// Detect menu navigation and render new
 	// menu state
@@ -145,18 +146,28 @@ bool renderMainMenu(int menuIndex) {
 		    break;
 		}
 	    } else if (event.type == SDL_QUIT) {
-		choice = 1;
+		choice = 3;
 	    }
 	    if (choice > -1) {
-		// Selected start
-		if (choice == 0)
+		if (choice == 0) {
 		    return true;
-		else
+		} else if (choice == 1) {
+		    currentMap = removechars(stdin.readln(), std.ascii.newline);
+		    choice = -1;
+		} else if (choice == 2) {
+		    MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
+		    choice = -1;
+		} else if (choice == 3) {
+		    writeln(MapGen.readSongDatabase(MAP_DIR ~ "maps.json"));
+		    choice = -1;
+		} else {
 		    return false;
+		}
 	    }
 	}
 	SDL_Delay(16); // poll approx. 60 times/second
     }
+    return true;
 }
 
 void main(string[] args) {
@@ -232,9 +243,9 @@ void main(string[] args) {
 
     if (canPlay) {
 	// Create and render main menu
-	int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
+	int mainMenuId = gameRenderer.createNewMenu(["Play", "Change Map", "Convert Map", "Test parser", "Exit"]);
 	while (renderMainMenu(mainMenuId)) {
-	    gameRenderer.setPerformance(new Performance("finish_line"));
+	    gameRenderer.setPerformance(new Performance(currentMap));
 	    performance = gameRenderer.performance;
 	    // Render the game while there are drums left unhit
 	    frame = 0;

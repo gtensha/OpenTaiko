@@ -32,6 +32,27 @@ struct GameVars {
     
 }
 
+struct Song {
+
+    string title;
+    string artist;
+    string maintainer;
+    string[] tags;
+
+    string src;
+
+    Difficulty[] difficulties;
+    
+}
+
+struct Difficulty {
+
+    string name;
+    int difficulty;
+    string mapper;
+    
+}
+
 class MapGen {
 
     /*
@@ -45,9 +66,10 @@ class MapGen {
     // Returns array of drum objects with desired properties
     static Drum[] parseMapFromFile(string file) {
 	int bpm = 140;
-	int zoom = 1;
+	int zoom = 4;
 	string map = to!string(std.file.read(MAP_DIR ~ file ~ "/map.conf"));
-	string[] lines = split(map, std.ascii.newline);
+	string[] lines = split(map, "\n");
+	writeln(lines);
 	Drum[] drumArray;
 
 	int i;
@@ -139,10 +161,108 @@ class MapGen {
 	return drumArray;
     }
 
-    static GameVars readConfFile(string file) {
+    static void convertMapFile(string source) {
+	
+	string file = to!string(std.file.read(source));
+	string convertedMap = fromOSUFile(file);
+
+	std.file.write(MAP_DIR ~ "imported/" ~ "map.conf", convertedMap);
+	
+    }
+    
+    static string fromOSUFile(string file) {
+
+	string openTaikoMap;
+	string[] lines = split(file, std.ascii.newline);
+
+	bool objectSection = false;
+
+	openTaikoMap ~= "# Map converted from .osu format\n\n";
+	openTaikoMap ~= "!mapstart\n";
+	
+	foreach (string line ; lines) {
+
+	    if (removechars(line, " ").equal("[HitObjects]")) {
+		objectSection = true;
+	    } else if (objectSection) {
+		string[] properties = split(line, ',');
+		if (properties.length >= 5) {
+		    if (properties[3].equal("1")) {
+			openTaikoMap ~= "!offset " ~ properties[2] ~ "\n";
+			switch (properties[4]) {
+
+			case "0":
+			    openTaikoMap ~= "d\n";
+			    break;
+
+			case "2":
+			    openTaikoMap ~= "k\n";
+			    break;
+
+			case "8":
+			    goto case "2";
+
+			case "6":
+			    goto case "2";
+
+			default:
+			    break;
+			}
+		    }
+		}
+	    }
+	    
+	}
+
+	openTaikoMap ~= "!mapend";
+
+	return openTaikoMap;
+	
+    }
+
+    abstract string fromTJAFile(string file);
+
+    static Song[] readSongDatabase(string file) {
+	Song[] songs;
+	string unprocessed = to!string(std.file.read(file));
+	JSONValue maps = parseJSON(unprocessed);
+	
+	foreach (JSONValue dir ; maps["dirs"].array) {
+
+	    JSONValue map = parseJSON(to!string(std.file.read(MAP_DIR
+							      ~ dir.str
+							      ~ "/meta.json")));
+	    
+	    Song song = {
+		map["title"].str,
+		map["artist"].str,
+		map["maintainer"].str,
+		null,
+		map["src"].str,
+		null
+	    };
+
+	    foreach (JSONValue tag ; map["tags"].array) {
+		song.tags ~= tag.str;
+	    }
+
+	    foreach (JSONValue difficulty ; map["difficulties"].array) {
+	        Difficulty diff = {
+		    difficulty["name"].str,
+		    to!int(difficulty["difficulty"].integer),
+		    difficulty["mapper"].str
+		};
+		song.difficulties ~= diff;
+	    }
+	    songs ~= song;
+	}
+	return songs;
+    }
+    
+    static GameVars readConfFile(string fileLoc) {
 
 	GameVars gameVars;
-	string input = to!string(std.file.read(file));
+	string input = to!string(std.file.read(fileLoc));
 	
 	JSONValue vars = parseJSON(input);
 

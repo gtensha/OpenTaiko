@@ -1,0 +1,14 @@
+{
+    "title": "Default",
+    "artist": "Ola Nordmann",
+    "maintainer": "gtensha",
+    "tags": ["default"],
+
+    "src": "",
+
+    "difficulties": [{
+	"name": "default",
+	"difficulty": 0,
+	"mapper": "gtensha"
+    }]
+}
