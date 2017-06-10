@@ -348,9 +348,13 @@ class EzRender {
 
     // Create new menu with given titles,
     // return its index in game renderer's array
-    int createNewMenu(string[] titles) {
-	this.menus ~= new Menu(titles, windowHeight, windowWidth);
+    int createNewMenu(string[] titles, string menuTitle) {
+	this.menus ~= new Menu(titles, menuTitle, windowHeight, windowWidth);
 	return to!int(menus.length) - 1;
+    }
+
+    void appendMenu(int index, string[] titles) {
+	this.menus[index].appendContent(titles);
     }
 
     // Render the menu at given index
@@ -360,15 +364,16 @@ class EzRender {
 	    this.menus[index].render();
     }
 
-    void setPerformance(Performance performance) {
+    void setPerformance(Performance performance, Song song) {
 	this.performance = performance;
+	string songDir = MAP_DIR ~ song.title ~ "/" ~ song.src;
 	try {
-	    assert((MAP_DIR ~ performance.mapTitle ~ "/track.ogg").isFile);
+	    songDir.isFile;
 	} catch (Exception e) {
 	    writeln("No music was detected");
 	    return;
 	}
-	track = Mix_LoadMUS(toStringz(MAP_DIR ~ performance.mapTitle ~ "/track.ogg"));
+	track = Mix_LoadMUS(toStringz(songDir));
 	if (track is null) {
 	    writeln("Failed to load music");
 	}
@@ -377,17 +382,48 @@ class EzRender {
     class Menu {
 
 	MenuItem[] choices;
+	Page[] pages;
 	int w, h;
+	int itemsPerPage;
 	int index = 0;
+	SDL_Rect textRect;
+	SDL_Texture* text;
 
-	this(string[] titles, int h, int w) {
+	this(string[] titles, string title, int h, int w) {
 	    this.w = w - 200;
 	    this.h = h - 200;
 
-	    int pos = 200;//this.w / titles.length;
-	    int i = 0;
+	    itemsPerPage = (this.w - 200) / 200;
+
+	    appendContent(titles);
+	    
+	    SDL_Color color = {255, 255, 255, 255};
+	    SDL_Surface* textSurface = TTF_RenderText_Blended(scoreFont, toStringz(title), color);
+	    text = SDL_CreateTextureFromSurface(renderer, textSurface);
+	    SDL_FreeSurface(textSurface);
+	    int tw, th;
+	    SDL_QueryTexture(text, null, null, &tw, &th);
+	    textRect.x = 185;
+	    textRect.y = 15;
+	    textRect.w = tw;
+	    textRect.h = th;
+	}
+
+	void appendContent(string[] titles) {
+	    pages = null;
+	    choices = null;
+	    int i;
+	    int pos = 200;
+	    Page newPage = new Page();
 	    foreach (string title ; titles) {
-		choices ~= new MenuItem(title, (pos * i++) + 200, 100, this.h);
+		MenuItem currentItem = new MenuItem(title, (pos * i++) + 200, 100, this.h, newPage);
+		choices ~= currentItem;
+	        newPage.pageItems ~= currentItem;
+		if (i == itemsPerPage) {
+		    pages ~= newPage;
+		    newPage = new Page();
+		    i = 0;
+		}
 	    }
 	}
 
@@ -395,11 +431,15 @@ class EzRender {
 	void selectChoice(bool direction) {
 	    // Go right if true
 	    if (direction == true) {
-		if (index < choices.length)
+		if (index < choices.length - 1)
 		    index++;
+		else
+		    index = 0;
 	    } else {
 		if (index > 0)
 		    index--;
+		else
+		    index = choices.length - 1;
 	    }
 	    render();
 	}
@@ -412,29 +452,42 @@ class EzRender {
 
 	// Render the menu
 	void render() {
-	    int i = 0;
-	    foreach (MenuItem item ; choices) {
-		if (i == index)
-		    item.render(true);
-		else
-		    item.render(false);
-		i++;
+	    // If we do this here we don't have to constantly
+	    // update the screen when the game is inactive
+	    SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
+	    SDL_RenderClear(renderer);
+	    SDL_RenderCopy(renderer, text, null, &textRect);
+	    choices[index].renderPage();
+	}
+
+	class Page {
+
+	    MenuItem[] pageItems;
+
+	    void render() {
+		foreach (MenuItem item ; pageItems) {
+		    item.render();
+		}
 	    }
 	}
 	
 	class MenuItem {
 
 	    static int highest;
+	    Page page;
+	    int itemIndex;
 	    int x;
 	    int y;
 	    int w, h;
 	    int boxHeight;
 	    SDL_Texture* normal, highlighted;
 
-	    this(string text, int x, int y, int boxHeight) {
+	    this(string text, int x, int y, int boxHeight, Page parent) {
 		this.x = x;
 		this.y = y;
 		this.boxHeight = boxHeight;
+		this.itemIndex = choices.length;
+		this.page = parent;
 		string newText;
 	        foreach (char character ; text) {
 		    newText ~= character ~ "\n";
@@ -460,11 +513,15 @@ class EzRender {
 		    highest = h;
 		}
 	    }
+
+	    void renderPage() {
+		this.page.render();
+	    }
 	    
-	    void render(bool isHighlighted) {
+	    void render() {
 		ubyte r, gb;
 		SDL_Texture* toRender;
-		if (isHighlighted) {
+		if (index == this.itemIndex) {
 		    r = 255;
 		    gb = 255;
 		    toRender = highlighted;

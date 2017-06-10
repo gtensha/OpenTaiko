@@ -67,8 +67,8 @@ class MapGen {
     static Drum[] parseMapFromFile(string file) {
 	int bpm = 140;
 	int zoom = 4;
-	string map = to!string(std.file.read(MAP_DIR ~ file ~ "/map.conf"));
-	string[] lines = split(map, "\n");
+	string map = to!string(std.file.read(MAP_DIR ~ file));
+	string[] lines = split(map, std.ascii.newline);
 	writeln(lines);
 	Drum[] drumArray;
 
@@ -166,7 +166,7 @@ class MapGen {
 	string file = to!string(std.file.read(source));
 	string convertedMap = fromOSUFile(file);
 
-	std.file.write(MAP_DIR ~ "imported/" ~ "map.conf", convertedMap);
+	std.file.write(MAP_DIR ~ "imported/" ~ "map.otfm", convertedMap);
 	
     }
     

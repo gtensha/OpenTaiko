@@ -25,7 +25,11 @@ Performance performance;
 EzRender gameRenderer;
 
 GameVars vars;
-string currentMap;
+Song[] songs;
+Song currentSong;
+Difficulty currentDiff;
+int songSelectionMenu;
+int diffSelectionMenu;
 
 int frame;
 int gameplayTime;
@@ -109,18 +113,58 @@ void renderGameplay() {
 
 }
 
-bool renderMainMenu(int menuIndex) {
+int renderSongSelection(int menuIndex) {
 
-    SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
-    SDL_RenderClear(renderer);
     gameRenderer.menus[menuIndex].render();
     SDL_RenderPresent(renderer);
+    int choice = -1;
+    quit = false;
+    while (!quit) {
+	SDL_Event event;
+	// Detect menu navigation and render new
+	// menu state
+	while (SDL_PollEvent(&event) == 1) {	
+	    if (event.type == SDL_KEYDOWN) {
+		switch (event.key.keysym.sym) {
+		case SDLK_RIGHT:
+		    gameRenderer.menus[menuIndex].selectChoice(true);
+		    SDL_RenderPresent(renderer);
+		    break;
+		    
+		case SDLK_LEFT:
+		    gameRenderer.menus[menuIndex].selectChoice(false);
+		    SDL_RenderPresent(renderer);
+		    break;
+		    
+		case SDLK_RETURN:
+		    return gameRenderer.menus[menuIndex].choose();
+
+		case SDLK_ESCAPE:
+		    quit = true;
+		    break;
+		    
+		default:
+		    break;
+		}
+	    } else if (event.type == SDL_QUIT) {
+		quit = true;
+	    }
+	}
+	SDL_Delay(16); // poll approx. 60 times/second
+    }
+    return -1;
+}
+
+bool renderMainMenu(int menuIndex) {
+
     int choice = -1;
     quit = false;
     while (choice != 0) {
 	SDL_Event event;
 	// Detect menu navigation and render new
 	// menu state
+	gameRenderer.menus[menuIndex].render();
+	SDL_RenderPresent(renderer);
 	while (SDL_PollEvent(&event) == 1) {	
 	    if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
@@ -139,8 +183,7 @@ bool renderMainMenu(int menuIndex) {
 		    break;
 
 		case SDLK_ESCAPE:
-		    choice = 1;
-		    break;
+		    return false;
 		    
 		default:
 		    break;
@@ -150,15 +193,31 @@ bool renderMainMenu(int menuIndex) {
 	    }
 	    if (choice > -1) {
 		if (choice == 0) {
-		    return true;
+		    string[] songTitles;
+		    foreach (Song song ; songs) {
+			songTitles ~= song.title;
+		    }
+		    gameRenderer.appendMenu(songSelectionMenu,
+					    songTitles);
+		    int mapChoice = renderSongSelection(songSelectionMenu);
+		    if (mapChoice >= 0) {
+			currentSong = songs[mapChoice];
+			
+			string[] diffTitles;
+			foreach (Difficulty diff ; songs[mapChoice].difficulties) {
+			    diffTitles ~= diff.name;
+			}
+			gameRenderer.appendMenu(diffSelectionMenu,
+						diffTitles);
+			int diffChoice = renderSongSelection(diffSelectionMenu);
+			if (diffChoice >= 0) {
+			    currentDiff = songs[mapChoice].difficulties[diffChoice];
+			    return true;
+			}
+		    }
+		    choice = -1;
 		} else if (choice == 1) {
-		    currentMap = removechars(stdin.readln(), std.ascii.newline);
-		    choice = -1;
-		} else if (choice == 2) {
 		    MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
-		    choice = -1;
-		} else if (choice == 3) {
-		    writeln(MapGen.readSongDatabase(MAP_DIR ~ "maps.json"));
 		    choice = -1;
 		} else {
 		    return false;
@@ -243,9 +302,16 @@ void main(string[] args) {
 
     if (canPlay) {
 	// Create and render main menu
-	int mainMenuId = gameRenderer.createNewMenu(["Play", "Change Map", "Convert Map", "Test parser", "Exit"]);
+	int mainMenuId = gameRenderer.createNewMenu(["Play", "Convert", "Exit"], "Main menu");
+	songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+	songSelectionMenu = gameRenderer.createNewMenu(["null"], "Song selection");
+	diffSelectionMenu = gameRenderer.createNewMenu(["null"], "Select difficulty");
 	while (renderMainMenu(mainMenuId)) {
-	    gameRenderer.setPerformance(new Performance(currentMap));
+	    gameRenderer.setPerformance(new Performance(currentSong.title
+							~ "/"
+							~ currentDiff.name
+							~ ".otfm"),
+					currentSong);
 	    performance = gameRenderer.performance;
 	    // Render the game while there are drums left unhit
 	    frame = 0;
