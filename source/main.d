@@ -55,7 +55,7 @@ void renderGameplay() {
     // Find which keys are being pressed, play sounds
     // and render effects, do hit registration testing
     int buttonPressed = -1;
-    while (SDL_PollEvent(&event) == 1) {	
+    while (SDL_PollEvent(&event) == 1) {
 	if (event.type == SDL_KEYDOWN) {
 	    if (event.key.keysym.sym == vars.p1[RED1] || event.key.keysym.sym == vars.p1[RED2]) {
 		buttonPressed = TAIKO_RED;
@@ -67,7 +67,7 @@ void renderGameplay() {
 	} else if (event.type == SDL_QUIT) {
 	    quit = true;
 	}
-	
+
     }
 
     if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
@@ -80,7 +80,7 @@ void renderGameplay() {
 	    gameRenderer.playSoundEffect(TAIKO_BLUE);
 	}
     }
-    
+
     gameRenderer.renderAllCircles(currentTime);
 
     // Skip checking if hit is way ahead of time,
@@ -95,7 +95,7 @@ void renderGameplay() {
     }
 
     gameRenderer.renderAllEffects(currentTime);
-    
+
     SDL_RenderPresent(renderer);
 
     // This works nowhere near as good as I want it to, the image
@@ -123,26 +123,26 @@ int renderSongSelection(int menuIndex) {
 	SDL_Event event;
 	// Detect menu navigation and render new
 	// menu state
-	while (SDL_PollEvent(&event) == 1) {	
+	while (SDL_PollEvent(&event) == 1) {
 	    if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
 		case SDLK_RIGHT:
 		    gameRenderer.menus[menuIndex].selectChoice(true);
 		    SDL_RenderPresent(renderer);
 		    break;
-		    
+
 		case SDLK_LEFT:
 		    gameRenderer.menus[menuIndex].selectChoice(false);
 		    SDL_RenderPresent(renderer);
 		    break;
-		    
+
 		case SDLK_RETURN:
 		    return gameRenderer.menus[menuIndex].choose();
 
 		case SDLK_ESCAPE:
 		    quit = true;
 		    break;
-		    
+
 		default:
 		    break;
 		}
@@ -165,26 +165,26 @@ bool renderMainMenu(int menuIndex) {
 	// menu state
 	gameRenderer.menus[menuIndex].render();
 	SDL_RenderPresent(renderer);
-	while (SDL_PollEvent(&event) == 1) {	
+	while (SDL_PollEvent(&event) == 1) {
 	    if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
 		case SDLK_RIGHT:
 		    gameRenderer.menus[menuIndex].selectChoice(true);
 		    SDL_RenderPresent(renderer);
 		    break;
-		    
+
 		case SDLK_LEFT:
 		    gameRenderer.menus[menuIndex].selectChoice(false);
 		    SDL_RenderPresent(renderer);
 		    break;
-		    
+
 		case SDLK_RETURN:
 		    choice = gameRenderer.menus[menuIndex].choose();
 		    break;
 
 		case SDLK_ESCAPE:
 		    return false;
-		    
+
 		default:
 		    break;
 		}
@@ -202,7 +202,7 @@ bool renderMainMenu(int menuIndex) {
 		    int mapChoice = renderSongSelection(songSelectionMenu);
 		    if (mapChoice >= 0) {
 			currentSong = songs[mapChoice];
-			
+
 			string[] diffTitles;
 			foreach (Difficulty diff ; songs[mapChoice].difficulties) {
 			    diffTitles ~= diff.name;
@@ -217,6 +217,7 @@ bool renderMainMenu(int menuIndex) {
 		    }
 		    choice = -1;
 		} else if (choice == 1) {
+		    write("Enter the path to a valid .osu file: ");
 		    MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
 		    choice = -1;
 		} else {
@@ -245,27 +246,27 @@ void main(string[] args) {
 	writeln(e.msg);
 	writeln("Error reading config file, using default settings.");
     }
-    
+
     int rendererFlags;
     if (vars.vsync == true) {
 	rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
     } else {
 	rendererFlags = SDL_RENDERER_ACCELERATED;
     }
-    
+
     DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
-    
+
     try {
 	DerelictSDL2.load();
     } catch (Exception SharedLibLoadException) {
 	writeln(SharedLibLoadException.toString());
     }
-    
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 	writeln("Failed to initialise SDL: ", fromStringz(SDL_GetError()));
 	return;
     }
-    
+
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
@@ -276,13 +277,13 @@ void main(string[] args) {
 	writeln("Failed to create window: ", fromStringz(SDL_GetError()));
 	return;
     }
-    
+
     renderer = SDL_CreateRenderer(window, -1, rendererFlags);
     if (renderer is null) {
 	writeln("Failed to create renderer: ", fromStringz(SDL_GetError()));
 	return;
     }
-    
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RaiseWindow(window);
@@ -335,10 +336,10 @@ void main(string[] args) {
 	    }
 	}
     }
-    
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    
+
     writeln("Done.");
 }

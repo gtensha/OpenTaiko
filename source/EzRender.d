@@ -113,7 +113,7 @@ class EzRender {
 				 ASSET_FONT_TYPE.DEFAULT,
 				 ASSET_FONT_TYPE.MENUS]) {
 	    
-	    assert((dir ~ asset).isFile);
+	    (dir ~ asset).isFile;
 	}
 	
 	DerelictSDL2Image.load();
@@ -409,6 +409,10 @@ class EzRender {
 	    textRect.h = th;
 	}
 
+	~this() {
+	    SDL_DestroyTexture(text);
+	}
+
 	void appendContent(string[] titles) {
 	    pages = null;
 	    choices = null;
@@ -512,6 +516,11 @@ class EzRender {
 		if (h > highest) {
 		    highest = h;
 		}
+	    }
+
+	    ~this() {
+		SDL_DestroyTexture(normal);
+		SDL_DestroyTexture(highlighted);
 	    }
 
 	    void renderPage() {
