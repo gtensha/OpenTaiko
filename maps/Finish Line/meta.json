@@ -1,0 +1,14 @@
+{
+    "title": "Finish Line",
+    "artist": "DrKrake vs Jellyfish",
+    "maintainer": "gtensha",
+    "tags": ["super mario kart", "remix"],
+
+    "src": "track.ogg",
+
+    "difficulties": [{
+	"name": "Sample",
+	"difficulty": 4,
+	"mapper": "gtensha"
+    }]
+}

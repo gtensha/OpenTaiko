@@ -24,50 +24,50 @@ SDL_Renderer* renderer;
 Performance performance;
 EzRender gameRenderer;
 
+GameVars vars;
+Song[] songs;
+Song currentSong;
+Difficulty currentDiff;
+int songSelectionMenu;
+int diffSelectionMenu;
+
 int frame;
 int gameplayTime;
+int seconds;
+int fps;
+int prevFrames;
+int targetFPS = -1;
+int frameSleepTime;
 bool quit = false;
 
 // Render a gameplay frame
 void renderGameplay() {
     gameRenderer.renderBackground();
     int currentTime = SDL_GetTicks() - gameplayTime;
+    if (currentTime - (seconds * 1000) > 0) {
+	fps = frame - prevFrames;
+	prevFrames = frame;
+	seconds++;
+    }
+    gameRenderer.renderQuickText("FPS: " ~ to!string(fps), 0, 0);
     int hitType = 3;
     SDL_Event event;
     // Find which keys are being pressed, play sounds
     // and render effects, do hit registration testing
     int buttonPressed = -1;
-    while (SDL_PollEvent(&event) == 1) {	
+    while (SDL_PollEvent(&event) == 1) {
 	if (event.type == SDL_KEYDOWN) {
-	    switch (event.key.keysym.sym) {
-	    case SDLK_f:
+	    if (event.key.keysym.sym == vars.p1[RED1] || event.key.keysym.sym == vars.p1[RED2]) {
 		buttonPressed = TAIKO_RED;
-		break;
-		
-	    case SDLK_j:
-		buttonPressed = TAIKO_RED;
-		break;
-
-	    case SDLK_d:
+	    } else if (event.key.keysym.sym == vars.p1[BLUE1] || event.key.keysym.sym == vars.p1[BLUE2]) {
 		buttonPressed = TAIKO_BLUE;
-		break;
-
-	    case SDLK_k:
-		buttonPressed = TAIKO_BLUE;
-		break;
-
-	    case SDLK_ESCAPE:
+	    } else if (event.key.keysym.sym == SDLK_ESCAPE) {
 		quit = true;
-		break;
-
-	    default:
-		break;
 	    }
-	    
 	} else if (event.type == SDL_QUIT) {
 	    quit = true;
 	}
-	
+
     }
 
     if (buttonPressed == TAIKO_RED || buttonPressed == TAIKO_BLUE) {
@@ -80,7 +80,7 @@ void renderGameplay() {
 	    gameRenderer.playSoundEffect(TAIKO_BLUE);
 	}
     }
-    
+
     gameRenderer.renderAllCircles(currentTime);
 
     // Skip checking if hit is way ahead of time,
@@ -90,82 +90,184 @@ void renderGameplay() {
 	    gameRenderer.renderHitResult(hitType, currentTime);
 	} else {
 	    gameRenderer.renderHitResult(hitType, currentTime);
+	    gameRenderer.renderableObjects[performance.i - 1].success = false;
 	    gameRenderer.playSoundEffect(3);
 	}
     }
 
     gameRenderer.renderAllEffects(currentTime);
-    
+
     SDL_RenderPresent(renderer);
-    // Push as many frames as possible for now,
-    // burns your CPU but gives a very good image
-    //SDL_Delay(0); // aim for around 60FPS
-    // (changeable FPS values are to be implemented)
+
+    // This works nowhere near as good as I want it to, the image
+    // is very choppy. Best to just play without a limiter for now...
+    /*
+    if (frameSleepTime > 0) {
+	int frameEndTime = SDL_GetTicks() - gameplayTime;
+	int toSleep = frameEndTime - currentTime;
+	if (toSleep < frameSleepTime) {
+	    SDL_Delay(frameSleepTime - toSleep);
+	}
+    }
+    */
     frame++;
 
 }
 
-bool renderMainMenu(int menuIndex) {
+int renderSongSelection(int menuIndex) {
 
-    SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
-    SDL_RenderClear(renderer);
     gameRenderer.menus[menuIndex].render();
     SDL_RenderPresent(renderer);
     int choice = -1;
     quit = false;
-    while (true) {
+    while (!quit) {
 	SDL_Event event;
 	// Detect menu navigation and render new
 	// menu state
-	while (SDL_PollEvent(&event) == 1) {	
+	while (SDL_PollEvent(&event) == 1) {
 	    if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
 		case SDLK_RIGHT:
 		    gameRenderer.menus[menuIndex].selectChoice(true);
 		    SDL_RenderPresent(renderer);
 		    break;
-		    
+
 		case SDLK_LEFT:
 		    gameRenderer.menus[menuIndex].selectChoice(false);
 		    SDL_RenderPresent(renderer);
 		    break;
-		    
+
+		case SDLK_RETURN:
+		    return gameRenderer.menus[menuIndex].choose();
+
+		case SDLK_ESCAPE:
+		    quit = true;
+		    break;
+
+		default:
+		    break;
+		}
+	    } else if (event.type == SDL_QUIT) {
+		quit = true;
+	    }
+	}
+	SDL_Delay(16); // poll approx. 60 times/second
+    }
+    return -1;
+}
+
+bool renderMainMenu(int menuIndex) {
+
+    int choice = -1;
+    quit = false;
+    while (choice != 0) {
+	SDL_Event event;
+	// Detect menu navigation and render new
+	// menu state
+	gameRenderer.menus[menuIndex].render();
+	SDL_RenderPresent(renderer);
+	while (SDL_PollEvent(&event) == 1) {
+	    if (event.type == SDL_KEYDOWN) {
+		switch (event.key.keysym.sym) {
+		case SDLK_RIGHT:
+		    gameRenderer.menus[menuIndex].selectChoice(true);
+		    SDL_RenderPresent(renderer);
+		    break;
+
+		case SDLK_LEFT:
+		    gameRenderer.menus[menuIndex].selectChoice(false);
+		    SDL_RenderPresent(renderer);
+		    break;
+
 		case SDLK_RETURN:
 		    choice = gameRenderer.menus[menuIndex].choose();
 		    break;
 
 		case SDLK_ESCAPE:
-		    choice = 1;
-		    break;
-		    
+		    return false;
+
 		default:
 		    break;
 		}
 	    } else if (event.type == SDL_QUIT) {
-		choice = 1;
+		choice = 3;
 	    }
 	    if (choice > -1) {
-		// Selected start
-		if (choice == 0)
-		    return true;
-		else
+		if (choice == 0) {
+		    string[] songTitles;
+		    foreach (Song song ; songs) {
+			songTitles ~= song.title;
+		    }
+		    gameRenderer.appendMenu(songSelectionMenu,
+					    songTitles);
+		    int mapChoice = renderSongSelection(songSelectionMenu);
+		    if (mapChoice >= 0) {
+			currentSong = songs[mapChoice];
+
+			string[] diffTitles;
+			foreach (Difficulty diff ; songs[mapChoice].difficulties) {
+			    diffTitles ~= diff.name;
+			}
+			gameRenderer.appendMenu(diffSelectionMenu,
+						diffTitles);
+			int diffChoice = renderSongSelection(diffSelectionMenu);
+			if (diffChoice >= 0) {
+			    currentDiff = songs[mapChoice].difficulties[diffChoice];
+			    return true;
+			}
+		    }
+		    choice = -1;
+		} else if (choice == 1) {
+		    write("Enter the path to a valid .osu file: ");
+		    try {
+			MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
+		    } catch (Throwable t) {
+			writeln("Error: The requested file could not be read\n\n"
+				~ t.toString());
+		    }
+		    choice = -1;
+		} else {
 		    return false;
+		}
 	    }
 	}
 	SDL_Delay(16); // poll approx. 60 times/second
     }
+    return true;
 }
 
 void main(string[] args) {
 
+    try {
+	vars = MapGen.readConfFile("settings.json");
+	if (vars.resolution[0] < 0 || vars.resolution[1] < 0) {
+	    vars.resolution = [1200, 600];
+	}
+    } catch (Exception e) {
+	vars.p1 = [106, 102, 107, 100];
+	vars.p2 = [0, 0, 0, 0];
+	vars.resolution = [1200, 600];
+	vars.vsync = false;
+
+	writeln(e.msg);
+	writeln("Error reading config file, using default settings.");
+    }
+
+    int rendererFlags;
+    if (vars.vsync == true) {
+	rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+    } else {
+	rendererFlags = SDL_RENDERER_ACCELERATED;
+    }
+
     DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
-    
+
     try {
 	DerelictSDL2.load();
     } catch (Exception SharedLibLoadException) {
 	writeln(SharedLibLoadException.toString());
     }
-    
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 	writeln("Failed to initialise SDL: ", fromStringz(SDL_GetError()));
 	return;
@@ -174,18 +276,20 @@ void main(string[] args) {
     window = SDL_CreateWindow("OpenTaiko",
 			      SDL_WINDOWPOS_UNDEFINED,
 			      SDL_WINDOWPOS_UNDEFINED,
-			      1200,
-			      600,
+			      vars.resolution[WIDTH],
+			      vars.resolution[HEIGHT],
 			      0);
     if (window is null) {
 	writeln("Failed to create window: ", fromStringz(SDL_GetError()));
+	return;
     }
-    
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    renderer = SDL_CreateRenderer(window, -1, rendererFlags);
     if (renderer is null) {
 	writeln("Failed to create renderer: ", fromStringz(SDL_GetError()));
+	return;
     }
-    
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RaiseWindow(window);
@@ -199,38 +303,59 @@ void main(string[] args) {
 	canPlay = false;
     }
 
+    if (targetFPS > 0) {
+	frameSleepTime = 1000 / targetFPS;
+    }
+
     if (canPlay) {
 	// Create and render main menu
-	int mainMenuId = gameRenderer.createNewMenu(["Play", "Exit"]);
+	int mainMenuId = gameRenderer.createNewMenu(["Play", "Convert", "Exit"], "Main menu");
+	try {
+	    songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+	} catch (Exception e) {
+	    writeln("Error in map database file, please verify that the contained data is correct before playing:\n"
+		    ~ e.toString());
+	    return;
+	}
+	songSelectionMenu = gameRenderer.createNewMenu(["null"], "Song selection");
+	diffSelectionMenu = gameRenderer.createNewMenu(["null"], "Select difficulty");
 	while (renderMainMenu(mainMenuId)) {
-	    gameRenderer.setPerformance(new Performance("finish_line"));
+	    gameRenderer.setPerformance(new Performance(currentSong.title
+							~ "/"
+							~ currentDiff.name
+							~ ".otfm"),
+					currentSong);
 	    performance = gameRenderer.performance;
-	    // Render the game while there are drums left unhit
-	    frame = 0;
-	    gameRenderer.populateRenderables();
-	    gameRenderer.playMusic();
-	    gameplayTime = SDL_GetTicks();
-	    renderGameplay();
-	    while (!quit && performance.i < performance.drums.length) {
+	    if (performance.drums is null) {
+		writeln("Error loading map, no drum objects produced");
+	    } else {
+		// Render the game while there are drums left unhit
+		frame = 0;
+		seconds = 0;
+		gameRenderer.populateRenderables();
+		gameRenderer.playMusic();
+		gameplayTime = SDL_GetTicks();
 		renderGameplay();
-	    }
-	    gameRenderer.destroyAnimations();
-	    gameRenderer.resetEffects();
-	    gameRenderer.stopMusic();
-	    if (!quit) {
-		SDL_Delay(2000);
-		writeln("Results:\n"
-			~ "Good: " ~ to!string(performance.score.good)
-			~ "\nOK: " ~ to!string(performance.score.ok)
-			~ "\nBad/Miss: " ~ to!string(performance.score.bad)
-			~ "\nScore: " ~ to!string(performance.calculateScore()));
+		while (!quit && performance.i < performance.drums.length) {
+		    renderGameplay();
+		}
+		gameRenderer.resetEffects();
+		//gameRenderer.stopMusic();
+		if (!quit) {
+		    SDL_Delay(2000);
+		    writeln("Results:\n"
+			    ~ "Good: " ~ to!string(performance.score.good)
+			    ~ "\nOK: " ~ to!string(performance.score.ok)
+			    ~ "\nBad/Miss: " ~ to!string(performance.score.bad)
+			    ~ "\nScore: " ~ to!string(performance.calculateScore()));
+		}
 	    }
 	}
     }
-    
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    
+
     writeln("Done.");
 }
