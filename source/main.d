@@ -90,6 +90,7 @@ void renderGameplay() {
 	    gameRenderer.renderHitResult(hitType, currentTime);
 	} else {
 	    gameRenderer.renderHitResult(hitType, currentTime);
+	    gameRenderer.renderableObjects[performance.i - 1].success = false;
 	    gameRenderer.playSoundEffect(3);
 	}
     }
@@ -218,7 +219,12 @@ bool renderMainMenu(int menuIndex) {
 		    choice = -1;
 		} else if (choice == 1) {
 		    write("Enter the path to a valid .osu file: ");
-		    MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
+		    try {
+			MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
+		    } catch (Throwable t) {
+			writeln("Error: The requested file could not be read\n\n"
+				~ t.toString());
+		    }
 		    choice = -1;
 		} else {
 		    return false;
@@ -304,7 +310,13 @@ void main(string[] args) {
     if (canPlay) {
 	// Create and render main menu
 	int mainMenuId = gameRenderer.createNewMenu(["Play", "Convert", "Exit"], "Main menu");
-	songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+	try {
+	    songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+	} catch (Exception e) {
+	    writeln("Error in map database file, please verify that the contained data is correct before playing:\n"
+		    ~ e.toString());
+	    return;
+	}
 	songSelectionMenu = gameRenderer.createNewMenu(["null"], "Song selection");
 	diffSelectionMenu = gameRenderer.createNewMenu(["null"], "Select difficulty");
 	while (renderMainMenu(mainMenuId)) {
@@ -314,25 +326,29 @@ void main(string[] args) {
 							~ ".otfm"),
 					currentSong);
 	    performance = gameRenderer.performance;
-	    // Render the game while there are drums left unhit
-	    frame = 0;
-	    seconds = 0;
-	    gameRenderer.populateRenderables();
-	    gameRenderer.playMusic();
-	    gameplayTime = SDL_GetTicks();
-	    renderGameplay();
-	    while (!quit && performance.i < performance.drums.length) {
+	    if (performance.drums is null) {
+		writeln("Error loading map, no drum objects produced");
+	    } else {
+		// Render the game while there are drums left unhit
+		frame = 0;
+		seconds = 0;
+		gameRenderer.populateRenderables();
+		gameRenderer.playMusic();
+		gameplayTime = SDL_GetTicks();
 		renderGameplay();
-	    }
-	    gameRenderer.resetEffects();
-	    //gameRenderer.stopMusic();
-	    if (!quit) {
-		SDL_Delay(2000);
-		writeln("Results:\n"
-			~ "Good: " ~ to!string(performance.score.good)
-			~ "\nOK: " ~ to!string(performance.score.ok)
-			~ "\nBad/Miss: " ~ to!string(performance.score.bad)
-			~ "\nScore: " ~ to!string(performance.calculateScore()));
+		while (!quit && performance.i < performance.drums.length) {
+		    renderGameplay();
+		}
+		gameRenderer.resetEffects();
+		//gameRenderer.stopMusic();
+		if (!quit) {
+		    SDL_Delay(2000);
+		    writeln("Results:\n"
+			    ~ "Good: " ~ to!string(performance.score.good)
+			    ~ "\nOK: " ~ to!string(performance.score.ok)
+			    ~ "\nBad/Miss: " ~ to!string(performance.score.bad)
+			    ~ "\nScore: " ~ to!string(performance.calculateScore()));
+		}
 	    }
 	}
     }

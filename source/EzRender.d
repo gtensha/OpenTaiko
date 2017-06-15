@@ -59,7 +59,7 @@ class EzRender {
     SDL_Window* window;
     Performance performance;
     Menu[] menus;
-    Renderable[] renderableObjects;
+    RenderableDrum[] renderableObjects;
     Effect[] effects;
     TextBuffer debugText;
 
@@ -89,7 +89,7 @@ class EzRender {
     int windowHeight;
     int windowWidth;
     bool hasLoaded = false;
-    
+
     this(SDL_Renderer* renderer, SDL_Window* window) {
 	this.renderer = renderer;
 	this.window = window;
@@ -112,14 +112,14 @@ class EzRender {
 				 ASSET_SOUND.MISS,
 				 ASSET_FONT_TYPE.DEFAULT,
 				 ASSET_FONT_TYPE.MENUS]) {
-	    
+
 	    (dir ~ asset).isFile;
 	}
-	
+
 	DerelictSDL2Image.load();
 	DerelictSDL2Mixer.load();
 	DerelictSDL2ttf.load();
-	
+
 	SDL_Surface* redSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.RED));
 	SDL_Surface* blueSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.BLUE));
 	SDL_Surface* redGradSurface = IMG_Load(toStringz(dir ~ ASSET_TEXTURE.GRAD_HIT_R));
@@ -154,10 +154,10 @@ class EzRender {
 			  MIX_DEFAULT_FORMAT,
 			  MIX_DEFAULT_CHANNELS,
 			  1024) < 0) {
-	    
+
 	    throw new SDLLibLoadException("SDL_mixer failed to load");
 	}
-	    
+
 
 	redHit = Mix_LoadWAV(toStringz(dir ~ ASSET_SOUND.RED_HIT));
 	blueHit = Mix_LoadWAV(toStringz(dir ~ ASSET_SOUND.BLUE_HIT));
@@ -166,7 +166,7 @@ class EzRender {
 	if (TTF_Init() < 0) {
 	    throw new SDLLibLoadException("SDL_ttf failed to load");
 	}
-	
+
 	scoreFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.SCORE);
 	menuFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.MENUS), ASSET_FONT_SIZE.MENUS);
 	infoFont = TTF_OpenFont(toStringz(dir ~ ASSET_FONT_TYPE.DEFAULT), ASSET_FONT_SIZE.INFO);
@@ -194,7 +194,7 @@ class EzRender {
 	    TTF_Quit();
 	}
     }
-    
+
     // (Obsolete function)
     // Render a specific drum circle for specified frame
     bool renderCircle(Drum drum, int time) {
@@ -241,7 +241,7 @@ class EzRender {
 	// Draw "reception" box
 	this.renderTexture(reception,
 			   97, 200, 65, 65);
-	
+
 	// Draw score display
 	this.renderText(rightJustify(to!string(performance.calculateScore()),
 				     7, '0'), windowWidth - 290, 95);
@@ -280,9 +280,9 @@ class EzRender {
     }
 
     // Fill a defined quadratic area with a specified colour
-    void fillSurfaceArea(int x, int y, int w, int h, 
+    void fillSurfaceArea(int x, int y, int w, int h,
 			 ubyte r, ubyte g, ubyte b, ubyte a) {
-	
+
 	SDL_Rect rect = {x, y, w, h};
 	SDL_SetRenderDrawColor(renderer, r, g, b, a);
 	SDL_RenderFillRect(renderer, &rect);
@@ -396,7 +396,7 @@ class EzRender {
 	    itemsPerPage = (this.w - 200) / 200;
 
 	    appendContent(titles);
-	    
+
 	    SDL_Color color = {255, 255, 255, 255};
 	    SDL_Surface* textSurface = TTF_RenderText_Blended(scoreFont, toStringz(title), color);
 	    text = SDL_CreateTextureFromSurface(renderer, textSurface);
@@ -474,7 +474,7 @@ class EzRender {
 		}
 	    }
 	}
-	
+
 	class MenuItem {
 
 	    static int highest;
@@ -496,7 +496,7 @@ class EzRender {
 	        foreach (char character ; text) {
 		    newText ~= character ~ "\n";
 		}
-		
+
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_Color color = {255, 255, 255, 255};
 		SDL_Surface* normalSurface = TTF_RenderText_Blended_Wrapped(menuFont,
@@ -526,7 +526,7 @@ class EzRender {
 	    void renderPage() {
 		this.page.render();
 	    }
-	    
+
 	    void render() {
 		ubyte r, gb;
 		SDL_Texture* toRender;
@@ -543,7 +543,7 @@ class EzRender {
 				r, gb, gb, 255);
 		renderTexture(toRender, x, y, w, h);
 	    }
-	    
+
 	}
     }
 
@@ -558,7 +558,7 @@ class EzRender {
 	    effect.reset(0);
 	}
     }
-    
+
     class Effect {
 
 	SDL_Rect rect;
@@ -580,7 +580,7 @@ class EzRender {
 	void reset(int time) {
 	    startTime = time;
 	}
-	
+
 	abstract void renderFrame(int time);
     }
 
@@ -591,7 +591,7 @@ class EzRender {
 
 	    super(texture, duration, x, y, w, h);
 	}
-	
+
 	override void renderFrame(int time) {
 	    double x = (to!double(time - startTime) / duration) * 100;
 	    if (x < 100) {
@@ -608,7 +608,7 @@ class EzRender {
 	SDL_Rect rect;
 	SDL_Texture* texture;
 	int position;
-	
+
 	bool render(int time) {
 	    rect.x = position - time + 100;
 	    SDL_RenderCopy(renderer, this.texture, null, &rect);
@@ -619,12 +619,13 @@ class EzRender {
 	    }
 	}
     }
-    
+
     class RenderableDrum : Renderable {
 
 	HitAnimation animation;
 	int index;
-	
+	bool success = true;
+
 	this(Drum drum, int index) {
 	    rect.x = to!int(drum.position + 100);
 	    rect.y = 200;
@@ -638,7 +639,7 @@ class EzRender {
 	    } else {
 		this.texture = blueDrum;
 	    }
-	    
+
 	    animation = new HitAnimation(texture, 250, to!int(drum.position),
 					 rect.x, rect.y, rect.w, rect.h);
 	}
@@ -653,23 +654,28 @@ class EzRender {
 		    return true;
 		}
 	    } else {
-		animation.renderFrame(time);
-		return true;
+		if (!this.success) {
+		    circleIndex++;
+		    return true;
+		} else {
+		    animation.renderFrame(time);
+		    return true;
+		}
 	    }
 	}
     }
-    
+
     class HitAnimation : Effect {
 
 	bool hasStarted = false;
-	
+
 	this(SDL_Texture* texture, int duration, int startTime,
 	     int x, int y, int w, int h) {
 
 	    super(texture, 250, x, y, w - 10, h - 10);
 	    this.startTime = startTime;
 	}
-	
+
 	override void renderFrame(int time) {
 	    if (!hasStarted) {
 		startTime = time;
@@ -685,7 +691,7 @@ class EzRender {
 	    }
 	}
     }
-    
+
     void populateRenderables() {
 	renderableObjects = null;
 	circleIndex = 0;
@@ -695,7 +701,7 @@ class EzRender {
 	    i++;
 	}
     }
-    
+
 }
 
 class SDLLibLoadException : Exception {
