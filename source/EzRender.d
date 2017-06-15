@@ -443,7 +443,7 @@ class EzRender {
 		if (index > 0)
 		    index--;
 		else
-		    index = choices.length - 1;
+		    index = to!int(choices.length) - 1;
 	    }
 	    render();
 	}
@@ -490,7 +490,7 @@ class EzRender {
 		this.x = x;
 		this.y = y;
 		this.boxHeight = boxHeight;
-		this.itemIndex = choices.length;
+		this.itemIndex = to!int(choices.length);
 		this.page = parent;
 		string newText;
 	        foreach (char character ; text) {
