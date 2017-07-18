@@ -62,6 +62,8 @@ class EzRender {
     RenderableDrum[] renderableObjects;
     Effect[] effects;
     TextBuffer debugText;
+    TextBuffer scoreDisplay;
+    TextBuffer comboDisplay;
 
     struct TextBuffer {
 	SDL_Texture* texture;
@@ -243,10 +245,20 @@ class EzRender {
 			   97, 200, 65, 65);
 
 	// Draw score display
-	this.renderText(rightJustify(to!string(performance.calculateScore()),
-				     7, '0'), windowWidth - 290, 95);
+	this.renderText(&scoreDisplay,
+			rightJustify(to!string(performance.calculateScore()), 7, '0'),
+			scoreFont, true,
+			windowWidth - 290, 95);
+	
 	this.renderTexture(soul,
 			   windowWidth - 85, 70, 80, 80);
+
+	// Draw combo display
+	this.renderText(&comboDisplay,
+			to!string(performance.score.currentCombo),
+			menuFont,
+			true,
+			30, 200);
 
     }
 
@@ -313,7 +325,7 @@ class EzRender {
     }
 
     // Render some text with the default font and colour
-    void renderText(string text, int x, int y) {
+    /*void renderText(string text, int x, int y) {
 	SDL_Texture* cachedText;
 	if ((text in textCache) is null) {
 	    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -329,21 +341,26 @@ class EzRender {
 	SDL_QueryTexture(cachedText, null, null, &w, &h);
 	SDL_Rect rect = {x, y, w, h};
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
-    }
+	}*/
 
-    void renderQuickText(string text, int x, int y) {
-	if (debugText.text is null || text != debugText.text) {
-	    debugText.text = text;
+    void renderText(TextBuffer* buffer, string text, TTF_Font* font, bool nice, int x, int y) {
+	if ((buffer.text) is null || text != buffer.text) {
+	    (buffer.text) = text;
 	    SDL_Color color = {255, 255, 255, 255};
-	    SDL_Surface* textSurface = TTF_RenderText_Solid(infoFont, toStringz(text), color);
-	    SDL_DestroyTexture(debugText.texture);
-	    debugText.texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+	    SDL_Surface* textSurface;
+	    if (nice) {
+		textSurface = TTF_RenderText_Blended(font, toStringz(text), color);
+	    } else {
+		textSurface = TTF_RenderText_Solid(font, toStringz(text), color);
+	    }
+	    SDL_DestroyTexture((buffer.texture));
+	    (buffer.texture) = SDL_CreateTextureFromSurface(renderer, textSurface);
 	    SDL_FreeSurface(textSurface);
 	}
 	int w, h;
-	SDL_QueryTexture(debugText.texture, null, null, &w, &h);
+	SDL_QueryTexture((buffer.texture), null, null, &w, &h);
 	SDL_Rect rect = {x, y, w, h};
-	SDL_RenderCopy(renderer, debugText.texture, null, &rect);
+	SDL_RenderCopy(renderer, (buffer.texture), null, &rect);
     }
 
     // Create new menu with given titles,

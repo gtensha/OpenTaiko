@@ -11,6 +11,8 @@ class Performance {
 	int good;
 	int ok;
 	int bad;
+	int currentCombo;
+	int highestCombo;
     }
 
     this(string map) {
@@ -26,12 +28,18 @@ class Performance {
 	int hitResult = drums[i].hit(key, time);
 	if (hitResult == 0) {
 	    score.good++;
+	    score.currentCombo++;
 	} else if (hitResult == 1) {
 	    score.ok++;
+	    score.currentCombo++;
 	} else if (hitResult == 3) {
-	    return hitResult;
+	    return 3;
 	} else {
 	    score.bad++;
+	    score.currentCombo = 0;
+	}
+	if (score.currentCombo > score.highestCombo) {
+	    score.highestCombo = score.currentCombo;
 	}
 	return hitResult;
     }
@@ -47,6 +55,7 @@ class Performance {
 	    i++;
 	    
 	    score.bad++;
+	    score.currentCombo = 0;
 	    return true;
 	} else {
 	    return false;

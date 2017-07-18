@@ -68,7 +68,8 @@ class MapGen {
 	int bpm = 140;
 	int zoom = 4;
 	string map = to!string(std.file.read(MAP_DIR ~ file));
-	string[] lines = split(map, std.ascii.newline);
+	string[] lines = split(removechars(map, "\r"),
+			       "\n");
 	Drum[] drumArray;
 
 	int i;
@@ -179,11 +180,11 @@ class MapGen {
     static void convertMapFile(string source) {
 
 	string file = to!string(std.file.read(source));
-	string[] paths = split(source, "/");
+	/*string[] paths = split(source, "/");
 	string path;
 	for (int i = 0; i > paths.length - 1; i++) {
 	    path ~= paths[i] ~ "/";
-	}
+	}*/
 
 	Song newSong;
 	string convertedMap = fromOSUFile(file, &newSong);
@@ -232,8 +233,10 @@ class MapGen {
     static string fromOSUFile(string file, Song* newSong) {
 
 	string openTaikoMap;
-	string[] lines = split(file, std.ascii.newline);
+	string[] lines = split(removechars(file, "\r"),
+			       "\n");
 
+	writeln(lines);
 	Song song = *newSong;
 
 	bool objectSection = false;
@@ -263,16 +266,11 @@ class MapGen {
 		if (unformatted !is null && unformatted.length > 0) {
 		    string formatted;
 		    if (unformatted[0].equal("AudioFilename:")) {
-			/*for (int i = 0; i > unformatted.length; i++) {
-			    if (i == 0) {
-			    } else if (i == unformatted.length - 1) {
-				formatted ~= unformatted[i];
-			    } else {
-				formatted ~= unformatted[i] ~ " ";
-			    }
-			    }*/
+			for (int i = 1; i > unformatted.length; i++) {
+			    formatted ~= unformatted[i];
+			}
 
-			song.src = unformatted[1];
+			song.src = formatted;
 		    }
 		}
 
@@ -348,33 +346,36 @@ class MapGen {
 	JSONValue maps = parseJSON(unprocessed);
 
 	foreach (JSONValue dir ; maps["dirs"].array) {
+	    try {
+	    	JSONValue map = parseJSON(to!string(std.file.read(MAP_DIR
+								  ~ dir.str
+								  ~ "/meta.json")));
 
-	    JSONValue map = parseJSON(to!string(std.file.read(MAP_DIR
-							      ~ dir.str
-							      ~ "/meta.json")));
-
-	    Song song = {
-		map["title"].str,
-		map["artist"].str,
-		map["maintainer"].str,
-		null,
-		map["src"].str,
-		null
-	    };
-
-	    foreach (JSONValue tag ; map["tags"].array) {
-		song.tags ~= tag.str;
-	    }
-
-	    foreach (JSONValue difficulty ; map["difficulties"].array) {
-	        Difficulty diff = {
-		    difficulty["name"].str,
-		    to!int(difficulty["difficulty"].integer),
-		    difficulty["mapper"].str
+		Song song = {
+		    map["title"].str,
+		    map["artist"].str,
+		    map["maintainer"].str,
+		    null,
+		    map["src"].str,
+		    null
 		};
-		song.difficulties ~= diff;
+
+		foreach (JSONValue tag ; map["tags"].array) {
+		    song.tags ~= tag.str;
+		}
+
+		foreach (JSONValue difficulty ; map["difficulties"].array) {
+		    Difficulty diff = {
+			difficulty["name"].str,
+			to!int(difficulty["difficulty"].integer),
+			difficulty["mapper"].str
+		    };
+		    song.difficulties ~= diff;
+		}
+		songs ~= song;
+	    } catch (Exception e) {
+		writeln(e.msg);
 	    }
-	    songs ~= song;
 	}
 	return songs;
     }

@@ -49,7 +49,7 @@ void renderGameplay() {
 	prevFrames = frame;
 	seconds++;
     }
-    gameRenderer.renderQuickText("FPS: " ~ to!string(fps), 0, 0);
+    gameRenderer.renderText(&gameRenderer.debugText, "FPS: " ~ to!string(fps), gameRenderer.infoFont, false, 0, 0);
     int hitType = 3;
     SDL_Event event;
     // Find which keys are being pressed, play sounds
@@ -264,8 +264,9 @@ void main(string[] args) {
 
     try {
 	DerelictSDL2.load();
-    } catch (Exception SharedLibLoadException) {
-	writeln(SharedLibLoadException.toString());
+    } catch (Exception e) {
+	writeln(e.toString());
+	return;
     }
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -347,6 +348,7 @@ void main(string[] args) {
 			    ~ "Good: " ~ to!string(performance.score.good)
 			    ~ "\nOK: " ~ to!string(performance.score.ok)
 			    ~ "\nBad/Miss: " ~ to!string(performance.score.bad)
+			    ~ "\nMax combo: " ~ to!string(performance.score.highestCombo)
 			    ~ "\nScore: " ~ to!string(performance.calculateScore()));
 		}
 	    }
