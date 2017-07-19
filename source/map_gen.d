@@ -150,6 +150,7 @@ class MapGen {
 	return (((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
     }
 
+    // Read a section of a map from a string and return drum objects
     static Drum[] readMapSection(string section, int bpm, int* i, int offset) {
 	int index = *i;
 	Drum[] drumArray;
@@ -165,6 +166,7 @@ class MapGen {
 	return drumArray;
     }
 
+    // Return a JSON representation of a Song struct in string form
     static string songToJSON(Song song) {
 	JSONValue metaFile = JSONValue(["title": song.title,
 					"artist": song.artist,
@@ -181,6 +183,8 @@ class MapGen {
 	return toJSON(metaFile, true);
     }
 
+    // Convert the map of foreign format to OpenTaiko format,
+    // write files and update map tree
     static void convertMapFile(string source) {
 
 	string file = to!string(std.file.read(source));
@@ -234,6 +238,8 @@ class MapGen {
 
     }
 
+    // Convert the contents of a .osu file into a Song struct and
+    // OpenTaiko fumen file
     static string fromOSUFile(string file, Song* newSong) {
 
 	string openTaikoMap;
@@ -347,6 +353,7 @@ class MapGen {
 
     abstract string fromTJAFile(string file);
 
+    // Read the specified database file and return array of Song structs
     static Song[] readSongDatabase(string file) {
 	Song[] songs;
 	string unprocessed = to!string(std.file.read(file));
@@ -387,6 +394,7 @@ class MapGen {
 	return songs;
     }
 
+    // Read specified configuration file and return GameVars struct
     static GameVars readConfFile(string fileLoc) {
 
 	GameVars gameVars;

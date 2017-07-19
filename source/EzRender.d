@@ -249,7 +249,7 @@ class EzRender {
 			rightJustify(to!string(performance.calculateScore()), 7, '0'),
 			scoreFont, true,
 			windowWidth - 290, 95);
-	
+
 	this.renderTexture(soul,
 			   windowWidth - 85, 70, 80, 80);
 
@@ -278,6 +278,7 @@ class EzRender {
 	}
     }
 
+    // Play the currently loaded music track from the beginning
     void playMusic() {
 	Mix_PauseMusic();
 	Mix_RewindMusic();
@@ -286,6 +287,7 @@ class EzRender {
 	}
     }
 
+    // Stop the currently playing music
     void stopMusic() {
 	Mix_PauseMusic();
 	Mix_RewindMusic();
@@ -343,6 +345,7 @@ class EzRender {
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
 	}*/
 
+    // Render text from specified buffer, update texture if neccessary
     void renderText(TextBuffer* buffer, string text, TTF_Font* font, bool nice, int x, int y) {
 	if ((buffer.text) is null || text != buffer.text) {
 	    (buffer.text) = text;
@@ -370,6 +373,7 @@ class EzRender {
 	return to!int(menus.length) - 1;
     }
 
+    // Change the contents of the menu at this index in array
     void appendMenu(int index, string[] titles) {
 	this.menus[index].appendContent(titles);
     }
@@ -381,6 +385,7 @@ class EzRender {
 	    this.menus[index].render();
     }
 
+    // Set the performance of this rendering session, load music
     void setPerformance(Performance performance, Song song) {
 	this.performance = performance;
 	string songDir = MAP_DIR ~ song.title ~ "/" ~ song.src;
@@ -396,6 +401,7 @@ class EzRender {
 	}
     }
 
+    // A class representing a renderable menu
     class Menu {
 
 	MenuItem[] choices;
@@ -430,6 +436,7 @@ class EzRender {
 	    SDL_DestroyTexture(text);
 	}
 
+	// Change the menu buttons of this menu with new titles
 	void appendContent(string[] titles) {
 	    pages = null;
 	    choices = null;
@@ -481,6 +488,7 @@ class EzRender {
 	    choices[index].renderPage();
 	}
 
+	// Class representing a menu page with choices
 	class Page {
 
 	    MenuItem[] pageItems;
@@ -492,6 +500,7 @@ class EzRender {
 	    }
 	}
 
+	// Class representing a button/choice in the menu
 	class MenuItem {
 
 	    static int highest;
@@ -540,10 +549,12 @@ class EzRender {
 		SDL_DestroyTexture(highlighted);
 	    }
 
+	    // Render the page this menu item is a part of
 	    void renderPage() {
 		this.page.render();
 	    }
 
+	    // Render this menu item
 	    void render() {
 		ubyte r, gb;
 		SDL_Texture* toRender;
@@ -564,18 +575,21 @@ class EzRender {
 	}
     }
 
+    // Render all the active effects in the game
     void renderAllEffects(int time) {
 	foreach (Effect effect ; effects) {
 	    effect.renderFrame(time);
 	}
     }
 
+    // Reset the timing of all the effects in the game
     void resetEffects() {
 	foreach (Effect effect ; effects) {
 	    effect.reset(0);
 	}
     }
 
+    // Class representing a renderable effect
     class Effect {
 
 	SDL_Rect rect;
@@ -601,6 +615,8 @@ class EzRender {
 	abstract void renderFrame(int time);
     }
 
+    // An effect variant that can be activated
+    // at a given time, then fades in and out
     class FadeEffect : Effect {
 
 	this(SDL_Texture* texture, int duration,
@@ -637,6 +653,7 @@ class EzRender {
 	}
     }
 
+    // A renderable representation of a gameplay drum object
     class RenderableDrum : Renderable {
 
 	HitAnimation animation;
@@ -661,6 +678,8 @@ class EzRender {
 					 rect.x, rect.y, rect.w, rect.h);
 	}
 
+	// Render this drum at the correct position
+	// relative to the current time
 	override bool render(int time) {
 	    if (performance.i <= index) {
 		rect.x = position - time + 100;
@@ -682,6 +701,9 @@ class EzRender {
 	}
     }
 
+    // An effect that represents a drum object being
+    // successfully hit and moving in a curve towards
+    // the "freedom"
     class HitAnimation : Effect {
 
 	bool hasStarted = false;
@@ -693,6 +715,8 @@ class EzRender {
 	    this.startTime = startTime;
 	}
 
+	// Render the effect in the correct position relative
+	// to the current time
 	override void renderFrame(int time) {
 	    if (!hasStarted) {
 		startTime = time;
@@ -709,6 +733,8 @@ class EzRender {
 	}
     }
 
+    // Create all the renderable drum objects from
+    // the drums in the current Performance object
     void populateRenderables() {
 	renderableObjects = null;
 	circleIndex = 0;
