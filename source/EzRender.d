@@ -62,6 +62,8 @@ class EzRender {
     RenderableDrum[] renderableObjects;
     Effect[] effects;
     TextBuffer debugText;
+    TextBuffer scoreDisplay;
+    TextBuffer comboDisplay;
 
     struct TextBuffer {
 	SDL_Texture* texture;
@@ -243,10 +245,20 @@ class EzRender {
 			   97, 200, 65, 65);
 
 	// Draw score display
-	this.renderText(rightJustify(to!string(performance.calculateScore()),
-				     7, '0'), windowWidth - 290, 95);
+	this.renderText(&scoreDisplay,
+			rightJustify(to!string(performance.calculateScore()), 7, '0'),
+			scoreFont, true,
+			windowWidth - 290, 95);
+
 	this.renderTexture(soul,
 			   windowWidth - 85, 70, 80, 80);
+
+	// Draw combo display
+	this.renderText(&comboDisplay,
+			to!string(performance.score.currentCombo),
+			menuFont,
+			true,
+			30, 200);
 
     }
 
@@ -266,6 +278,7 @@ class EzRender {
 	}
     }
 
+    // Play the currently loaded music track from the beginning
     void playMusic() {
 	Mix_PauseMusic();
 	Mix_RewindMusic();
@@ -274,6 +287,7 @@ class EzRender {
 	}
     }
 
+    // Stop the currently playing music
     void stopMusic() {
 	Mix_PauseMusic();
 	Mix_RewindMusic();
@@ -313,7 +327,7 @@ class EzRender {
     }
 
     // Render some text with the default font and colour
-    void renderText(string text, int x, int y) {
+    /*void renderText(string text, int x, int y) {
 	SDL_Texture* cachedText;
 	if ((text in textCache) is null) {
 	    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -329,21 +343,27 @@ class EzRender {
 	SDL_QueryTexture(cachedText, null, null, &w, &h);
 	SDL_Rect rect = {x, y, w, h};
 	SDL_RenderCopy(renderer, cachedText, null, &rect);
-    }
+	}*/
 
-    void renderQuickText(string text, int x, int y) {
-	if (debugText.text is null || text != debugText.text) {
-	    debugText.text = text;
+    // Render text from specified buffer, update texture if neccessary
+    void renderText(TextBuffer* buffer, string text, TTF_Font* font, bool nice, int x, int y) {
+	if ((buffer.text) is null || text != buffer.text) {
+	    (buffer.text) = text;
 	    SDL_Color color = {255, 255, 255, 255};
-	    SDL_Surface* textSurface = TTF_RenderText_Solid(infoFont, toStringz(text), color);
-	    SDL_DestroyTexture(debugText.texture);
-	    debugText.texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+	    SDL_Surface* textSurface;
+	    if (nice) {
+		textSurface = TTF_RenderText_Blended(font, toStringz(text), color);
+	    } else {
+		textSurface = TTF_RenderText_Solid(font, toStringz(text), color);
+	    }
+	    SDL_DestroyTexture((buffer.texture));
+	    (buffer.texture) = SDL_CreateTextureFromSurface(renderer, textSurface);
 	    SDL_FreeSurface(textSurface);
 	}
 	int w, h;
-	SDL_QueryTexture(debugText.texture, null, null, &w, &h);
+	SDL_QueryTexture((buffer.texture), null, null, &w, &h);
 	SDL_Rect rect = {x, y, w, h};
-	SDL_RenderCopy(renderer, debugText.texture, null, &rect);
+	SDL_RenderCopy(renderer, (buffer.texture), null, &rect);
     }
 
     // Create new menu with given titles,
@@ -353,6 +373,7 @@ class EzRender {
 	return to!int(menus.length) - 1;
     }
 
+    // Change the contents of the menu at this index in array
     void appendMenu(int index, string[] titles) {
 	this.menus[index].appendContent(titles);
     }
@@ -364,6 +385,7 @@ class EzRender {
 	    this.menus[index].render();
     }
 
+    // Set the performance of this rendering session, load music
     void setPerformance(Performance performance, Song song) {
 	this.performance = performance;
 	string songDir = MAP_DIR ~ song.title ~ "/" ~ song.src;
@@ -379,6 +401,7 @@ class EzRender {
 	}
     }
 
+    // A class representing a renderable menu
     class Menu {
 
 	MenuItem[] choices;
@@ -413,6 +436,7 @@ class EzRender {
 	    SDL_DestroyTexture(text);
 	}
 
+	// Change the menu buttons of this menu with new titles
 	void appendContent(string[] titles) {
 	    pages = null;
 	    choices = null;
@@ -464,6 +488,7 @@ class EzRender {
 	    choices[index].renderPage();
 	}
 
+	// Class representing a menu page with choices
 	class Page {
 
 	    MenuItem[] pageItems;
@@ -475,6 +500,7 @@ class EzRender {
 	    }
 	}
 
+	// Class representing a button/choice in the menu
 	class MenuItem {
 
 	    static int highest;
@@ -523,10 +549,12 @@ class EzRender {
 		SDL_DestroyTexture(highlighted);
 	    }
 
+	    // Render the page this menu item is a part of
 	    void renderPage() {
 		this.page.render();
 	    }
 
+	    // Render this menu item
 	    void render() {
 		ubyte r, gb;
 		SDL_Texture* toRender;
@@ -547,18 +575,21 @@ class EzRender {
 	}
     }
 
+    // Render all the active effects in the game
     void renderAllEffects(int time) {
 	foreach (Effect effect ; effects) {
 	    effect.renderFrame(time);
 	}
     }
 
+    // Reset the timing of all the effects in the game
     void resetEffects() {
 	foreach (Effect effect ; effects) {
 	    effect.reset(0);
 	}
     }
 
+    // Class representing a renderable effect
     class Effect {
 
 	SDL_Rect rect;
@@ -584,6 +615,8 @@ class EzRender {
 	abstract void renderFrame(int time);
     }
 
+    // An effect variant that can be activated
+    // at a given time, then fades in and out
     class FadeEffect : Effect {
 
 	this(SDL_Texture* texture, int duration,
@@ -620,6 +653,7 @@ class EzRender {
 	}
     }
 
+    // A renderable representation of a gameplay drum object
     class RenderableDrum : Renderable {
 
 	HitAnimation animation;
@@ -644,6 +678,8 @@ class EzRender {
 					 rect.x, rect.y, rect.w, rect.h);
 	}
 
+	// Render this drum at the correct position
+	// relative to the current time
 	override bool render(int time) {
 	    if (performance.i <= index) {
 		rect.x = position - time + 100;
@@ -665,6 +701,9 @@ class EzRender {
 	}
     }
 
+    // An effect that represents a drum object being
+    // successfully hit and moving in a curve towards
+    // the "freedom"
     class HitAnimation : Effect {
 
 	bool hasStarted = false;
@@ -676,6 +715,8 @@ class EzRender {
 	    this.startTime = startTime;
 	}
 
+	// Render the effect in the correct position relative
+	// to the current time
 	override void renderFrame(int time) {
 	    if (!hasStarted) {
 		startTime = time;
@@ -692,6 +733,8 @@ class EzRender {
 	}
     }
 
+    // Create all the renderable drum objects from
+    // the drums in the current Performance object
     void populateRenderables() {
 	renderableObjects = null;
 	circleIndex = 0;

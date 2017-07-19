@@ -68,7 +68,12 @@ class MapGen {
 	int bpm = 140;
 	int zoom = 4;
 	string map = to!string(std.file.read(MAP_DIR ~ file));
-	string[] lines = split(map, std.ascii.newline);
+	string[] lines = split(map, "\n");
+
+	for (int i = 0; i < lines.length; i++) {
+	    lines[i] = chomp(lines[i], "\r");
+	}
+
 	Drum[] drumArray;
 
 	int i;
@@ -145,6 +150,7 @@ class MapGen {
 	return (((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
     }
 
+    // Read a section of a map from a string and return drum objects
     static Drum[] readMapSection(string section, int bpm, int* i, int offset) {
 	int index = *i;
 	Drum[] drumArray;
@@ -160,6 +166,7 @@ class MapGen {
 	return drumArray;
     }
 
+    // Return a JSON representation of a Song struct in string form
     static string songToJSON(Song song) {
 	JSONValue metaFile = JSONValue(["title": song.title,
 					"artist": song.artist,
@@ -176,14 +183,16 @@ class MapGen {
 	return toJSON(metaFile, true);
     }
 
+    // Convert the map of foreign format to OpenTaiko format,
+    // write files and update map tree
     static void convertMapFile(string source) {
 
 	string file = to!string(std.file.read(source));
-	string[] paths = split(source, "/");
+	/*string[] paths = split(source, "/");
 	string path;
 	for (int i = 0; i > paths.length - 1; i++) {
 	    path ~= paths[i] ~ "/";
-	}
+	}*/
 
 	Song newSong;
 	string convertedMap = fromOSUFile(file, &newSong);
@@ -229,10 +238,16 @@ class MapGen {
 
     }
 
+    // Convert the contents of a .osu file into a Song struct and
+    // OpenTaiko fumen file
     static string fromOSUFile(string file, Song* newSong) {
 
 	string openTaikoMap;
-	string[] lines = split(file, std.ascii.newline);
+	string[] lines = split(file, "\n");
+
+	for (int i = 0; i < lines.length; i++) {
+	    lines[i] = chomp(lines[i]);
+	}
 
 	Song song = *newSong;
 
@@ -263,16 +278,12 @@ class MapGen {
 		if (unformatted !is null && unformatted.length > 0) {
 		    string formatted;
 		    if (unformatted[0].equal("AudioFilename:")) {
-			/*for (int i = 0; i > unformatted.length; i++) {
-			    if (i == 0) {
-			    } else if (i == unformatted.length - 1) {
-				formatted ~= unformatted[i];
-			    } else {
-				formatted ~= unformatted[i] ~ " ";
-			    }
-			    }*/
+			formatted ~= unformatted[1];
+			for (int i = 2; i < unformatted.length; i++) {
+			    formatted ~= " " ~ unformatted[i];
+			}
 
-			song.src = unformatted[1];
+			song.src = formatted;
 		    }
 		}
 
@@ -342,43 +353,48 @@ class MapGen {
 
     abstract string fromTJAFile(string file);
 
+    // Read the specified database file and return array of Song structs
     static Song[] readSongDatabase(string file) {
 	Song[] songs;
 	string unprocessed = to!string(std.file.read(file));
 	JSONValue maps = parseJSON(unprocessed);
 
 	foreach (JSONValue dir ; maps["dirs"].array) {
+	    try {
+	    	JSONValue map = parseJSON(to!string(std.file.read(MAP_DIR
+								  ~ dir.str
+								  ~ "/meta.json")));
 
-	    JSONValue map = parseJSON(to!string(std.file.read(MAP_DIR
-							      ~ dir.str
-							      ~ "/meta.json")));
-
-	    Song song = {
-		map["title"].str,
-		map["artist"].str,
-		map["maintainer"].str,
-		null,
-		map["src"].str,
-		null
-	    };
-
-	    foreach (JSONValue tag ; map["tags"].array) {
-		song.tags ~= tag.str;
-	    }
-
-	    foreach (JSONValue difficulty ; map["difficulties"].array) {
-	        Difficulty diff = {
-		    difficulty["name"].str,
-		    to!int(difficulty["difficulty"].integer),
-		    difficulty["mapper"].str
+		Song song = {
+		    map["title"].str,
+		    map["artist"].str,
+		    map["maintainer"].str,
+		    null,
+		    map["src"].str,
+		    null
 		};
-		song.difficulties ~= diff;
+
+		foreach (JSONValue tag ; map["tags"].array) {
+		    song.tags ~= tag.str;
+		}
+
+		foreach (JSONValue difficulty ; map["difficulties"].array) {
+		    Difficulty diff = {
+			difficulty["name"].str,
+			to!int(difficulty["difficulty"].integer),
+			difficulty["mapper"].str
+		    };
+		    song.difficulties ~= diff;
+		}
+		songs ~= song;
+	    } catch (Exception e) {
+		writeln(e.msg);
 	    }
-	    songs ~= song;
 	}
 	return songs;
     }
 
+    // Read specified configuration file and return GameVars struct
     static GameVars readConfFile(string fileLoc) {
 
 	GameVars gameVars;

@@ -49,7 +49,7 @@ void renderGameplay() {
 	prevFrames = frame;
 	seconds++;
     }
-    gameRenderer.renderQuickText("FPS: " ~ to!string(fps), 0, 0);
+    gameRenderer.renderText(&gameRenderer.debugText, "FPS: " ~ to!string(fps), gameRenderer.infoFont, false, 0, 0);
     int hitType = 3;
     SDL_Event event;
     // Find which keys are being pressed, play sounds
@@ -114,6 +114,7 @@ void renderGameplay() {
 
 }
 
+// Render the song selection menu
 int renderSongSelection(int menuIndex) {
 
     gameRenderer.menus[menuIndex].render();
@@ -156,6 +157,7 @@ int renderSongSelection(int menuIndex) {
     return -1;
 }
 
+// Render the main menu
 bool renderMainMenu(int menuIndex) {
 
     int choice = -1;
@@ -223,7 +225,7 @@ bool renderMainMenu(int menuIndex) {
 			MapGen.convertMapFile(removechars(stdin.readln(), std.ascii.newline));
 		    } catch (Throwable t) {
 			writeln("Error: The requested file could not be read\n\n"
-				~ t.toString());
+				~ t.msg);
 		    }
 		    choice = -1;
 		} else {
@@ -236,6 +238,7 @@ bool renderMainMenu(int menuIndex) {
     return true;
 }
 
+// Load and run the game
 void main(string[] args) {
 
     try {
@@ -264,8 +267,9 @@ void main(string[] args) {
 
     try {
 	DerelictSDL2.load();
-    } catch (Exception SharedLibLoadException) {
-	writeln(SharedLibLoadException.toString());
+    } catch (Exception e) {
+	writeln(e.toString());
+	return;
     }
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -314,7 +318,7 @@ void main(string[] args) {
 	    songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
 	} catch (Exception e) {
 	    writeln("Error in map database file, please verify that the contained data is correct before playing:\n"
-		    ~ e.toString());
+		    ~ e.msg);
 	    return;
 	}
 	songSelectionMenu = gameRenderer.createNewMenu(["null"], "Song selection");
@@ -347,6 +351,7 @@ void main(string[] args) {
 			    ~ "Good: " ~ to!string(performance.score.good)
 			    ~ "\nOK: " ~ to!string(performance.score.ok)
 			    ~ "\nBad/Miss: " ~ to!string(performance.score.bad)
+			    ~ "\nMax combo: " ~ to!string(performance.score.highestCombo)
 			    ~ "\nScore: " ~ to!string(performance.calculateScore()));
 		}
 	    }
