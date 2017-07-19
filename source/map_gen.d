@@ -68,8 +68,12 @@ class MapGen {
 	int bpm = 140;
 	int zoom = 4;
 	string map = to!string(std.file.read(MAP_DIR ~ file));
-	string[] lines = split(removechars(map, "\r"),
-			       "\n");
+	string[] lines = split(map, "\n");
+
+	for (int i = 0; i < lines.length; i++) {
+	    lines[i] = chomp(lines[i], "\r");
+	}
+
 	Drum[] drumArray;
 
 	int i;
@@ -233,10 +237,12 @@ class MapGen {
     static string fromOSUFile(string file, Song* newSong) {
 
 	string openTaikoMap;
-	string[] lines = split(removechars(file, "\r"),
-			       "\n");
+	string[] lines = split(file, "\n");
 
-	writeln(lines);
+	for (int i = 0; i < lines.length; i++) {
+	    lines[i] = chomp(lines[i]);
+	}
+
 	Song song = *newSong;
 
 	bool objectSection = false;
@@ -266,8 +272,9 @@ class MapGen {
 		if (unformatted !is null && unformatted.length > 0) {
 		    string formatted;
 		    if (unformatted[0].equal("AudioFilename:")) {
-			for (int i = 1; i > unformatted.length; i++) {
-			    formatted ~= unformatted[i];
+			formatted ~= unformatted[1];
+			for (int i = 2; i < unformatted.length; i++) {
+			    formatted ~= " " ~ unformatted[i];
 			}
 
 			song.src = formatted;
