@@ -7,7 +7,11 @@ import std.array;
 import std.string;
 import std.ascii;
 import std.json;
-import drums;
+import Drum;
+import Song;
+import GameVars;
+import Difficulty;
+import Performance;
 
 enum {
     string MAP_DIR = "maps/",
@@ -18,40 +22,6 @@ enum {
     int BLUE1 = 2,
     int BLUE2 = 3,
 };
-
-struct GameVars {
-
-    // Keyboard mapping
-    int[4] p1;
-    int[4] p2;
-
-    // Display options
-    int[2] resolution;
-    // int maxFPS
-    bool vsync;
-
-}
-
-struct Song {
-
-    string title;
-    string artist;
-    string maintainer;
-    string[] tags;
-
-    string src;
-
-    Difficulty[] difficulties;
-
-}
-
-struct Difficulty {
-
-    string name;
-    int difficulty;
-    string mapper;
-
-}
 
 class MapGen {
 
@@ -68,12 +38,7 @@ class MapGen {
 	int bpm = 140;
 	int zoom = 4;
 	string map = to!string(std.file.read(MAP_DIR ~ file));
-	string[] lines = split(map, "\n");
-
-	for (int i = 0; i < lines.length; i++) {
-	    lines[i] = chomp(lines[i], "\r");
-	}
-
+	string[] lines = split(map, std.ascii.newline);
 	Drum[] drumArray;
 
 	int i;
@@ -150,7 +115,6 @@ class MapGen {
 	return (((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
     }
 
-    // Read a section of a map from a string and return drum objects
     static Drum[] readMapSection(string section, int bpm, int* i, int offset) {
 	int index = *i;
 	Drum[] drumArray;
@@ -166,7 +130,6 @@ class MapGen {
 	return drumArray;
     }
 
-    // Return a JSON representation of a Song struct in string form
     static string songToJSON(Song song) {
 	JSONValue metaFile = JSONValue(["title": song.title,
 					"artist": song.artist,
@@ -183,8 +146,6 @@ class MapGen {
 	return toJSON(metaFile, true);
     }
 
-    // Convert the map of foreign format to OpenTaiko format,
-    // write files and update map tree
     static void convertMapFile(string source) {
 
 	string file = to!string(std.file.read(source));
@@ -238,17 +199,13 @@ class MapGen {
 
     }
 
-    // Convert the contents of a .osu file into a Song struct and
-    // OpenTaiko fumen file
     static string fromOSUFile(string file, Song* newSong) {
 
 	string openTaikoMap;
-	string[] lines = split(file, "\n");
+	string[] lines = split(removechars(file, "\r"),
+			       "\n");
 
-	for (int i = 0; i < lines.length; i++) {
-	    lines[i] = chomp(lines[i]);
-	}
-
+	writeln(lines);
 	Song song = *newSong;
 
 	bool objectSection = false;
@@ -278,9 +235,8 @@ class MapGen {
 		if (unformatted !is null && unformatted.length > 0) {
 		    string formatted;
 		    if (unformatted[0].equal("AudioFilename:")) {
-			formatted ~= unformatted[1];
-			for (int i = 2; i < unformatted.length; i++) {
-			    formatted ~= " " ~ unformatted[i];
+			for (int i = 1; i > unformatted.length; i++) {
+			    formatted ~= unformatted[i];
 			}
 
 			song.src = formatted;
@@ -353,7 +309,6 @@ class MapGen {
 
     abstract string fromTJAFile(string file);
 
-    // Read the specified database file and return array of Song structs
     static Song[] readSongDatabase(string file) {
 	Song[] songs;
 	string unprocessed = to!string(std.file.read(file));
@@ -394,7 +349,6 @@ class MapGen {
 	return songs;
     }
 
-    // Read specified configuration file and return GameVars struct
     static GameVars readConfFile(string fileLoc) {
 
 	GameVars gameVars;
