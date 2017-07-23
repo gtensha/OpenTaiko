@@ -1,5 +1,5 @@
-import Drum;
-import MapGen;
+import Drum : Drum, Blue, Red;
+import MapGen : MapGen;
 
 class Performance {
 
@@ -18,7 +18,7 @@ class Performance {
 
 	this(string map) {
 		mapTitle = map;
-		drums = MapGen.MapGen.parseMapFromFile(map);
+		drums = MapGen.parseMapFromFile(map);
 		drums[0].setParent(this);
 		i = 0;
 	}

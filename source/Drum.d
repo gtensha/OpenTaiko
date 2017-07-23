@@ -1,4 +1,4 @@
-import Performance;
+import Performance : Performance;
 
 class Drum {
 

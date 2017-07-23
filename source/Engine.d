@@ -1,13 +1,17 @@
 import std.stdio;
-import Renderer;
-import AudioMixer;
 
+import Renderer : Renderer;
+import AudioMixer : AudioMixer;
+import Timer : Timer;
+
+// A class for handling rendering and audio playback
 class Engine {
 
 	private string title;
 
-	private Renderer renderer;
-	private AudioMixer audioMixer;
+	private Renderer renderer; // the engine's renderer
+	private AudioMixer audioMixer; // the engine's audio backend
+	private Timer timer;
 
 	this(string title) {
 		this.title = title;
@@ -15,6 +19,8 @@ class Engine {
 
 	// Starts the engine
 	public void start(int w, int h, bool vsync, string title) {
+
+		timer = Timer.timers[Timer.addTimer()];
 
 		try {
 			renderer = new Renderer(this);
@@ -32,11 +38,16 @@ class Engine {
 
 	}
 
-	public void quit() {
+	// Stops the engine, deallocates resources
+	public void stop() {
 		audioMixer.destroy();
 		audioMixer = null;
 		renderer.destroy();
 		renderer = null;
+	}
+
+	public void renderFrame() {
+		timer.refresh(renderer.getTicks());
 	}
 
 	// Load a bunch of textures into the renderer from an AA
@@ -50,9 +61,18 @@ class Engine {
 		}
 	}
 
+	// Load a single texture from file into the renderer
+	public void loadTexture(string key, string src) {
+		try {
+			renderer.registerTexture(key, src);
+		} catch (Exception e) {
+			notify("Failed to load texture: " ~ e.msg);
+		}
+	}
+
 	// This should be able to render a message on screen in the future as well
 	// as writing to console
-	private void notify(string msg) {
+	public void notify(string msg) {
 		writeln(msg);
 	}
 

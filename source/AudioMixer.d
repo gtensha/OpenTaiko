@@ -1,4 +1,4 @@
-import Engine;
+import Engine : Engine;
 
 import std.string : fromStringz, toStringz;
 import std.conv : to;

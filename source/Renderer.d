@@ -1,5 +1,7 @@
-import Engine;
-import Renderable;
+import Engine : Engine;
+import Renderable : Renderable;
+import Timer : Timer;
+import Scene : Scene;
 
 import std.file;
 import std.string : fromStringz, toStringz;
@@ -14,6 +16,7 @@ ShouldThrow myMissingSymCB(string symbolName) {
     return ShouldThrow.No;
 }
 
+// A renderer class for creating and rendering on-screen objects and scenes
 class Renderer {
 
 	// The parent game engine of this renderer
@@ -26,15 +29,20 @@ class Renderer {
 	// Stores all the textures in the system for deployment
 	private SDL_Texture*[string] textures;
 
-	// The renderables for the renderer to render each render() call.
-	// Uses a layered principle, objects in the lower layers will render first
-	// and at the bottom of the screen
-	private Renderable[][] renderables;
+	// Stores all the fonts in the system
+	private TTF_Font*[16][256] fonts;
+
+	private Scene[] scenes; // the scenes present in the renderer
+	uint currentScene; // the index of the scene to be rendered at present
 
 	// Create the object with the given parent and initiate video
 	this(Engine parent) {
 
-		this.parent = parent;
+		if (parent is null) {
+			throw new Exception("Error: Cannot have a renderer without an engine");
+		} else {
+			this.parent = parent;
+		}
 
 		DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
 
@@ -51,14 +59,28 @@ class Renderer {
 								~ fromStringz(SDL_GetError())));
 		}
 
+		if (TTF_Init() < 0) {
+			throw new Exception(to!string("Failed to initialise SDL_ttf: "
+										  ~ fromStringz(TTF_GetError())));
+		}
+
+
 	}
 
 	~this() {
 		foreach (SDL_Texture* texture ; textures) {
 			SDL_DestroyTexture(texture);
 		}
+		foreach (TTF_Font*[] font ; fonts) {
+			foreach (TTF_Font* fontSize ; font) {
+				if (fontSize !is null) {
+					TTF_CloseFont(fontSize);
+				}
+			}
+		}
 		SDL_DestroyRenderer(renderer);
 		SDL_DestroyWindow(window);
+		TTF_Quit();
 		SDL_Quit();
 	}
 
@@ -101,6 +123,7 @@ class Renderer {
 
 		SDL_SetRenderDrawColor(this.renderer, 20, 20, 20, 255);
 		SDL_RenderClear(this.renderer);
+		SDL_RenderPresent(this.renderer);
 		SDL_RaiseWindow(this.window);
 		SDL_Delay(3000);
 	}
@@ -108,11 +131,6 @@ class Renderer {
 	public void renderFrame() {
 		SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
 		SDL_RenderClear(renderer);
-		foreach (Renderable[] renderableObjects ; this.renderables) {
-			foreach (Renderable renderable ; renderableObjects) {
-				renderable.render();
-			}
-		}
 		SDL_RenderPresent(renderer);
 	}
 
@@ -132,6 +150,22 @@ class Renderer {
 		SDL_Texture* tempTexture = SDL_CreateTextureFromSurface(this.renderer,
 																surface);
 		SDL_FreeSurface(surface);
+	}
+
+	public void registerFont(uint key, uint size, string src) {
+		if (key > fonts.length || size > fonts[0].length) {
+			throw new Exception("Out of bounds in font array");
+		}
+		TTF_Font* tempFont = TTF_OpenFont(toStringz(src), size);
+		if (tempFont is null) {
+			throw new Exception(to!string("Failed to register font: " ~ fromStringz(TTF_GetError())));
+		}
+		fonts[key][size] = tempFont;
+	}
+
+	// Return the amount of milliseconds since library init
+	static uint getTicks() {
+		return SDL_GetTicks();
 	}
 
 }
