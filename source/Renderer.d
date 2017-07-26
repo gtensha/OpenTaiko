@@ -2,6 +2,9 @@ import Engine : Engine;
 import Renderable : Renderable;
 import Timer : Timer;
 import Scene : Scene;
+import Solid : Solid;
+import Textured : Textured;
+import Text : Text;
 
 import std.file;
 import std.string : fromStringz, toStringz;
@@ -33,7 +36,7 @@ class Renderer {
 	private TTF_Font*[16][256] fonts;
 
 	private Scene[] scenes; // the scenes present in the renderer
-	uint currentScene; // the index of the scene to be rendered at present
+	private uint currentScene; // the index of the scene to be rendered at present
 
 	// Create the object with the given parent and initiate video
 	this(Engine parent) {
@@ -57,6 +60,11 @@ class Renderer {
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			throw new Exception(to!string("Failed to initialise SDL: "
 								~ fromStringz(SDL_GetError())));
+		}
+
+		if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) < 0) {
+			throw new Exception(to!string("Failed to initialise SDL_image: "
+										  ~ fromStringz(IMG_GetError())));
 		}
 
 		if (TTF_Init() < 0) {
@@ -125,12 +133,13 @@ class Renderer {
 		SDL_RenderClear(this.renderer);
 		SDL_RenderPresent(this.renderer);
 		SDL_RaiseWindow(this.window);
-		SDL_Delay(3000);
 	}
 
 	public void renderFrame() {
 		SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
 		SDL_RenderClear(renderer);
+		scenes[currentScene].render();
+		parent.notify(to!string(fromStringz(SDL_GetError())));
 		SDL_RenderPresent(renderer);
 	}
 
@@ -163,9 +172,68 @@ class Renderer {
 		fonts[key][size] = tempFont;
 	}
 
+	public uint addScene(string name) {
+		scenes ~= new Scene(name);
+		return to!uint(scenes.length - 1);
+	}
+
+	// Sets the renderer's active scene, returns it or null upon failure
+	public Scene setScene(uint index) {
+		if (index > scenes.length - 1) {
+			return null;
+		} else {
+			currentScene = index;
+			return scenes[currentScene];
+		}
+	}
+
+	// Returns the scene at the specified index
+	public Scene getScene(uint index) {
+		if (index > scenes.length - 1) {
+			return null;
+		} else {
+			return scenes[index];
+		}
+	}
+
 	// Return the amount of milliseconds since library init
-	static uint getTicks() {
+	public static uint getTicks() {
 		return SDL_GetTicks();
 	}
 
+	public Renderable createSolid(int w, int h, int x, int y,
+								  ubyte r, ubyte g, ubyte b, ubyte a) {
+
+		return new Solid(renderer, w, h, x, y, r, g, b, a);
+	}
+
+	public Renderable createTextured(string texture,
+									 int w, int h, int x, int y) {
+
+		if ((texture in textures) is null) {
+			return null;
+		} else {
+			return new Textured(renderer, textures[texture], w, h, x, y);
+		}
+	}
+
+	public Renderable createTextured(string texture,
+									 int x, int y) {
+
+		if ((texture in textures) is null) {
+			return null;
+		} else {
+			return new Textured(renderer, textures[texture], x, y);
+		}
+	}
+/*
+	public Renderable createText(string text,
+								 string font,
+								 bool pretty,
+								 int x, int y,
+								 ubyte r, ubyte g, ubyte b, ubyte a) {
+
+
+	}
+*/
 }

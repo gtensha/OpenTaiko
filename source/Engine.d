@@ -48,6 +48,7 @@ class Engine {
 
 	public void renderFrame() {
 		timer.refresh(renderer.getTicks());
+		renderer.renderFrame();
 	}
 
 	// Load a bunch of textures into the renderer from an AA
@@ -68,6 +69,16 @@ class Engine {
 		} catch (Exception e) {
 			notify("Failed to load texture: " ~ e.msg);
 		}
+	}
+
+	// Returns the engine's renderer
+	public Renderer gameRenderer() {
+		return renderer;
+	}
+
+	// Sets the renderer's active scene and returns it
+	public void switchScene(uint index) {
+		renderer.setScene(index);
 	}
 
 	// This should be able to render a message on screen in the future as well

@@ -29,8 +29,11 @@ class AudioMixer {
 						  MIX_DEFAULT_CHANNELS,
 						  1024) < 0) {
 
-			throw new Exception(to!string("Failed to load SDL_Mixer: " ~ fromStringz(SDL_GetError())));
+			throw new Exception(to!string("Failed to load SDL_Mixer: "
+										  ~ fromStringz(Mix_GetError())));
 		}
+
+		Mix_AllocateChannels(sfx.length);
 	}
 
 	~this() {
@@ -46,17 +49,48 @@ class AudioMixer {
 		Mix_CloseAudio();
 	}
 
+	// Register a sound effect into the system
 	public void registerSFX(int id, string src) {
 
-		if (sfx[id] is null) {
-			Mix_Chunk* temp = Mix_LoadWAV(toStringz(src));
-			if (temp is null) {
-				throw new Exception(to!string(fromStringz(SDL_GetError())));
-			}
-			sfx[id] = temp;
-		} else {
-			throw new Exception("Error: already registered");
+		Mix_Chunk* temp = Mix_LoadWAV(toStringz(src));
+		if (temp is null) {
+			throw new Exception(to!string(fromStringz(Mix_GetError())));
 		}
+		sfx[id] = temp;
+	}
+
+	// Register a music track into the system
+	public void registerMusic(string title, string src) {
+
+		Mix_Music* temp = Mix_LoadMUS(toStringz(src));
+		if (temp is null) {
+			throw new Exception(to!string(fromStringz(Mix_GetError())));
+		}
+		music[title] = temp;
+	}
+
+	// Plays the already registered music track with the given title
+	public void playTrack(string title) {
+		Mix_PauseMusic();
+		if (Mix_PlayMusic(music[title], 1) < 0) {
+			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
+						  			~ fromStringz(Mix_GetError())));
+		}
+	}
+
+	// Pauses any currently playing music
+	public void pauseMusic() {
+		Mix_PauseMusic();
+	}
+
+	// Resume playback of any paused music
+	public void resumeMusic() {
+		Mix_ResumeMusic();
+	}
+
+	// Plays the sound effect with the registered ID
+	public void playSFX(int id) {
+		Mix_PlayChannel(id, sfx[id], 0);
 	}
 
 }
