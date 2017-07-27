@@ -30,7 +30,8 @@ class Text : Textured {
 
 		this.font = font;
 		this.pretty = pretty;
-		this.currentText = text;
+		this.currentText = "";
+		this.updateText(text);
 	}
 
 	// Update the text in the texture if the new text differs from current

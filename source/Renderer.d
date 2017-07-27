@@ -5,6 +5,7 @@ import Scene : Scene;
 import Solid : Solid;
 import Textured : Textured;
 import Text : Text;
+import Font : Font;
 
 import std.file;
 import std.string : fromStringz, toStringz;
@@ -33,7 +34,7 @@ class Renderer {
 	private SDL_Texture*[string] textures;
 
 	// Stores all the fonts in the system
-	private TTF_Font*[16][256] fonts;
+	private Font[string] fonts;
 
 	private Scene[] scenes; // the scenes present in the renderer
 	private uint currentScene; // the index of the scene to be rendered at present
@@ -79,16 +80,11 @@ class Renderer {
 		foreach (SDL_Texture* texture ; textures) {
 			SDL_DestroyTexture(texture);
 		}
-		foreach (TTF_Font*[] font ; fonts) {
-			foreach (TTF_Font* fontSize ; font) {
-				if (fontSize !is null) {
-					TTF_CloseFont(fontSize);
-				}
-			}
-		}
+
 		SDL_DestroyRenderer(renderer);
 		SDL_DestroyWindow(window);
 		TTF_Quit();
+		IMG_Quit();
 		SDL_Quit();
 	}
 
@@ -160,15 +156,18 @@ class Renderer {
 		SDL_FreeSurface(surface);
 	}
 
-	public void registerFont(uint key, uint size, string src) {
-		if (key > fonts.length || size > fonts[0].length) {
-			throw new Exception("Out of bounds in font array");
+	// Register a new Font object into the system
+	public void registerFont(string key, string src) {
+		fonts[key] = new Font(key, src);
+	}
+
+	// Returns Font object if exists, else returns null
+	public Font getFont(string key) {
+		if ((key in fonts) !is null) {
+			return fonts[key];
+		} else {
+			return null;
 		}
-		TTF_Font* tempFont = TTF_OpenFont(toStringz(src), size);
-		if (tempFont is null) {
-			throw new Exception(to!string("Failed to register font: " ~ fromStringz(TTF_GetError())));
-		}
-		fonts[key][size] = tempFont;
 	}
 
 	public uint addScene(string name) {
@@ -200,14 +199,28 @@ class Renderer {
 		return SDL_GetTicks();
 	}
 
-	public Renderable createSolid(int w, int h, int x, int y,
-								  ubyte r, ubyte g, ubyte b, ubyte a) {
+	// Return the window's current width in pixels
+	public int windowWidth() {
+		int w;
+		SDL_GetWindowSize(window, &w, null);
+		return w;
+	}
+
+	// Return the window's current height in pixels
+	public int windowHeight() {
+		int h;
+		SDL_GetWindowSize(window, null, &h);
+		return h;
+	}
+
+	public Solid createSolid(int w, int h, int x, int y,
+							 ubyte r, ubyte g, ubyte b, ubyte a) {
 
 		return new Solid(renderer, w, h, x, y, r, g, b, a);
 	}
 
-	public Renderable createTextured(string texture,
-									 int w, int h, int x, int y) {
+	public Textured createTextured(string texture,
+								   int w, int h, int x, int y) {
 
 		if ((texture in textures) is null) {
 			return null;
@@ -216,8 +229,8 @@ class Renderer {
 		}
 	}
 
-	public Renderable createTextured(string texture,
-									 int x, int y) {
+	public Textured createTextured(string texture,
+								   int x, int y) {
 
 		if ((texture in textures) is null) {
 			return null;
@@ -225,14 +238,31 @@ class Renderer {
 			return new Textured(renderer, textures[texture], x, y);
 		}
 	}
-/*
-	public Renderable createText(string text,
-								 string font,
-								 bool pretty,
-								 int x, int y,
-								 ubyte r, ubyte g, ubyte b, ubyte a) {
 
+	public Text createText(string text,
+						   string font,
+						   uint size,
+						   bool pretty,
+						   int x, int y,
+						   ubyte r, ubyte g, ubyte b, ubyte a) {
 
+		TTF_Font* fontFace = getFont(font).get(size);
+		if (fontFace is null) {
+			parent.notify("There was an error opening the font "
+						  ~ font
+						  ~ " with size "
+						  ~ to!string(size));
+
+			return null;
+		}
+
+		Text newText = new Text(this.renderer,
+								text,
+								fontFace,
+								pretty,
+								x, y,
+								r, g, b, a);
+		return newText;
 	}
-*/
+
 }
