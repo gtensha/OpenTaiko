@@ -24,6 +24,8 @@ class Solid : Renderable {
 		color.g = g;
 		color.b = b;
 		color.a = a;
+
+		this.renderer = renderer;
 	}
 
 	public void render() {

@@ -139,7 +139,6 @@ class Renderer {
 		SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
 		SDL_RenderClear(renderer);
 		scenes[currentScene].render();
-		parent.notify(to!string(fromStringz(SDL_GetError())));
 		SDL_RenderPresent(renderer);
 	}
 
