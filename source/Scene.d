@@ -20,7 +20,9 @@ class Scene : Renderable {
 	public void render() {
 		foreach (Renderable[] renderableObjects ; this.renderables) {
 			foreach (Renderable renderable ; renderableObjects) {
-				renderable.render();
+				if (renderable !is null) {
+					renderable.render();
+				}
 			}
 		}
 	}

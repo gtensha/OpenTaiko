@@ -153,7 +153,11 @@ class Renderer {
 	public void registerTexture(string key, SDL_Surface* surface) {
 		SDL_Texture* tempTexture = SDL_CreateTextureFromSurface(this.renderer,
 																surface);
+		if (tempTexture is null) {
+			throw new Exception(to!string(fromStringz(SDL_GetError())));
+		}
 		SDL_FreeSurface(surface);
+		textures[key] = tempTexture;
 	}
 
 	// Register a new Font object into the system

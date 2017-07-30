@@ -15,7 +15,9 @@ class Font {
 
 	~this() {
 		foreach (TTF_Font* font ; sizes) {
-			TTF_CloseFont(font);
+			if (font !is null) {
+				TTF_CloseFont(font);
+			}
 		}
 	}
 

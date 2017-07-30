@@ -7,7 +7,8 @@ import derelict.sdl2.sdl : SDL_CreateTextureFromSurface,
 						   SDL_DestroyTexture,
 						   SDL_Renderer,
 						   SDL_Surface,
-						   SDL_FreeSurface;
+						   SDL_FreeSurface,
+						   SDL_QueryTexture;
 import derelict.sdl2.ttf : TTF_Font,
  						   TTF_RenderUTF8_Solid,
 						   TTF_RenderUTF8_Shaded,
@@ -30,7 +31,6 @@ class Text : Textured {
 
 		this.font = font;
 		this.pretty = pretty;
-		this.currentText = "";
 		this.updateText(text);
 	}
 
@@ -43,8 +43,12 @@ class Text : Textured {
 			} else {
 				tempSurface = TTF_RenderUTF8_Solid(font, toStringz(text), color);
 			}
-			SDL_DestroyTexture(texture);
-			texture = SDL_CreateTextureFromSurface(renderer, tempSurface);
+			SDL_DestroyTexture(this.texture);
+			this.texture = SDL_CreateTextureFromSurface(renderer, tempSurface);
+			int w, h;
+			SDL_QueryTexture(texture, null, null, &w, &h);
+			this.rect.w = w;
+			this.rect.h = h;
 			SDL_FreeSurface(tempSurface);
 		}
 	}

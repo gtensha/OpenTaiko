@@ -3,6 +3,7 @@ import std.stdio;
 import Renderer : Renderer;
 import AudioMixer : AudioMixer;
 import Timer : Timer;
+import Assets : Assets;
 
 // A class for handling rendering and audio playback
 class Engine {
@@ -51,23 +52,25 @@ class Engine {
 		renderer.renderFrame();
 	}
 
-	// Load a bunch of textures into the renderer from an AA
-	public void loadTextures(string[string] src) {
-		foreach (string str ; src.keys) {
-			try {
-				renderer.registerTexture(str, src[str]);
-			} catch (Exception e) {
-				notify("Failed to load texture: " ~ e.msg);
+	public void loadAssets(Assets assets, string extraPath) {
+		foreach (string key ; assets.textures.byKey()) {
+			if ((key in assets.textures) !is null) {
+				gameRenderer.registerTexture(key, extraPath ~ assets.textures[key]);
 			}
 		}
-	}
 
-	// Load a single texture from file into the renderer
-	public void loadTexture(string key, string src) {
-		try {
-			renderer.registerTexture(key, src);
-		} catch (Exception e) {
-			notify("Failed to load texture: " ~ e.msg);
+		foreach (string key ; assets.fonts.byKey()) {
+			if ((key in assets.fonts) !is null) {
+				gameRenderer.registerFont(key, extraPath ~ assets.fonts[key]);
+			}
+		}
+
+		int i = 0;
+		foreach (string path ; assets.sounds) {
+			if (path !is null) {
+				audioMixer.registerSFX(i, extraPath ~ path);
+			}
+			i++;
 		}
 	}
 
