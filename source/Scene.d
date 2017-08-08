@@ -33,6 +33,14 @@ class Scene : Renderable {
 		return to!int(renderables.length - 1);
 	}
 
+	public void clearLayer(uint layer) {
+		if (layer < renderables.length) {
+			renderables[layer] = null;
+		} else {
+			throw new Exception("Tried to clear non-existent layer (out of bounds)");
+		}
+	}
+
 	// Registers a renderable to the specified layer and returns index
 	public int addRenderable(int layer, Renderable renderable) {
 		if (renderables.length - 1 < layer) {

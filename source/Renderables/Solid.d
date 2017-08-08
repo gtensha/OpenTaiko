@@ -1,4 +1,5 @@
 import Renderable : Renderable;
+import std.conv : to;
 import derelict.sdl2.sdl : SDL_Rect,
 						   SDL_Color,
 						   SDL_Renderer,
@@ -52,6 +53,22 @@ class Solid : Renderable {
 
 	public void setY(uint y) {
 		rect.y = y;
+	}
+
+	// Set the color of the solid, int < 0 for unchanged
+	public void setColor(int r, int g, int b, int a) {
+		if (r >= 0) {
+			this.color.r = to!ubyte(r);
+		}
+		if (g >= 0) {
+			this.color.g = to!ubyte(g);
+		}
+		if (b >= 0) {
+			this.color.b = to!ubyte(b);
+		}
+		if (a >= 0) {
+			this.color.a = to!ubyte(a);
+		}
 	}
 
 }

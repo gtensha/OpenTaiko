@@ -8,6 +8,8 @@ import Difficulty : Difficulty;
 import GameVars : GameVars;
 import OpenTaikoAssets : openTaikoAssets, ASSET_DIR;
 
+//import derelict.sdl2.sdl : SDL_Keycode;
+
 import std.conv : to;
 import std.stdio;
 
@@ -21,6 +23,7 @@ class OpenTaiko {
 
 	private Engine engine;
 	private uint startMenuIndex;
+	private uint mainMenuIndex;
 
 	public void run() {
 
@@ -30,12 +33,34 @@ class OpenTaiko {
 
 		loadAssets(engine);
 		createStartMenu(&startMenuIndex);
+		createMainMenu(&mainMenuIndex);
 
-		for (int i = 0; i < 1000; i++) {
-			engine.renderFrame();
+		engine.iHandler.bind(0, 13);
+		engine.iHandler.bind(1, 27);
+
+		int eventCode;
+		while (true) {
+			eventCode = engine.renderFrame();
+			switch (eventCode) {
+				case 0:
+					engine.gameRenderer.fadeIntoScene(mainMenuIndex, 3000, &engine.renderFrame);
+					break;
+
+				case 1:
+					engine.gameRenderer.fadeIntoScene(startMenuIndex, 3000, &engine.renderFrame);
+					break;
+
+				default:
+					break;
+
+				case -1:
+					engine.stop();
+					return;
+			}
+
 		}
 
-		engine.stop();
+
 	}
 
 	void loadAssets(Engine e) {
@@ -85,6 +110,13 @@ class OpenTaiko {
 		r.getScene(*menuIndex).addRenderable(1, centerInfo);
 		r.getScene(*menuIndex).addRenderable(1, r.createTextured("Soul", 0, 0));
 
+	}
+
+	void createMainMenu(uint* menuIndex) {
+		Renderer r = engine.gameRenderer;
+		*menuIndex = r.addScene("Main Menu");
+		r.getScene(*menuIndex).addLayer();
+		r.getScene(*menuIndex).addRenderable(0, r.createSolid(50, 50, 0, 0, 156, 89, 238, 255));
 	}
 
 	static int getCenterPos(int maxWidth, int width) {

@@ -24,9 +24,11 @@ class InputHandler {
 						return i;
 					}
 				}
+			} else if (event.type == SDL_QUIT) {
+				return -1;
 			}
 		}
-		return -1;
+		return -2;
 	}
 
 	public void bind(int event, int key) {

@@ -2,8 +2,10 @@ import std.stdio;
 
 import Renderer : Renderer;
 import AudioMixer : AudioMixer;
+import InputHandler : InputHandler;
 import Timer : Timer;
 import Assets : Assets;
+import std.conv : to;
 
 // A class for handling rendering and audio playback
 class Engine {
@@ -12,6 +14,7 @@ class Engine {
 
 	private Renderer renderer; // the engine's renderer
 	private AudioMixer audioMixer; // the engine's audio backend
+	private InputHandler inputHandler;
 	private Timer timer;
 
 	this(string title) {
@@ -26,6 +29,7 @@ class Engine {
 		try {
 			renderer = new Renderer(this);
 			audioMixer = new AudioMixer(this);
+			inputHandler = new InputHandler(128, this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
 			return;
@@ -47,9 +51,10 @@ class Engine {
 		renderer = null;
 	}
 
-	public void renderFrame() {
-		timer.refresh(renderer.getTicks());
+	public int renderFrame() {
+		Timer.refresh(renderer.getTicks());
 		renderer.renderFrame();
+		return inputHandler.listenKeyboard();
 	}
 
 	public void loadAssets(Assets assets, string extraPath) {
@@ -79,6 +84,10 @@ class Engine {
 		return renderer;
 	}
 
+	public InputHandler iHandler() {
+		return inputHandler;
+	}
+
 	// Sets the renderer's active scene and returns it
 	public void switchScene(uint index) {
 		renderer.setScene(index);
@@ -88,6 +97,10 @@ class Engine {
 	// as writing to console
 	public void notify(string msg) {
 		writeln(msg);
+	}
+
+	public void notify(int msg) {
+		notify(to!string(msg));
 	}
 
 }

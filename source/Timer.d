@@ -12,12 +12,12 @@ class Timer {
 	}
 
 	// The raw time in ms
-	public uint libInitPassed;
+	public static uint libInitPassed;
 
 	// The current ms value to calculate from
 	private uint measureFrom;
-	// The pre-calculated ms value
-	public uint timerPassed;
+	// The current ms value to calculate to
+	private uint measureTo;
 
 	// Only allow creating from static factory method
 	private this() {
@@ -26,14 +26,28 @@ class Timer {
 	}
 
 	// Refresh time and recalculate
-	public void refresh(uint currentTime) {
+	public static void refresh(uint currentTime) {
 		libInitPassed = currentTime;
-		timerPassed = libInitPassed - measureFrom;
+	}
+
+	// Calculate time passed and return
+	public uint getTimerPassed() {
+		return libInitPassed - measureFrom;
+	}
+
+	// Returns percentage value of how much of the time has passed
+	public int getPercentagePassed() {
+		return to!int((to!float(getTimerPassed()) / to!float(measureTo)) * 100);
 	}
 
 	// Set new value to measure from
 	public void set(uint newTime) {
 		this.measureFrom = newTime;
+	}
+
+	public void set(uint newTime, uint newTimeTo) {
+		this.measureFrom = newTime;
+		this.measureTo = newTimeTo;
 	}
 
 }
