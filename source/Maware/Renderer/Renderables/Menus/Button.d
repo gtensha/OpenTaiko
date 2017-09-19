@@ -19,11 +19,21 @@ class Button : Renderable {
 		this.renderer = renderer;
 		this.buttonText = text;
 		this.value = value;
+		this.solid = new Solid(renderer, x, y, w, h, 255, 255, 255, 255);
 
 	}
 
 	public void render() {
+		solid.render();
+		buttonText.render();
+	}
 
+	public void setX(int x) {
+		solid.setX(x);
+	}
+
+	public void setY(int y) {
+		solid.setY(y);
 	}
 
 	public int getValue() {
