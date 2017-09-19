@@ -47,12 +47,20 @@ class Solid : Renderable {
 		return rect.h;
 	}
 
-	public void setX(uint x) {
+	public void setX(int x) {
 		rect.x = x;
 	}
 
-	public void setY(uint y) {
+	public void setY(int y) {
 		rect.y = y;
+	}
+
+	public int getX() {
+		return rect.x;
+	}
+
+	public int getY() {
+		return rect.y;
 	}
 
 	// Set the color of the solid, int < 0 for unchanged

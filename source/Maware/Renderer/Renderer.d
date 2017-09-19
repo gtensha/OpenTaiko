@@ -277,6 +277,10 @@ class Renderer {
 		return h;
 	}
 
+	public SDL_Renderer* sdlRenderer() {
+		return renderer;
+	}
+
 	public Solid createSolid(int w, int h, int x, int y,
 							 ubyte r, ubyte g, ubyte b, ubyte a) {
 

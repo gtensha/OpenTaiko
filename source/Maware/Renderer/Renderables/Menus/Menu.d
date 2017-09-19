@@ -7,12 +7,12 @@ import derelict.sdl2.sdl : SDL_Renderer;
 
 class Menu : Renderable {
 
-	private SDL_Renderer* renderer;
-	private uint buttonWidth;
-	private uint buttonHeight;
-	private uint fontSize;
-	private Font buttonFont;
-	private Button[] buttons;
+	protected SDL_Renderer* renderer;
+	protected uint buttonWidth;
+	protected uint buttonHeight;
+	protected uint fontSize;
+	protected Font buttonFont;
+	protected Button[] buttons;
 
 	this(SDL_Renderer* renderer,
 		 string title,
@@ -23,7 +23,7 @@ class Menu : Renderable {
 		this.renderer = renderer;
 		this.buttonWidth = buttonWidth;
 		this.buttonHeight = buttonHeight;
-		this.fontSize = buttonHeight;
+		this.fontSize = buttonHeight - 15;
 		this.buttonFont = font;
 	}
 
@@ -31,7 +31,8 @@ class Menu : Renderable {
 		buttons ~= new Button(this.renderer,
 							  new Text(renderer, title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
 							  value,
-							  cast(int)buttons.length * buttonWidth, 0, buttonWidth, buttonHeight);
+							  (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight);
+
 		return buttons[buttons.length - 1];
 	}
 

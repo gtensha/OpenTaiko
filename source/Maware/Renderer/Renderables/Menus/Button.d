@@ -6,10 +6,10 @@ import derelict.sdl2.sdl : SDL_Rect, SDL_Renderer;
 
 class Button : Renderable {
 
-	private Text buttonText;
-	private Solid solid;
-	private SDL_Renderer* renderer;
-	private int value;
+	protected Text buttonText;
+	protected Solid solid;
+	protected SDL_Renderer* renderer;
+	protected int value;
 
 	this(SDL_Renderer* renderer,
 		 Text text,
@@ -19,7 +19,13 @@ class Button : Renderable {
 		this.renderer = renderer;
 		this.buttonText = text;
 		this.value = value;
-		this.solid = new Solid(renderer, x, y, w, h, 255, 255, 255, 255);
+		if (w > 0 && h > 0) {
+			this.solid = new Solid(renderer, w, h, x, y, 125, 125, 125, 255);
+		}
+		if (text !is null) {
+			buttonText.setX(x + 10);
+			buttonText.setY(y);
+		}
 
 	}
 

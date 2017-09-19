@@ -7,6 +7,8 @@ import Song : Song;
 import Difficulty : Difficulty;
 import GameVars : GameVars;
 import OpenTaikoAssets : openTaikoAssets, ASSET_DIR;
+import Menu : Menu;
+import HorizontalTopBarMenu : HorizontalTopBarMenu;
 
 //import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -117,6 +119,25 @@ class OpenTaiko {
 		*menuIndex = r.addScene("Main Menu");
 		r.getScene(*menuIndex).addLayer();
 		r.getScene(*menuIndex).addRenderable(0, r.createSolid(50, 50, 0, 0, 156, 89, 238, 255));
+		r.getScene(*menuIndex).addLayer();
+		HorizontalTopBarMenu newMenu = new HorizontalTopBarMenu(r.sdlRenderer,
+								"Banan",
+								r.getFont("Noto-Light"),
+								200,
+								80,
+								216, 27, 96, 255);
+
+		r.getScene(*menuIndex).addRenderable(1, new Solid(r.sdlRenderer,
+														  r.windowWidth,
+														  80,
+														  0, 0,
+														  216, 27, 96, 255));
+		r.getScene(*menuIndex).addRenderable(1, newMenu);
+		newMenu.addButton("Play", 0);
+		newMenu.addButton("Settings", 1);
+		newMenu.addButton("怪しい列", 2);
+		newMenu.addButton("Exit", -1);
+
 	}
 
 	static int getCenterPos(int maxWidth, int width) {
