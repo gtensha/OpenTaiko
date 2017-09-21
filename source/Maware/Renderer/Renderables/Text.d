@@ -36,7 +36,7 @@ class Text : Textured {
 
 	// Update the text in the texture if the new text differs from current
 	public void updateText(string text) {
-		if (!text.equal(currentText)) {
+		if (!false/*text.equal(currentText)*/) {
 			SDL_Surface* tempSurface;
 			if (pretty) {
 				tempSurface = TTF_RenderUTF8_Blended(font, toStringz(text), color);
@@ -46,11 +46,16 @@ class Text : Textured {
 			SDL_DestroyTexture(this.texture);
 			this.texture = SDL_CreateTextureFromSurface(renderer, tempSurface);
 			int w, h;
-			SDL_QueryTexture(texture, null, null, &w, &h);
+			SDL_QueryTexture(this.texture, null, null, &w, &h);
 			this.rect.w = w;
 			this.rect.h = h;
 			SDL_FreeSurface(tempSurface);
+			currentText = text;
 		}
+	}
+
+	public void updateText() {
+		this.updateText(currentText);
 	}
 
 	// Return the text value of this Text object

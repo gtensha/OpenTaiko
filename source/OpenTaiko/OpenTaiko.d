@@ -10,8 +10,10 @@ import OpenTaikoAssets : openTaikoAssets, ASSET_DIR;
 import Menu : Menu;
 import HorizontalTopBarMenu : HorizontalTopBarMenu;
 import PolynomialFunction : PolynomialFunction;
+import Timer : Timer;
+import InputHandler : InputHandler;
 
-//import derelict.sdl2.sdl : SDL_Keycode;
+import derelict.sdl2.sdl : SDL_Keycode;
 
 import std.conv : to;
 import std.stdio;
@@ -22,11 +24,28 @@ void main(string[] args) {
 	game.run();
 }
 
+enum Action : int {
+		// Arrow keys
+		UP = 0,
+		DOWN = 1,
+		LEFT = 2,
+		RIGHT = 3,
+		// Selectors
+		SELECT = 4,
+		BACK = 5,
+		PAUSE = 6,
+		QUIT = 7
+
+}
+
 class OpenTaiko {
 
 	private Engine engine;
 	private uint startMenuIndex;
+	private uint startMenuBinderIndex;
 	private uint mainMenuIndex;
+	private uint mainMenuBinderIndex;
+	private Menu activeMenu;
 
 	public void run() {
 
@@ -35,34 +54,17 @@ class OpenTaiko {
 		engine.start(800, 600, true, "OpenTaiko v0.2");
 
 		loadAssets(engine);
+		bindKeys(engine.iHandler);
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
-
-		engine.iHandler.bind(0, '\r');
-		engine.iHandler.bind(1, 'p');
 
 		int eventCode;
 		while (true) {
 			eventCode = engine.renderFrame();
-			switch (eventCode) {
-				case 0:
-					engine.gameRenderer.fadeIntoScene(mainMenuIndex, 3000, &engine.renderFrame);
-					break;
-
-				case 1:
-					engine.gameRenderer.fadeIntoScene(startMenuIndex, 3000, &engine.renderFrame);
-					break;
-
-				default:
-					break;
-
-				case -1:
-					engine.stop();
-					return;
+			if (eventCode == -1) {
+				break;
 			}
-
 		}
-
 
 	}
 
@@ -112,7 +114,30 @@ class OpenTaiko {
 		centerInfo.setY(getCenterPos(r.windowHeight, centerInfo.height));
 		r.getScene(*menuIndex).addRenderable(1, centerInfo);
 		r.getScene(*menuIndex).addRenderable(1, r.createTextured("Soul", 0, 0));
+		startMenuBinderIndex = engine.iHandler.addActionBinder();
+		engine.iHandler.setActive(startMenuBinderIndex);
+		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
 
+	}
+
+	void switchSceneToMainMenu() {
+		engine.gameRenderer.setScene(mainMenuIndex);
+		engine.iHandler.setActive(mainMenuBinderIndex);
+		engine.aMixer.playSFX(0);
+		activeMenu = cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(1, 1);
+	}
+
+	void switchSceneToStartMenu() {
+		engine.gameRenderer.setScene(startMenuIndex);
+		engine.iHandler.setActive(startMenuBinderIndex);
+	}
+
+	void moveRightMenu() {
+		activeMenu.move(Menu.Moves.RIGHT);
+	}
+
+	void moveLeftMenu() {
+		activeMenu.move(Menu.Moves.LEFT);
 	}
 
 	void createMainMenu(uint* menuIndex) {
@@ -138,7 +163,21 @@ class OpenTaiko {
 		newMenu.addButton("Settings", 1);
 		newMenu.addButton("怪しい列", 2);
 		newMenu.addButton("Exit", -1);
+		mainMenuBinderIndex = engine.iHandler.addActionBinder();
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &switchSceneToStartMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
 
+	}
+
+	void bindKeys(InputHandler i) {
+		i.bind(Action.RIGHT, 	1073741903);
+		i.bind(Action.LEFT, 	1073741904);
+		i.bind(Action.DOWN, 	1073741905);
+		i.bind(Action.UP, 		1073741906);
+		i.bind(Action.SELECT, 	'\r');
+		i.bind(Action.BACK, 	'\b');
+		i.bind(Action.PAUSE,	'\033');
 	}
 
 	static int getCenterPos(int maxWidth, int width) {

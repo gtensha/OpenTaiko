@@ -8,7 +8,6 @@ import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 
 class HorizontalTopBarMenu : Menu {
 
-	private SDL_Color color;
 	private SDL_Color fontColor;
 
 	this(SDL_Renderer* renderer,
@@ -18,12 +17,8 @@ class HorizontalTopBarMenu : Menu {
 		 uint buttonHeight,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer, title, font, buttonWidth, buttonHeight);
+		super(renderer, title, font, buttonWidth, buttonHeight, r, g, b, a);
 		this.fontSize = 3 * (buttonHeight / 8);
-		color.r = r;
-		color.g = g;
-		color.b = b;
-		color.a = a;
 	}
 
 	override public Button addButton(string title, int value) {
@@ -36,7 +31,7 @@ class HorizontalTopBarMenu : Menu {
 									   255, 255, 255, 255),
 							  value,
 							  (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
-							  color.r, color.g, color.b);
+							  color.r, color.g, color.b, color.a);
 		return buttons[buttons.length - 1];
 	}
 

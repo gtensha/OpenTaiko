@@ -88,6 +88,10 @@ class Engine {
 		return inputHandler;
 	}
 
+	public AudioMixer aMixer() {
+		return audioMixer;
+	}
+
 	// Sets the renderer's active scene and returns it
 	public void switchScene(uint index) {
 		renderer.setScene(index);

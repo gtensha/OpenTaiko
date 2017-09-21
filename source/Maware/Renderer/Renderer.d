@@ -38,9 +38,7 @@ class Renderer {
 
 	private Scene[] scenes; // the scenes present in the renderer
 	private uint currentScene; // the index of the scene to be rendered at present
-	private int fadeSceneIndex = -1;
 
-	private int fadeTimer = -1;
 
 	// Create the object with the given parent and initiate video
 	this(Engine parent) {
@@ -198,48 +196,6 @@ class Renderer {
 	}
 
 	// Does fade effect
-	public void fadeIntoScene(uint index, uint speed, int delegate() renderFunction) {
-		if (index < scenes.length) {
-			if (scenes[index] is null) {
-				throw new Exception("Invalid scene");
-			} else {
-				if (fadeSceneIndex < 0) {
-					this.setFadeScene(null);
-					scenes[fadeSceneIndex].addLayer();
-					scenes[fadeSceneIndex].addLayer();
-					scenes[fadeSceneIndex].addRenderable(1, createSolid(windowWidth,
-																		windowHeight,
-																		0,
-																		0,
-																		0, 0, 0, 0));
-				}
-				if (fadeTimer < 0) {
-					fadeTimer = Timer.addTimer();
-				}
-				Timer.timers[fadeTimer].set(Timer.timers[fadeTimer].libInitPassed,
-											Timer.timers[fadeTimer].libInitPassed + speed);
-				Solid fadeEffect = cast(Solid)scenes[fadeSceneIndex].objectAt(1, 0);
-				scenes[fadeSceneIndex].addRenderable(0, scenes[currentScene]);
-				currentScene = fadeSceneIndex;
-				int percentagePassed = Timer.timers[fadeTimer].getPercentagePassed();
-				bool passed50;
-				SDL_SetRenderDrawBlendMode(this.renderer, SDL_BLENDMODE_BLEND);
-				while (percentagePassed < 100) {
-					percentagePassed = Timer.timers[fadeTimer].getPercentagePassed();
-					if (percentagePassed <= 50) {
-						fadeEffect.setColor(-1, -1, -1, to!int(255.0 * ((to!float(percentagePassed) * 2) / 100)));
-					} else if (!passed50) {
-						scenes[fadeSceneIndex].clearLayer(0);
-						scenes[fadeSceneIndex].addRenderable(0, scenes[index]);
-						passed50 = true;
-					} else {
-						fadeEffect.setColor(-1, -1, -1, to!int(255.0 - (((to!float(percentagePassed) - 50) * 2) / 100) * 255));
-					}
-					renderFunction();
-				}
-			}
-		}
-	}
 
 	// Returns the scene at the specified index
 	public Scene getScene(uint index) {
@@ -247,14 +203,6 @@ class Renderer {
 			return null;
 		} else {
 			return scenes[index];
-		}
-	}
-
-	public void setFadeScene(Scene scene) {
-		if (scene is null) {
-			fadeSceneIndex = this.addScene("FadeScene");
-		} else {
-			fadeSceneIndex = this.addScene(scene);
 		}
 	}
 

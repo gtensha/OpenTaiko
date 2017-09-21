@@ -3,7 +3,6 @@ import Function : Function;
 import core.vararg;
 import std.math : pow;
 import std.conv : to;
-import std.stdio;
 
 class PolynomialFunction (T) : Function {
 

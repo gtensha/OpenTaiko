@@ -1,4 +1,5 @@
 import std.conv : to;
+import std.stdio;
 
 // Simple timer class for sharing timing data across objects
 class Timer {
@@ -12,7 +13,7 @@ class Timer {
 	}
 
 	// The raw time in ms
-	public static uint libInitPassed;
+	public shared static uint libInitPassed;
 
 	// The current ms value to calculate from
 	private uint measureFrom;
@@ -37,7 +38,13 @@ class Timer {
 
 	// Returns percentage value of how much of the time has passed
 	public int getPercentagePassed() {
-		return to!int((to!float(getTimerPassed()) / to!float(measureTo)) * 100);
+		if (libInitPassed >= measureTo) {
+			return 100;
+		} else if (libInitPassed <= measureFrom) {
+			return 0;
+		} else {
+			return ((libInitPassed - measureFrom) * 100) / (measureTo - libInitPassed);
+		}
 	}
 
 	// Set new value to measure from

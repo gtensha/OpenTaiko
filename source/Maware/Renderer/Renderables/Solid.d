@@ -39,6 +39,14 @@ class Solid : Renderable {
 		SDL_RenderFillRect(renderer, &rect);
 	}
 
+	public void setW(uint w) {
+		rect.w = w;
+	}
+
+	public void setH(uint h) {
+		rect.h = h;
+	}
+
 	public int width() {
 		return rect.w;
 	}
