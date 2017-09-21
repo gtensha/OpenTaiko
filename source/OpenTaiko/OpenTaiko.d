@@ -9,6 +9,7 @@ import GameVars : GameVars;
 import OpenTaikoAssets : openTaikoAssets, ASSET_DIR;
 import Menu : Menu;
 import HorizontalTopBarMenu : HorizontalTopBarMenu;
+import PolynomialFunction : PolynomialFunction;
 
 //import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -123,7 +124,7 @@ class OpenTaiko {
 		HorizontalTopBarMenu newMenu = new HorizontalTopBarMenu(r.sdlRenderer,
 								"Banan",
 								r.getFont("Noto-Light"),
-								200,
+								160,
 								80,
 								216, 27, 96, 255);
 
