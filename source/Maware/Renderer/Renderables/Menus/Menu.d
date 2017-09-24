@@ -43,14 +43,19 @@ class Menu : Renderable {
 		this.buttonFont = font;
 	}
 
-	public Button addButton(string title, int value) {
+	public Button addButton(string title, int value, void delegate() instruction) {
 		buttons ~= new Button(this.renderer,
 							  new Text(renderer, title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
 							  value,
+							  instruction,
 							  (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
 							  color.r, color.g, color.b, color.a);
 
 		return buttons[buttons.length - 1];
+	}
+
+	public Button addButton(string title, int value) {
+		return addButton(title, value, null);
 	}
 
 	public void render() {
@@ -77,6 +82,10 @@ class Menu : Renderable {
 		if (activeButton >= 0) {
 			buttons[activeButton].toggleHighlighted();
 		}
+	}
+
+	public int press() {
+		return buttons[activeButton].getValue();
 	}
 
 }

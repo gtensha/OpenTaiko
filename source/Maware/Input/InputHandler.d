@@ -27,7 +27,7 @@ class InputHandler {
 		while (SDL_PollEvent(&event) == 1) {
 			if (event.type == SDL_KEYDOWN) {
 				foreach (int i, int binding ; bindings) {
-					if (binding == event.key.keysym.sym) {
+					if (binding == event.key.keysym.sym && event.key.repeat == 0) {
 						doAction(i);
 						return i;
 					}

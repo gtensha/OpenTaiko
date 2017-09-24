@@ -17,17 +17,19 @@ class HorizontalTopBarButton : Button {
 	private Solid bottomLine;
 	private PolynomialFunction!double buttonAnimation;
 	private byte highlighting = 0; // 1 = up, 0 = down
-	private const int animationDuration = 1000;
+	private const int animationDuration = 800;
 
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
+		 void delegate() instruction,
 		 int x, int y, int w, int h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
 		super(renderer,
 			  text,
 			  value,
+			  instruction,
 			  x, y, w, h,
 			  r, g, b, a);
 

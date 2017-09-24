@@ -12,6 +12,7 @@ class Button : Renderable {
 	protected SDL_Renderer* renderer;
 	protected SDL_Color color;
 	protected int value;
+	protected void delegate() instruction;
 	protected bool highlighted = false;
 
 	// The percentage value of how transitioned the button is
@@ -21,12 +22,14 @@ class Button : Renderable {
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
+		 void delegate() instruction,
 		 int x, int y, uint w, uint h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
 		this.renderer = renderer;
 		this.buttonText = text;
 		this.value = value;
+		this.instruction = instruction;
 		this.color.r = r;
 		this.color.g = g;
 		this.color.b = b;
@@ -55,6 +58,9 @@ class Button : Renderable {
 	}
 
 	public int getValue() {
+		if (instruction !is null) {
+			instruction();
+		}
 		return value;
 	}
 

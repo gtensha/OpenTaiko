@@ -47,6 +47,8 @@ class OpenTaiko {
 	private uint mainMenuBinderIndex;
 	private Menu activeMenu;
 
+	private bool quit = false;
+
 	public void run() {
 
 		engine = new Engine("OpenTaiko");
@@ -59,7 +61,7 @@ class OpenTaiko {
 		createMainMenu(&mainMenuIndex);
 
 		int eventCode;
-		while (true) {
+		while (!quit) {
 			eventCode = engine.renderFrame();
 			if (eventCode == -1) {
 				break;
@@ -117,6 +119,7 @@ class OpenTaiko {
 		startMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.setActive(startMenuBinderIndex);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
+		engine.iHandler.bindAction(startMenuBinderIndex, Action.PAUSE, &quitGame);
 
 	}
 
@@ -132,12 +135,23 @@ class OpenTaiko {
 		engine.iHandler.setActive(startMenuBinderIndex);
 	}
 
+	void quitGame() {
+		quit = true;
+	}
+
 	void moveRightMenu() {
 		activeMenu.move(Menu.Moves.RIGHT);
 	}
 
 	void moveLeftMenu() {
 		activeMenu.move(Menu.Moves.LEFT);
+	}
+
+	void pressMenuButton() {
+		int buttonPressed = activeMenu.press();
+		if (buttonPressed == -1) {
+			switchSceneToStartMenu();
+		}
 	}
 
 	void createMainMenu(uint* menuIndex) {
@@ -151,20 +165,21 @@ class OpenTaiko {
 								r.getFont("Noto-Light"),
 								160,
 								80,
-								216, 27, 96, 255);
+								2, 136, 209, 255);
 
 		r.getScene(*menuIndex).addRenderable(1, new Solid(r.sdlRenderer,
 														  r.windowWidth,
 														  80,
 														  0, 0,
-														  216, 27, 96, 255));
+														  2, 136, 209, 255));
 		r.getScene(*menuIndex).addRenderable(1, newMenu);
 		newMenu.addButton("Play", 0);
 		newMenu.addButton("Settings", 1);
 		newMenu.addButton("怪しい列", 2);
-		newMenu.addButton("Exit", -1);
+		newMenu.addButton("Exit", -1, &quitGame);
 		mainMenuBinderIndex = engine.iHandler.addActionBinder();
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &switchSceneToStartMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &switchSceneToStartMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &pressMenuButton);
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
 
