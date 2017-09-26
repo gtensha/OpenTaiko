@@ -12,6 +12,7 @@ import HorizontalTopBarMenu : HorizontalTopBarMenu;
 import PolynomialFunction : PolynomialFunction;
 import Timer : Timer;
 import InputHandler : InputHandler;
+import VerticalMenu : VerticalMenu;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -34,7 +35,8 @@ enum Action : int {
 		SELECT = 4,
 		BACK = 5,
 		PAUSE = 6,
-		QUIT = 7
+		QUIT = 7,
+		MODESEL = 8
 
 }
 
@@ -45,7 +47,11 @@ class OpenTaiko {
 	private uint startMenuBinderIndex;
 	private uint mainMenuIndex;
 	private uint mainMenuBinderIndex;
+
 	private Menu activeMenu;
+	private Menu topBarMenu;
+	private Menu playMenu;
+	private Menu settingsMenu;
 
 	private bool quit = false;
 
@@ -123,11 +129,83 @@ class OpenTaiko {
 
 	}
 
+	void createMainMenu(uint* menuIndex) {
+		Renderer r = engine.gameRenderer;
+		*menuIndex = r.addScene("Main Menu");
+		r.getScene(*menuIndex).addLayer();
+		r.getScene(*menuIndex).addRenderable(0, r.createSolid(r.windowWidth, r.windowHeight, 0, 0, 224, 224, 224, 255));
+		r.getScene(*menuIndex).addLayer();
+		HorizontalTopBarMenu newMenu = new HorizontalTopBarMenu(r.sdlRenderer,
+																"Banan",
+																r.getFont("Noto-Light"),
+																160,
+																80,
+																221, 44, 0, 255);
+
+		r.getScene(*menuIndex).addRenderable(1, new Solid(r.sdlRenderer,
+														  r.windowWidth,
+														  80,
+														  0, 0,
+														  221, 44, 0, 255));
+		r.getScene(*menuIndex).addRenderable(1, newMenu);
+		topBarMenu = newMenu;
+		newMenu.addButton("Play", 0, &switchToPlayMenu);
+		newMenu.addButton("Settings", 1, &switchToSettingsMenu);
+
+		playMenu = new VerticalMenu(r.sdlRenderer,
+												 "Play",
+												 r.getFont("Noto-Light"),
+												 r.windowWidth / 3,
+												 60,
+												 10,
+												 newMenu.getH + 20,
+												 221, 44, 0, 255);
+
+		r.getScene(*menuIndex).addRenderable(1, playMenu);
+		playMenu.addButton("Arcade mode", 0, null);
+		playMenu.addButton("High scores", 1, null);
+
+		settingsMenu = new VerticalMenu(r.sdlRenderer,
+												 	 "Play",
+												 	 r.getFont("Noto-Light"),
+												 	 r.windowWidth / 3,
+												 	 60,
+												 	 10,
+												 	 newMenu.getH + 20,
+												 	 221, 44, 0, 255);
+
+		settingsMenu.addButton("Name entry", 0, null);
+		settingsMenu.addButton("Vsync", 1, null);
+
+		mainMenuBinderIndex = engine.iHandler.addActionBinder();
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &switchSceneToStartMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &pressMenuButton);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.MODESEL, &navigateTopBarRight);
+
+	}
+
+	void bindKeys(InputHandler i) {
+		i.bind(Action.RIGHT, 	1073741903);
+		i.bind(Action.LEFT, 	1073741904);
+		i.bind(Action.DOWN, 	1073741905);
+		i.bind(Action.UP, 		1073741906);
+		i.bind(Action.SELECT, 	'\r');
+		i.bind(Action.BACK, 	'\b');
+		i.bind(Action.MODESEL,	'\t');
+		i.bind(Action.PAUSE,	'\033');
+	}
+
+	static int getCenterPos(int maxWidth, int width) {
+		return (maxWidth - width) / 2;
+	}
+
 	void switchSceneToMainMenu() {
 		engine.gameRenderer.setScene(mainMenuIndex);
 		engine.iHandler.setActive(mainMenuBinderIndex);
 		engine.aMixer.playSFX(0);
-		activeMenu = cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(1, 1);
+		activeMenu = cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(1, 2);
 	}
 
 	void switchSceneToStartMenu() {
@@ -147,6 +225,16 @@ class OpenTaiko {
 		activeMenu.move(Menu.Moves.LEFT);
 	}
 
+	void navigateTopBarRight() {
+		topBarMenu.move(Menu.Moves.RIGHT);
+		topBarMenu.press();
+	}
+
+	void navigateTopBarLeft() {
+		topBarMenu.move(Menu.Moves.LEFT);
+		topBarMenu.press();
+	}
+
 	void pressMenuButton() {
 		int buttonPressed = activeMenu.press();
 		if (buttonPressed == -1) {
@@ -154,49 +242,18 @@ class OpenTaiko {
 		}
 	}
 
-	void createMainMenu(uint* menuIndex) {
-		Renderer r = engine.gameRenderer;
-		*menuIndex = r.addScene("Main Menu");
-		r.getScene(*menuIndex).addLayer();
-		r.getScene(*menuIndex).addRenderable(0, r.createSolid(50, 50, 0, 0, 156, 89, 238, 255));
-		r.getScene(*menuIndex).addLayer();
-		HorizontalTopBarMenu newMenu = new HorizontalTopBarMenu(r.sdlRenderer,
-								"Banan",
-								r.getFont("Noto-Light"),
-								160,
-								80,
-								2, 136, 209, 255);
-
-		r.getScene(*menuIndex).addRenderable(1, new Solid(r.sdlRenderer,
-														  r.windowWidth,
-														  80,
-														  0, 0,
-														  2, 136, 209, 255));
-		r.getScene(*menuIndex).addRenderable(1, newMenu);
-		newMenu.addButton("Play", 0);
-		newMenu.addButton("Settings", 1);
-		newMenu.addButton("怪しい列", 2);
-		newMenu.addButton("Exit", -1, &quitGame);
-		mainMenuBinderIndex = engine.iHandler.addActionBinder();
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &switchSceneToStartMenu);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &pressMenuButton);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
-
+	void switchToPlayMenu() {
+		activeMenu = playMenu;
+		updateMainMenu();
 	}
 
-	void bindKeys(InputHandler i) {
-		i.bind(Action.RIGHT, 	1073741903);
-		i.bind(Action.LEFT, 	1073741904);
-		i.bind(Action.DOWN, 	1073741905);
-		i.bind(Action.UP, 		1073741906);
-		i.bind(Action.SELECT, 	'\r');
-		i.bind(Action.BACK, 	'\b');
-		i.bind(Action.PAUSE,	'\033');
+	void switchToSettingsMenu() {
+		activeMenu = settingsMenu;
+		updateMainMenu();
 	}
 
-	static int getCenterPos(int maxWidth, int width) {
-		return (maxWidth - width) / 2;
+	void updateMainMenu() {
+		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenu, 1, 2);
 	}
 
 }

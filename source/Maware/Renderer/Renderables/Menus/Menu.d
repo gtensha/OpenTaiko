@@ -70,14 +70,22 @@ class Menu : Renderable {
 		}
 		if (direction == Moves.RIGHT//DOWN
 			&&
-			activeButton < cast(int)buttons.length - 1) {
+			activeButton <= cast(int)buttons.length - 1) {
 
-			activeButton++;
+			if (activeButton == cast(int)buttons.length - 1) {
+				activeButton = 0;
+			} else {
+				activeButton++;
+			}
 		} else if (direction == Moves.LEFT//UP
 				   &&
-				   activeButton > 0) {
+				   activeButton >= 0) {
 
-			activeButton--;
+			if (activeButton == 0) {
+				activeButton = cast(int)buttons.length - 1;
+			} else {
+				activeButton--;
+			}
 		}
 		if (activeButton >= 0) {
 			buttons[activeButton].toggleHighlighted();
@@ -86,6 +94,14 @@ class Menu : Renderable {
 
 	public int press() {
 		return buttons[activeButton].getValue();
+	}
+
+	public uint getH() {
+		return buttonHeight;
+	}
+
+	public uint getW() {
+		return buttonWidth;
 	}
 
 }

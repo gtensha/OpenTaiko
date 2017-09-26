@@ -77,4 +77,19 @@ class Scene : Renderable {
 		}
 	}
 
+	// Returns the object contained at the specified position and replaces
+	// it with the object from arguments, returns null if invalid index
+	public Renderable setObjectAt(Renderable renderable, int layer, int index) {
+		if (renderables.length > layer) {
+			if (renderables[layer].length > index) {
+				Renderable toReplace = renderables[layer][index];
+				renderables[layer][index] = renderable;
+				return toReplace;
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
 }
