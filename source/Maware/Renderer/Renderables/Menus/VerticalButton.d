@@ -7,11 +7,12 @@ import EzMath : EzMath;
 
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Renderer;
+import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect;
 
 class VerticalButton : Button {
 
 	private Solid highlightLayer;
+	private Text invertedText;
 	private Timer timer;
 	private PolynomialFunction!double buttonAnimation;
 	private bool highlighting = false;
@@ -29,6 +30,16 @@ class VerticalButton : Button {
 		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
 
 		highlightLayer = new Solid(renderer, 0, h, x, y, 255, 255, 255, 255);
+
+		invertedText = new Text(renderer,
+								buttonText.getText,
+								buttonText.getFont,
+								true,
+								buttonText.getX,
+								buttonText.getY,
+								r, g, b, a);
+
+		invertedText.setColor(r, g, b, a);
 
 		buttonAnimation = new PolynomialFunction!double(-0.0002, 0.0307, -0.037, 0);
 		int timerIndex = Timer.addTimer();
@@ -48,19 +59,22 @@ class VerticalButton : Button {
 		}
 
 		solid.render();
-		highlightLayer.render();
 		buttonText.render();
+		highlightLayer.render();
+		SDL_Rect textPortion = Solid.getUnion(invertedText.getRect, highlightLayer.getRect);
+		if (textPortion.w <= 0) {
+			invertedText.render();
+		} else {
+			textPortion.h = 0;
+			invertedText.renderPart(textPortion);
+		}
 	}
 
 	override public void toggleHighlighted() {
 		if (highlighting == 1) {
 			highlighting = 0;
-			buttonText.setColor(255, 255, 255, -1);
-			buttonText.updateText();
 		} else {
 			highlighting = 1;
-			buttonText.setColor(color.r, color.g, color.b, -1);
-			buttonText.updateText();
 		}
 
 		timer.set(Timer.libInitPassed, Timer.libInitPassed + animationDuration);

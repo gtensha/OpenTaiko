@@ -71,6 +71,10 @@ class Solid : Renderable {
 		return rect.y;
 	}
 
+	public SDL_Rect* getRect() {
+		return &rect;
+	}
+
 	// Set the color of the solid, int < 0 for unchanged
 	public void setColor(int r, int g, int b, int a) {
 		if (r >= 0) {
@@ -85,6 +89,11 @@ class Solid : Renderable {
 		if (a >= 0) {
 			this.color.a = to!ubyte(a);
 		}
+	}
+
+	public static SDL_Rect getUnion(SDL_Rect* a, SDL_Rect* b) {
+		SDL_Rect result = {0, 0, (a.x + a.w) - (b.x + b.w), (a.y + a.h) - (b.y + b.h)};
+		return result;
 	}
 
 }

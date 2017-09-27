@@ -63,4 +63,8 @@ class Text : Textured {
 		return currentText;
 	}
 
+	public TTF_Font* getFont() {
+		return font;
+	}
+
 }

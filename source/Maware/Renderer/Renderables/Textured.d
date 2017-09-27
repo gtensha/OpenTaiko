@@ -1,5 +1,6 @@
 import Solid : Solid;
 import derelict.sdl2.sdl : SDL_Texture,
+						   SDL_Rect,
 						   SDL_QueryTexture,
 						   SDL_RenderCopy,
 						   SDL_Renderer;
@@ -37,6 +38,13 @@ class Textured : Solid {
 
 	override public void render() {
 		SDL_RenderCopy(renderer, texture, null, &rect);
+	}
+
+	public void renderPart(SDL_Rect cover) {
+		SDL_Rect newPart = {rect.x, rect.y, rect.w - cover.w, rect.h - cover.h};
+		cover.w = rect.w - cover.w;
+		cover.h = rect.h - cover.h;
+		SDL_RenderCopy(renderer, texture, &cover, &newPart);
 	}
 
 }

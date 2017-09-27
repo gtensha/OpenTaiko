@@ -8,13 +8,14 @@ import EzMath : EzMath;
 
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Renderer;
+import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect;
 
 class HorizontalTopBarButton : Button {
 
 	private uint timerIndex;
 	private Timer timer;
 	private Solid bottomLine;
+	private Text invertedText;
 	private PolynomialFunction!double buttonAnimation;
 	private byte highlighting = 0; // 1 = up, 0 = down
 	private const int animationDuration = 800;
@@ -35,6 +36,17 @@ class HorizontalTopBarButton : Button {
 
 		buttonText.setX(x + ((w / 2) - (text.width / 2)));
 		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
+
+		invertedText = new Text(renderer,
+								buttonText.getText,
+								buttonText.getFont,
+								true,
+								buttonText.getX,
+								buttonText.getY,
+								r, g, b, a);
+
+		invertedText.setColor(r, g, b, a);
+
 
 		this.bottomLine = new Solid(renderer, w, h / 10, x, y + h - (h / 10),
 									255, 255, 255, 255);
@@ -59,19 +71,23 @@ class HorizontalTopBarButton : Button {
 		}
 
 		solid.render();
-		bottomLine.render();
 		buttonText.render();
+		bottomLine.render();
+
+		SDL_Rect textPortion = Solid.getUnion(invertedText.getRect, bottomLine.getRect);
+		if (textPortion.h <= 0) {
+			invertedText.render();
+		} else {
+			textPortion.w = 0;
+			invertedText.renderPart(textPortion);
+		}
 	}
 
 	override public void toggleHighlighted() {
 		if (highlighting == 1) {
 			highlighting = 0;
-			buttonText.setColor(255, 255, 255, -1);
-			buttonText.updateText();
 		} else {
 			highlighting = 1;
-			buttonText.setColor(color.r, color.g, color.b, -1);
-			buttonText.updateText();
 		}
 
 		timer.set(Timer.libInitPassed, Timer.libInitPassed + animationDuration);
