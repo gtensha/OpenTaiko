@@ -18,6 +18,7 @@ import derelict.sdl2.sdl : SDL_Keycode;
 
 import std.conv : to;
 import std.stdio;
+import std.container.dlist : DList;
 
 void main(string[] args) {
 	OpenTaiko game = new OpenTaiko();
@@ -48,9 +49,11 @@ class OpenTaiko {
 	private uint mainMenuIndex;
 	private uint mainMenuBinderIndex;
 
-	private Menu activeMenu;
+	private DList!Menu activeMenuStack;
+
 	private Menu topBarMenu;
 	private Menu playMenu;
+	private Menu playerSelectMenu;
 	private Menu settingsMenu;
 
 	private bool quit = false;
@@ -149,8 +152,8 @@ class OpenTaiko {
 														  221, 44, 0, 255));
 		r.getScene(*menuIndex).addRenderable(1, newMenu);
 		topBarMenu = newMenu;
-		newMenu.addButton("Play", 0, &switchToPlayMenu);
-		newMenu.addButton("Settings", 1, &switchToSettingsMenu);
+		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
+		newMenu.addButton("Settings", 1, null, &switchToSettingsMenu);
 
 		playMenu = new VerticalMenu(r.sdlRenderer,
 												 "Play",
@@ -162,26 +165,44 @@ class OpenTaiko {
 												 221, 44, 0, 255);
 
 		r.getScene(*menuIndex).addRenderable(1, playMenu);
-		playMenu.addButton("Arcade mode", 0, null);
-		playMenu.addButton("High scores", 1, null);
+
+		playerSelectMenu = new VerticalMenu(r.sdlRenderer,
+											"Player select",
+											r.getFont("Noto-Light"),
+											r.windowWidth / 3,
+											60,
+											10,
+											newMenu.getH + 20,
+											221, 44, 0, 255);
+
+		playerSelectMenu.addButton("Single play", 0, null, null);
+		playerSelectMenu.addButton("Multi play", 1, null, null);
+		playerSelectMenu.addButton("Back", 2, null, &navigateMenuBack);
+
+		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
+		playMenu.addButton("High scores", 1, null, null);
 
 		settingsMenu = new VerticalMenu(r.sdlRenderer,
-												 	 "Play",
-												 	 r.getFont("Noto-Light"),
-												 	 r.windowWidth / 3,
-												 	 60,
-												 	 10,
-												 	 newMenu.getH + 20,
-												 	 221, 44, 0, 255);
+										"Play",
+										r.getFont("Noto-Light"),
+										r.windowWidth / 3,
+										60,
+										10,
+										newMenu.getH + 20,
+										221, 44, 0, 255);
 
-		settingsMenu.addButton("Name entry", 0, null);
-		settingsMenu.addButton("Vsync", 1, null);
+
+
+		settingsMenu.addButton("Name entry", 0, null, null);
+		settingsMenu.addButton("Vsync", 1, null, null);
 
 		mainMenuBinderIndex = engine.iHandler.addActionBinder();
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &switchSceneToStartMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &navigateMenuBack);
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &pressMenuButton);
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.DOWN, &moveRightMenu);
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
+		engine.iHandler.bindAction(mainMenuBinderIndex, Action.UP, &moveLeftMenu);
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.MODESEL, &navigateTopBarRight);
 
 	}
@@ -205,7 +226,7 @@ class OpenTaiko {
 		engine.gameRenderer.setScene(mainMenuIndex);
 		engine.iHandler.setActive(mainMenuBinderIndex);
 		engine.aMixer.playSFX(0);
-		activeMenu = cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(1, 2);
+		activeMenuStack.insertFront(cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(1, 2));
 	}
 
 	void switchSceneToStartMenu() {
@@ -218,11 +239,20 @@ class OpenTaiko {
 	}
 
 	void moveRightMenu() {
-		activeMenu.move(Menu.Moves.RIGHT);
+		activeMenuStack.front().move(Menu.Moves.RIGHT);
 	}
 
 	void moveLeftMenu() {
-		activeMenu.move(Menu.Moves.LEFT);
+		activeMenuStack.front().move(Menu.Moves.LEFT);
+	}
+
+	void navigateMenuBack() {
+		activeMenuStack.removeFront();
+		if (activeMenuStack.empty) {
+			switchSceneToStartMenu();
+		} else {
+			updateMainMenu();
+		}
 	}
 
 	void navigateTopBarRight() {
@@ -236,24 +266,31 @@ class OpenTaiko {
 	}
 
 	void pressMenuButton() {
-		int buttonPressed = activeMenu.press();
-		if (buttonPressed == -1) {
-			switchSceneToStartMenu();
+		Menu subMenu = activeMenuStack.front().press();
+		if (subMenu !is null) {
+			activeMenuStack.insertFront(subMenu);
+		} else if (subMenu == activeMenuStack.front()) {
+			activeMenuStack.removeFront();
+		} else {
+			return;
 		}
+		updateMainMenu();
 	}
 
 	void switchToPlayMenu() {
-		activeMenu = playMenu;
+		activeMenuStack.clear();
+		activeMenuStack.insertFront(playMenu);
 		updateMainMenu();
 	}
 
 	void switchToSettingsMenu() {
-		activeMenu = settingsMenu;
+		activeMenuStack.clear();
+		activeMenuStack.insertFront(settingsMenu);
 		updateMainMenu();
 	}
 
 	void updateMainMenu() {
-		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenu, 1, 2);
+		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenuStack.front(), 1, 2);
 	}
 
 }

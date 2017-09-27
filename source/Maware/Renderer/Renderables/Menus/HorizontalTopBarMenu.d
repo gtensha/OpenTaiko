@@ -21,23 +21,24 @@ class HorizontalTopBarMenu : Menu {
 		this.fontSize = 3 * (buttonHeight / 8);
 	}
 
-	override public Button addButton(string title, int value, void delegate() instruction) {
+	override public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
 		buttons ~= new HorizontalTopBarButton(renderer,
-							  new Text(renderer,
-								  	   title,
-									   buttonFont.get(fontSize),
-									   true,
-									   0, 0,
-									   255, 255, 255, 255),
-							  value,
-							  instruction,
-							  (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
-							  color.r, color.g, color.b, color.a);
+							  				  new Text(renderer,
+								  	   				   title,
+									   	   			   buttonFont.get(fontSize),
+									   	   			   true,
+									   	   			   0, 0,
+									   	   			   255, 255, 255, 255),
+							  				   value,
+							  		   		   subMenu,
+							  		   		   instruction,
+							  		   		   (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
+							  		   		   color.r, color.g, color.b, color.a);
 		return buttons[buttons.length - 1];
 	}
 
 	override public Button addButton(string title, int value) {
-		return addButton(title, value, null);
+		return addButton(title, value, null, null);
 	}
 
 }

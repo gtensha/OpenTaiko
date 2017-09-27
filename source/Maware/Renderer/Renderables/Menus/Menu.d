@@ -43,10 +43,11 @@ class Menu : Renderable {
 		this.buttonFont = font;
 	}
 
-	public Button addButton(string title, int value, void delegate() instruction) {
+	public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
 		buttons ~= new Button(this.renderer,
 							  new Text(renderer, title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
 							  value,
+							  subMenu,
 							  instruction,
 							  (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
 							  color.r, color.g, color.b, color.a);
@@ -55,7 +56,7 @@ class Menu : Renderable {
 	}
 
 	public Button addButton(string title, int value) {
-		return addButton(title, value, null);
+		return addButton(title, value, null, null);
 	}
 
 	public void render() {
@@ -92,7 +93,7 @@ class Menu : Renderable {
 		}
 	}
 
-	public int press() {
+	public Menu press() {
 		return buttons[activeButton].getValue();
 	}
 

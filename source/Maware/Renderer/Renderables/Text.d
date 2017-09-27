@@ -34,6 +34,12 @@ class Text : Textured {
 		this.updateText(text);
 	}
 
+	~this() {
+		if (texture !is null) {
+			SDL_DestroyTexture(texture);
+		}
+	}
+
 	// Update the text in the texture if the new text differs from current
 	public void updateText(string text) {
 		if (!false/*text.equal(currentText)*/) {

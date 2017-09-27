@@ -33,7 +33,7 @@ class VerticalMenu : Menu {
 		this.fontSize = 4 * (buttonHeight / 10);
 	}
 
-	override public Button addButton(string title, int value, void delegate() instruction) {
+	override public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
 		buttons ~= new VerticalButton(renderer,
 							  		  new Text(renderer,
 								  	   		   title,
@@ -43,6 +43,7 @@ class VerticalMenu : Menu {
 									   		   0,
 									   		   255, 255, 255, 255),
 							  		  value,
+									  subMenu,
 									  instruction,
 									  xOffset,
 									  yOffset + (cast(int)buttons.length * (buttonHeight + 20)),

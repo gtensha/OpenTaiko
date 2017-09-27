@@ -8,11 +8,13 @@ import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 class Button : Renderable {
 
 	protected Text buttonText;
+	protected string description;
 	protected Solid solid;
 	protected SDL_Renderer* renderer;
 	protected SDL_Color color;
 	protected int value;
 	protected void delegate() instruction;
+	protected Menu subMenu;
 	protected bool highlighted = false;
 
 	// The percentage value of how transitioned the button is
@@ -22,6 +24,7 @@ class Button : Renderable {
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
+		 Menu subMenu,
 		 void delegate() instruction,
 		 int x, int y, uint w, uint h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
@@ -29,6 +32,7 @@ class Button : Renderable {
 		this.renderer = renderer;
 		this.buttonText = text;
 		this.value = value;
+		this.subMenu = subMenu;
 		this.instruction = instruction;
 		this.color.r = r;
 		this.color.g = g;
@@ -57,11 +61,19 @@ class Button : Renderable {
 		solid.setY(y);
 	}
 
-	public int getValue() {
+	public Menu getValue() {
 		if (instruction !is null) {
 			instruction();
 		}
-		return value;
+		return subMenu;
+	}
+
+	public void setDescription(string description) {
+		this.description = description;
+	}
+
+	public string getDescription() {
+		return description;
 	}
 
 	public void toggleHighlighted() {

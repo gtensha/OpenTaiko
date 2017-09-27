@@ -2,13 +2,14 @@ import HorizontalTopBarMenu : HorizontalTopBarMenu;
 import Button : Button;
 import Solid : Solid;
 import Text : Text;
+import Menu : Menu;
 import PolynomialFunction : PolynomialFunction;
 import Timer : Timer;
 import EzMath : EzMath;
 
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect;
+import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect, SDL_UnionRect;
 
 class HorizontalTopBarButton : Button {
 
@@ -23,6 +24,7 @@ class HorizontalTopBarButton : Button {
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
+		 Menu subMenu,
 		 void delegate() instruction,
 		 int x, int y, int w, int h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
@@ -30,6 +32,7 @@ class HorizontalTopBarButton : Button {
 		super(renderer,
 			  text,
 			  value,
+			  subMenu,
 			  instruction,
 			  x, y, w, h,
 			  r, g, b, a);
@@ -61,25 +64,34 @@ class HorizontalTopBarButton : Button {
 		int percentagePassed = timer.getPercentagePassed();
 		if (percentagePassed > 100) {
 			percentagePassed = 100;
+		} else {
+			//percentagePassed = to!int(buttonAnimation.getY(percentagePassed));
 		}
 		if (highlighting == 1) {
-			bottomLine.setH(EzMath.getCoords(to!int(buttonAnimation.getY(percentagePassed)), 9, solid.height));
-			bottomLine.setY(EzMath.getCoords(to!int(buttonAnimation.getY(percentagePassed)), solid.getY + solid.height - (solid.height / 10), solid.getY));
+			bottomLine.setH(EzMath.getCoords(percentagePassed, 9, solid.height));
+			bottomLine.setY(EzMath.getCoords(percentagePassed, solid.getY + solid.height - (solid.height / 10), solid.getY));
 		} else {
-			bottomLine.setH(EzMath.getCoords(to!int(buttonAnimation.getY(percentagePassed)), solid.height, 9));
-			bottomLine.setY(EzMath.getCoords(to!int(buttonAnimation.getY(percentagePassed)), solid.getY, solid.getY + solid.height - (solid.height / 10)));
+			bottomLine.setH(EzMath.getCoords(percentagePassed, solid.height, 9));
+			bottomLine.setY(EzMath.getCoords(percentagePassed, solid.getY, solid.getY + solid.height - (solid.height / 10)));
 		}
 
 		solid.render();
-		buttonText.render();
+		//buttonText.render();
 		bottomLine.render();
+		invertedText.render();
 
-		SDL_Rect textPortion = Solid.getUnion(invertedText.getRect, bottomLine.getRect);
+		SDL_Rect textPortion = {0,
+								buttonText.getY + 10,
+								0,
+								buttonText.getY - (bottomLine.getY - bottomLine.height)};
 		if (textPortion.h <= 0) {
-			invertedText.render();
+			buttonText.render();
 		} else {
 			textPortion.w = 0;
-			invertedText.renderPart(textPortion);
+			textPortion.y = invertedText.getY - textPortion.h;
+			//textPortion.y = invertedText.getY + invertedText.height;
+
+			buttonText.renderPart(textPortion);
 		}
 	}
 
