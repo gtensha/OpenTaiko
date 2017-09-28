@@ -1,10 +1,12 @@
+module maware.engine;
+
 import std.stdio;
 
-import Renderer : Renderer;
-import AudioMixer : AudioMixer;
-import InputHandler : InputHandler;
-import Timer : Timer;
-import Assets : Assets;
+import maware.renderer;
+import maware.audiomixer;
+import maware.inputhandler;
+import maware.util.timer;
+import maware.assets;
 import std.conv : to;
 
 // A class for handling rendering and audio playback

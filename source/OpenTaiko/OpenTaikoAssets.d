@@ -1,4 +1,6 @@
-import Assets : Assets;
+module opentaiko.assets;
+
+import maware.assets;
 
 enum ASSET_DIR : string {
 	DEFAULT = "assets/default/",

@@ -1,4 +1,6 @@
-import Function : Function;
+module maware.util.math.polynomialfunction;
+
+import maware.util.math.functionz;
 
 import core.vararg;
 import std.math : pow;

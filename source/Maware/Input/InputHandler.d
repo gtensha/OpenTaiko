@@ -1,9 +1,11 @@
+module maware.inputhandler;
+
 import derelict.sdl2.sdl;/* : SDL_PollEvent,
 						   SDL_Event,
 						   SDL_Keycode,
 						   SDL_KeyboardEvent,
 						   SDL_EventType;*/
-import Engine : Engine;
+import maware.engine;
 
 class InputHandler {
 

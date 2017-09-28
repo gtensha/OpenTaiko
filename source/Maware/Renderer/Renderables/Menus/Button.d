@@ -1,8 +1,11 @@
-import Menu : Menu;
-import Renderable : Renderable;
-import Text : Text;
-import Solid : Solid;
-import Timer : Timer;
+module maware.renderable.menus.button;
+
+import maware.renderable.menus.menu;
+import maware.renderable.renderable;
+import maware.renderable.text;
+import maware.renderable.solid;
+import maware.util.timer;
+
 import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 
 class Button : Renderable {

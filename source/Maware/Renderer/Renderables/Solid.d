@@ -1,5 +1,9 @@
-import Renderable : Renderable;
+module maware.renderable.solid;
+
+import maware.renderable.renderable;
+
 import std.conv : to;
+
 import derelict.sdl2.sdl : SDL_Rect,
 						   SDL_Color,
 						   SDL_Renderer,

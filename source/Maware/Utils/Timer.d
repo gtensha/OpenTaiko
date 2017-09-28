@@ -1,5 +1,6 @@
+module maware.util.timer;
+
 import std.conv : to;
-import std.stdio;
 
 // Simple timer class for sharing timing data across objects
 class Timer {

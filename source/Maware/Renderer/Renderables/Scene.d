@@ -1,4 +1,6 @@
-import Renderable;
+module maware.renderable.scene;
+
+import maware.renderable.renderable;
 
 import std.conv : to;
 

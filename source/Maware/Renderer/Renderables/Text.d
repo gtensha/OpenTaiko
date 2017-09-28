@@ -1,5 +1,8 @@
-import Renderable : Renderable;
-import Textured : Textured;
+module maware.renderable.text;
+
+import maware.renderable.renderable;
+import maware.renderable.textured;
+
 import std.algorithm.comparison : equal;
 import std.string : toStringz;
 import derelict.sdl2.sdl : SDL_CreateTextureFromSurface,

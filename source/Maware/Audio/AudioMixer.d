@@ -1,4 +1,6 @@
-import Engine : Engine;
+module maware.audiomixer;
+
+import maware.engine;
 
 import std.string : fromStringz, toStringz;
 import std.conv : to;

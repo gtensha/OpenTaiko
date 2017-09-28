@@ -1,3 +1,5 @@
+module maware.assets;
+
 import std.conv : to;
 import std.exception : assumeUnique;
 

@@ -1,11 +1,13 @@
-import HorizontalTopBarMenu : HorizontalTopBarMenu;
-import Button : Button;
-import Solid : Solid;
-import Text : Text;
-import Menu : Menu;
-import PolynomialFunction : PolynomialFunction;
-import Timer : Timer;
-import EzMath : EzMath;
+module maware.renderable.menus.horizontaltopbarbutton;
+
+import maware.renderable.menus.horizontaltopbarmenu;
+import maware.renderable.menus.button;
+import maware.renderable.solid;
+import maware.renderable.text;
+import maware.renderable.menus.menu;
+import maware.util.math.polynomialfunction;
+import maware.util.timer;
+import maware.util.math.ezmath;
 
 import std.conv : to;
 

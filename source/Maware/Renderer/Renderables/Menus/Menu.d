@@ -1,7 +1,9 @@
-import Renderable : Renderable;
-import Font : Font;
-import Button : Button;
-import Text : Text;
+module maware.renderable.menus.menu;
+
+import maware.renderable.renderable;
+import maware.font;
+import maware.renderable.menus.button;
+import maware.renderable.text;
 
 import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 

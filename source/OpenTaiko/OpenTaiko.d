@@ -1,18 +1,7 @@
-import Engine : Engine;
-import Renderer : Renderer;
-import Scene : Scene;
-import Renderable : Renderable;
-import Solid, Text, Textured;
-import Song : Song;
-import Difficulty : Difficulty;
-import GameVars : GameVars;
-import OpenTaikoAssets : openTaikoAssets, ASSET_DIR;
-import Menu : Menu;
-import HorizontalTopBarMenu : HorizontalTopBarMenu;
-import PolynomialFunction : PolynomialFunction;
-import Timer : Timer;
-import InputHandler : InputHandler;
-import VerticalMenu : VerticalMenu;
+module opentaiko.game;
+
+import maware;
+import opentaiko.assets;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 

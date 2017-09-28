@@ -1,9 +1,11 @@
-import Renderable : Renderable;
-import Font : Font;
-import Button : Button;
-import VerticalButton : VerticalButton;
-import Text : Text;
-import Menu : Menu;
+module maware.renderable.menus.verticalmenu;
+
+import maware.renderable.renderable;
+import maware.font;
+import maware.renderable.menus.button;
+import maware.renderable.menus.verticalbutton;
+import maware.renderable.text;
+import maware.renderable.menus.menu;
 
 import derelict.sdl2.sdl : SDL_Renderer;
 

@@ -1,3 +1,5 @@
+module maware.font;
+
 import derelict.sdl2.ttf : TTF_Font, TTF_OpenFont, TTF_CloseFont;
 import std.string : toStringz;
 

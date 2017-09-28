@@ -1,11 +1,13 @@
-import Engine : Engine;
-import Renderable : Renderable;
-import Timer : Timer;
-import Scene : Scene;
-import Solid : Solid;
-import Textured : Textured;
-import Text : Text;
-import Font : Font;
+module maware.renderer;
+
+import maware.engine;
+import maware.renderable.renderable;
+import maware.renderable.scene;
+import maware.renderable.solid;
+import maware.renderable.textured;
+import maware.renderable.text;
+import maware.font;
+import maware.util.timer;
 
 import std.file;
 import std.string : fromStringz, toStringz;

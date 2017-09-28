@@ -1,4 +1,7 @@
-import Solid : Solid;
+module maware.renderable.textured;
+
+import maware.renderable.solid;
+
 import derelict.sdl2.sdl : SDL_Texture,
 						   SDL_Rect,
 						   SDL_QueryTexture,

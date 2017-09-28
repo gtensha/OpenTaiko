@@ -1,3 +1,5 @@
+module maware.util.math.ezmath;
+
 import std.conv : to;
 
 class EzMath {
