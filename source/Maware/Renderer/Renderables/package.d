@@ -6,3 +6,4 @@ public import maware.renderable.solid;
 public import maware.renderable.textured;
 public import maware.renderable.text;
 public import maware.renderable.scene;
+public import maware.renderable.dialogbox;

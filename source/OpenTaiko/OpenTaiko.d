@@ -57,6 +57,7 @@ class OpenTaiko {
 		bindKeys(engine.iHandler);
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
+		engine.gameRenderer.setDefaultFont("Noto-Light");
 
 		int eventCode;
 		while (!quit) {
@@ -170,6 +171,7 @@ class OpenTaiko {
 
 		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
 		playMenu.addButton("High scores", 1, null, null);
+		playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
 		settingsMenu = new VerticalMenu(r.sdlRenderer,
 										"Play",
@@ -280,6 +282,10 @@ class OpenTaiko {
 
 	void updateMainMenu() {
 		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenuStack.front(), 1, 2);
+	}
+
+	void notifyMe() {
+		engine.notify("Good day");
 	}
 
 }

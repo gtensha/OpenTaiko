@@ -6,6 +6,7 @@ import maware.renderable.scene;
 import maware.renderable.solid;
 import maware.renderable.textured;
 import maware.renderable.text;
+import maware.renderable.dialogbox;
 import maware.font;
 import maware.util.timer;
 
@@ -40,6 +41,9 @@ class Renderer {
 
 	private Scene[] scenes; // the scenes present in the renderer
 	private uint currentScene; // the index of the scene to be rendered at present
+
+	private DialogBox messageBox;
+	private Font defaultFont;
 
 
 	// Create the object with the given parent and initiate video
@@ -132,6 +136,8 @@ class Renderer {
 		SDL_RenderClear(this.renderer);
 		SDL_RenderPresent(this.renderer);
 		SDL_RaiseWindow(this.window);
+		SDL_SetRenderDrawBlendMode(this.renderer, SDL_BLENDMODE_BLEND);
+
 	}
 
 	public void renderFrame() {
@@ -139,6 +145,22 @@ class Renderer {
 		SDL_RenderClear(renderer);
 		scenes[currentScene].render();
 		SDL_RenderPresent(renderer);
+	}
+
+	public DialogBox notifyPopUp(string msg) {
+		if (messageBox !is null) {
+			messageBox.popUp(msg);
+		}
+		return messageBox;
+	}
+
+	public void setDefaultFont(string type) {
+		defaultFont = getFont(type);
+		messageBox = new DialogBox("Generic error",
+								   "Okay then...",
+								   defaultFont,
+								   null,
+								   this);
 	}
 
 	// Register a new texture into the system with the given key from
@@ -206,6 +228,19 @@ class Renderer {
 		} else {
 			return scenes[index];
 		}
+	}
+
+	// Gets the currently rendered scene
+	public Scene getCurrentScene() {
+		if (scenes.length > 0) {
+			return scenes[currentScene];
+		} else {
+			return null;
+		}
+	}
+
+	public uint getCurrentSceneIndex() {
+		return currentScene;
 	}
 
 	// Return the amount of milliseconds since library init

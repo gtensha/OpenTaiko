@@ -19,6 +19,8 @@ class Engine {
 	private InputHandler inputHandler;
 	private Timer timer;
 
+	private uint notifyBinderIndex;
+
 	this(string title) {
 		this.title = title;
 	}
@@ -42,6 +44,8 @@ class Engine {
 		} catch (Exception e) {
 			notify("Error creating window: " ~ e.msg);
 		}
+
+		notifyBinderIndex = inputHandler.addActionBinder();
 
 	}
 
@@ -102,6 +106,8 @@ class Engine {
 	// This should be able to render a message on screen in the future as well
 	// as writing to console
 	public void notify(string msg) {
+		void delegate() action = &renderer.notifyPopUp(msg).close;
+		inputHandler.bindAction(notifyBinderIndex, 4, action);
 		writeln(msg);
 	}
 
