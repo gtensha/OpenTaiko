@@ -46,6 +46,7 @@ class Menu : Renderable {
 	}
 
 	public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
+
 		buttons ~= new Button(this.renderer,
 							  new Text(renderer, title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
 							  value,
@@ -54,6 +55,10 @@ class Menu : Renderable {
 							  (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
 							  color.r, color.g, color.b, color.a);
 
+		if (activeButton < 0) {
+			activeButton = 0;
+			buttons[activeButton].toggleHighlighted();
+		}
 		return buttons[buttons.length - 1];
 	}
 

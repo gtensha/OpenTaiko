@@ -70,10 +70,10 @@ class HorizontalTopBarButton : Button {
 			//percentagePassed = to!int(buttonAnimation.getY(percentagePassed));
 		}
 		if (highlighting == 1) {
-			bottomLine.setH(EzMath.getCoords(percentagePassed, 9, solid.height));
+			bottomLine.setH(EzMath.getCoords(percentagePassed, 8, solid.height));
 			bottomLine.setY(EzMath.getCoords(percentagePassed, solid.getY + solid.height - (solid.height / 10), solid.getY));
 		} else {
-			bottomLine.setH(EzMath.getCoords(percentagePassed, solid.height, 9));
+			bottomLine.setH(EzMath.getCoords(percentagePassed, solid.height, 8));
 			bottomLine.setY(EzMath.getCoords(percentagePassed, solid.getY, solid.getY + solid.height - (solid.height / 10)));
 		}
 

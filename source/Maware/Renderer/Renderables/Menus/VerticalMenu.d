@@ -36,6 +36,7 @@ class VerticalMenu : Menu {
 	}
 
 	override public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
+
 		buttons ~= new VerticalButton(renderer,
 							  		  new Text(renderer,
 								  	   		   title,
@@ -53,6 +54,10 @@ class VerticalMenu : Menu {
 									  buttonHeight,
 									  color.r, color.g, color.b, color.a);
 
+		if (activeButton < 0) {
+			activeButton = 0;
+			buttons[activeButton].toggleHighlighted();
+		}
 		return buttons[buttons.length - 1];
 	}
 

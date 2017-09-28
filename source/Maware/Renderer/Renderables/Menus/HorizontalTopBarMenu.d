@@ -24,6 +24,7 @@ class HorizontalTopBarMenu : Menu {
 	}
 
 	override public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
+
 		buttons ~= new HorizontalTopBarButton(renderer,
 							  				  new Text(renderer,
 								  	   				   title,
@@ -36,6 +37,11 @@ class HorizontalTopBarMenu : Menu {
 							  		   		   instruction,
 							  		   		   (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
 							  		   		   color.r, color.g, color.b, color.a);
+
+		if (activeButton < 0) {
+			activeButton = 0;
+			buttons[activeButton].toggleHighlighted();
+		}
 		return buttons[buttons.length - 1];
 	}
 
