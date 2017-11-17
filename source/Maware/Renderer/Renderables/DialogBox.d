@@ -46,7 +46,7 @@ class DialogBox : Renderable {
 		this.box = new Solid(parent.sdlRenderer,
 							 parent.windowWidth / 2,
 							 parent.windowHeight / 3,
-							 (parent.windowWidth / 4),
+							 parent.windowWidth / 4,
 							 parent.windowHeight / 6,
 							 224, 224, 224, 255);
 
@@ -58,11 +58,11 @@ class DialogBox : Renderable {
 								40, 40, 40, 255);
 
 		Text onButton = new Text(parent.sdlRenderer,
-				 				 buttonText,
-				 			 	 font.get(22),
-				 			 	 true,
-				 			 	 0, 0,
-				 			 	 255, 255, 255, 255);
+								 buttonText,
+							 	 font.get(22),
+							 	 true,
+							 	 0, 0,
+							 	 255, 255, 255, 255);
 
 		buttons ~= new VerticalButton(parent.sdlRenderer,
 									  onButton,

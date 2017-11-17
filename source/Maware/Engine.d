@@ -33,7 +33,7 @@ class Engine {
 		try {
 			renderer = new Renderer(this);
 			audioMixer = new AudioMixer(this);
-			inputHandler = new InputHandler(128, this);
+			inputHandler = new InputHandler(this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
 			return;

@@ -29,7 +29,7 @@ class VerticalButton : Button {
 		 int x, int y, uint w, uint h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer, text, value, subMenu, instruction, x, y, w, h, r ,g, b, a);
+		super(renderer, text, value, subMenu, instruction, x, y, w, h, r, g, b, a);
 
 		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
 

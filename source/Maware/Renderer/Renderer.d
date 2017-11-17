@@ -67,7 +67,7 @@ class Renderer {
 
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			throw new Exception(to!string("Failed to initialise SDL: "
-								~ fromStringz(SDL_GetError())));
+										  ~ fromStringz(SDL_GetError())));
 		}
 
 		if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) < 0) {
@@ -157,7 +157,7 @@ class Renderer {
 	public void setDefaultFont(string type) {
 		defaultFont = getFont(type);
 		messageBox = new DialogBox("Generic error",
-								   "Okay then...",
+								   "OK",
 								   defaultFont,
 								   null,
 								   this);
@@ -218,8 +218,6 @@ class Renderer {
 			return scenes[currentScene];
 		}
 	}
-
-	// Does fade effect
 
 	// Returns the scene at the specified index
 	public Scene getScene(uint index) {

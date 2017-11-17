@@ -57,6 +57,7 @@ class OpenTaiko {
 		bindKeys(engine.iHandler);
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
+		//engine.gameRenderer.setScene(startMenuIndex);
 		engine.gameRenderer.setDefaultFont("Noto-Light");
 
 		int eventCode;
@@ -285,7 +286,7 @@ class OpenTaiko {
 	}
 
 	void notifyMe() {
-		engine.notify("Good day");
+		engine.notify(" ");
 	}
 
 }
