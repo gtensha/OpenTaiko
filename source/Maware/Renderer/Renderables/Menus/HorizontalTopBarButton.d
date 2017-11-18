@@ -2,6 +2,7 @@ module maware.renderable.menus.horizontaltopbarbutton;
 
 import maware.renderable.menus.horizontaltopbarmenu;
 import maware.renderable.menus.button;
+import maware.renderable.menus.traversable;
 import maware.renderable.solid;
 import maware.renderable.text;
 import maware.renderable.menus.menu;
@@ -26,7 +27,7 @@ class HorizontalTopBarButton : Button {
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
-		 Menu subMenu,
+		 Traversable subMenu,
 		 void delegate() instruction,
 		 int x, int y, int w, int h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {

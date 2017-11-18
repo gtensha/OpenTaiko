@@ -1,20 +1,14 @@
 module maware.renderable.menus.menu;
 
 import maware.renderable.renderable;
+import maware.renderable.menus.traversable;
 import maware.font;
 import maware.renderable.menus.button;
 import maware.renderable.text;
 
 import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 
-class Menu : Renderable {
-
-	enum Moves : bool {
-		RIGHT = true,
-		LEFT = false,
-		UP = false,
-		DOWN = true
-	};
+class Menu : Traversable {
 
 	protected SDL_Renderer* renderer;
 	protected SDL_Color color;
@@ -45,7 +39,7 @@ class Menu : Renderable {
 		this.buttonFont = font;
 	}
 
-	public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
+	public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
 		buttons ~= new Button(this.renderer,
 							  new Text(renderer, title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
@@ -100,7 +94,7 @@ class Menu : Renderable {
 		}
 	}
 
-	public Menu press() {
+	public Traversable press() {
 		return buttons[activeButton].getValue();
 	}
 

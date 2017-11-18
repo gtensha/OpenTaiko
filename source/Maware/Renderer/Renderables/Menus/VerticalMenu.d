@@ -1,6 +1,7 @@
 module maware.renderable.menus.verticalmenu;
 
 import maware.renderable.renderable;
+import maware.renderable.menus.traversable;
 import maware.font;
 import maware.renderable.menus.button;
 import maware.renderable.menus.verticalbutton;
@@ -35,7 +36,7 @@ class VerticalMenu : Menu {
 		this.fontSize = 4 * (buttonHeight / 10);
 	}
 
-	override public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
+	override public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
 		buttons ~= new VerticalButton(renderer,
 									  new Text(renderer,

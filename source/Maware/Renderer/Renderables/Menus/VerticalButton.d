@@ -1,6 +1,7 @@
 module maware.renderable.menus.verticalbutton;
 
 import maware.renderable.menus.button;
+import maware.renderable.menus.traversable;
 import maware.renderable.solid;
 import maware.renderable.text;
 import maware.renderable.menus.menu;
@@ -24,7 +25,7 @@ class VerticalButton : Button {
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
-		 Menu subMenu,
+		 Traversable subMenu,
 		 void delegate() instruction,
 		 int x, int y, uint w, uint h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {

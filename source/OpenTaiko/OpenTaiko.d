@@ -2,6 +2,9 @@ module opentaiko.game;
 
 import maware;
 import opentaiko.assets;
+import opentaiko.renderable.menus.songselectmenu;
+import opentaiko.song;
+import opentaiko.mapgen;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -33,17 +36,23 @@ enum Action : int {
 class OpenTaiko {
 
 	private Engine engine;
+	private Renderer renderer;
+	private AudioMixer audioMixer;
+	private InputHandler inputHandler;
 	private uint startMenuIndex;
 	private uint startMenuBinderIndex;
 	private uint mainMenuIndex;
 	private uint mainMenuBinderIndex;
 
-	private DList!Menu activeMenuStack;
+	private DList!Traversable activeMenuStack;
 
 	private Menu topBarMenu;
 	private Menu playMenu;
 	private Menu playerSelectMenu;
 	private Menu settingsMenu;
+	private SongSelectMenu songSelectMenu;
+
+	private Song[] songs;
 
 	private bool quit = false;
 
@@ -53,8 +62,14 @@ class OpenTaiko {
 
 		engine.start(800, 600, true, "OpenTaiko v0.2");
 
+		renderer = engine.gameRenderer();
+		audioMixer = engine.aMixer();
+		inputHandler = engine.iHandler();
+
 		loadAssets(engine);
 		bindKeys(engine.iHandler);
+		songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
 		//engine.gameRenderer.setScene(startMenuIndex);
@@ -166,13 +181,13 @@ class OpenTaiko {
 											newMenu.getH + 20,
 											221, 44, 0, 255);
 
-		playerSelectMenu.addButton("Single play", 0, null, null);
+		playerSelectMenu.addButton("Single play", 0, songSelectMenu, null);
 		playerSelectMenu.addButton("Multi play", 1, null, null);
 		playerSelectMenu.addButton("Back", 2, null, &navigateMenuBack);
 
 		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
 		playMenu.addButton("High scores", 1, null, null);
-		playMenu.addButton("TestPopup", 2, null, &notifyMe);
+		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
 		settingsMenu = new VerticalMenu(r.sdlRenderer,
 										"Play",
@@ -210,6 +225,28 @@ class OpenTaiko {
 		i.bind(Action.PAUSE,	'\033');
 	}
 
+	void createSongSelectMenu() {
+		int w = 250;
+		int h = 325;
+		int x = (renderer.windowWidth / 2) - (w / 2);
+		int y = renderer.windowHeight - (h + 50);
+		songSelectMenu = new SongSelectMenu(renderer,
+											renderer.getFont("Noto-Bold").get(20),
+											renderer.getFont("Noto-Light").get(18),
+											x, y, w, h);
+		foreach (Song song ; songs) {
+			try {
+				renderer.registerTexture("Thumb_" ~ song.title,
+										 MAP_DIR ~ song.title ~ "/thumb.png");
+
+				songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
+			} catch (Exception e) {
+				writeln(e.msg);
+				songSelectMenu.addItem(song, renderer.getTexture("Default-Thumb"));
+			}
+		}
+	}
+
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
 	}
@@ -231,11 +268,11 @@ class OpenTaiko {
 	}
 
 	void moveRightMenu() {
-		activeMenuStack.front().move(Menu.Moves.RIGHT);
+		activeMenuStack.front().move(Moves.RIGHT);
 	}
 
 	void moveLeftMenu() {
-		activeMenuStack.front().move(Menu.Moves.LEFT);
+		activeMenuStack.front().move(Moves.LEFT);
 	}
 
 	void navigateMenuBack() {
@@ -248,17 +285,17 @@ class OpenTaiko {
 	}
 
 	void navigateTopBarRight() {
-		topBarMenu.move(Menu.Moves.RIGHT);
+		topBarMenu.move(Moves.RIGHT);
 		topBarMenu.press();
 	}
 
 	void navigateTopBarLeft() {
-		topBarMenu.move(Menu.Moves.LEFT);
+		topBarMenu.move(Moves.LEFT);
 		topBarMenu.press();
 	}
 
 	void pressMenuButton() {
-		Menu subMenu = activeMenuStack.front().press();
+		Traversable subMenu = activeMenuStack.front().press();
 		if (subMenu !is null) {
 			activeMenuStack.insertFront(subMenu);
 		} else if (subMenu == activeMenuStack.front()) {

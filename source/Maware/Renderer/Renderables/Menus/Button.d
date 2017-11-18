@@ -2,6 +2,7 @@ module maware.renderable.menus.button;
 
 import maware.renderable.menus.menu;
 import maware.renderable.renderable;
+import maware.renderable.menus.traversable;
 import maware.renderable.text;
 import maware.renderable.solid;
 import maware.util.timer;
@@ -17,7 +18,7 @@ class Button : Renderable {
 	protected SDL_Color color;
 	protected int value;
 	protected void delegate() instruction;
-	protected Menu subMenu;
+	protected Traversable subMenu;
 	protected bool highlighted = false;
 
 	// The percentage value of how transitioned the button is
@@ -27,7 +28,7 @@ class Button : Renderable {
 	this(SDL_Renderer* renderer,
 		 Text text,
 		 int value,
-		 Menu subMenu,
+		 Traversable subMenu,
 		 void delegate() instruction,
 		 int x, int y, uint w, uint h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
@@ -64,7 +65,7 @@ class Button : Renderable {
 		solid.setY(y);
 	}
 
-	public Menu getValue() {
+	public Traversable getValue() {
 		if (instruction !is null) {
 			instruction();
 		}

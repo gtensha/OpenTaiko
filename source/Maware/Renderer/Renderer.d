@@ -185,6 +185,15 @@ class Renderer {
 		textures[key] = tempTexture;
 	}
 
+	public SDL_Texture* getTexture(string key) {
+		SDL_Texture** someTexture = (key in textures);
+		if (someTexture !is null) {
+			return *someTexture;
+		} else {
+			return null;
+		}
+	}
+
 	// Register a new Font object into the system
 	public void registerFont(string key, string src) {
 		fonts[key] = new Font(key, src);

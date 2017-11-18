@@ -1,6 +1,7 @@
 module maware.renderable.menus.horizontaltopbarmenu;
 
 import maware.renderable.menus.menu;
+import maware.renderable.menus.traversable;
 import maware.font;
 import maware.renderable.menus.button;
 import maware.renderable.menus.horizontaltopbarbutton;
@@ -23,7 +24,7 @@ class HorizontalTopBarMenu : Menu {
 		this.fontSize = 3 * (buttonHeight / 8);
 	}
 
-	override public Button addButton(string title, int value, Menu subMenu, void delegate() instruction) {
+	override public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
 		buttons ~= new HorizontalTopBarButton(renderer,
 							  				  new Text(renderer,

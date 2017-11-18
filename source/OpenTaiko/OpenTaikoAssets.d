@@ -15,7 +15,8 @@ static Assets openTaikoAssets() {
 							 "BadHit" 		 : "bad.png",
 							 "BlueGrad" 	 : "blue_grad.png",
 							 "RedGrad" 		 : "red_grad.png",
-							 "Soul" 		 : "soul.png"],
+							 "Soul" 		 : "soul.png",
+							 "Default-Thumb" : "song-default.png"],
 
 							["Roboto-Light"  : "Roboto-Light.ttf",
 							 "Roboto-Regular": "Roboto-Regular.ttf",
