@@ -1,3 +1,5 @@
+module opentaiko.mapgen;
+
 import std.conv;
 import std.stdio;
 import std.file;
@@ -7,11 +9,12 @@ import std.array;
 import std.string;
 import std.ascii;
 import std.json;
-import Drum;
-import Song;
-import GameVars;
-import Difficulty;
-import Performance;
+
+import opentaiko.drum;
+import opentaiko.song;
+import opentaiko.gamevars;
+import opentaiko.difficulty;
+import opentaiko.performance;
 
 enum {
 	string MAP_DIR = "maps/",

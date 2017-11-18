@@ -1,4 +1,6 @@
-import Performance : Performance;
+module opentaiko.drum;
+
+import opentaiko.performance : Performance;
 
 class Drum {
 

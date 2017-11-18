@@ -1,3 +1,5 @@
+module opentaiko.gamevars;
+
 struct GameVars {
 
     // Keyboard mapping

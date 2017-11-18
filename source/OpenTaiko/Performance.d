@@ -1,5 +1,7 @@
-import Drum : Drum, Blue, Red;
-import MapGen : MapGen;
+module opentaiko.performance;
+
+import opentaiko.drum : Drum, Blue, Red;
+import opentaiko.mapgen : MapGen;
 
 class Performance {
 

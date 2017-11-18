@@ -1,4 +1,6 @@
-import Difficulty;
+module opentaiko.song;
+
+import opentaiko.difficulty;
 
 struct Song {
 
