@@ -59,6 +59,7 @@ class InputHandler {
 
 	public void bindAction(int binderID, int actionID, void delegate() action) {
 			actionBinders[binderID].actions[actionID] = action;
+			actionBinders[binderID].actions = actionBinders[binderID].actions.rehash();
 	}
 
 	private void doAction(int action) {
