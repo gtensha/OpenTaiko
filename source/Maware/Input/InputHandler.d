@@ -63,9 +63,11 @@ class InputHandler {
 	}
 
 	private void doAction(int action) {
-		void delegate() binding = *(action in actionBinders[currentBinder].actions);
+		void delegate()* binding;
+		binding = (action in actionBinders[currentBinder].actions);
 		if (binding !is null) {
-			binding();
+			void delegate() instruction = *binding;
+			instruction();
 		}
 	}
 
