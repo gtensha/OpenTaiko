@@ -5,6 +5,7 @@ import opentaiko.assets;
 import opentaiko.renderable.menus.songselectmenu;
 import opentaiko.song;
 import opentaiko.mapgen;
+import opentaiko.renderable.gameplayarea;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -43,6 +44,8 @@ class OpenTaiko {
 	private uint startMenuBinderIndex;
 	private uint mainMenuIndex;
 	private uint mainMenuBinderIndex;
+	private uint gameplaySceneIndex;
+	private uint gameplayBinderIndex;
 
 	private DList!Traversable activeMenuStack;
 
@@ -53,6 +56,7 @@ class OpenTaiko {
 	private SongSelectMenu songSelectMenu;
 
 	private Song[] songs;
+	private string[] playerNames;
 
 	private bool quit = false;
 
@@ -60,7 +64,7 @@ class OpenTaiko {
 
 		engine = new Engine("OpenTaiko");
 
-		engine.start(800, 600, true, "OpenTaiko v0.2");
+		engine.start(1600, 900, true, "OpenTaiko v0.2");
 
 		renderer = engine.gameRenderer();
 		audioMixer = engine.aMixer();
@@ -72,6 +76,7 @@ class OpenTaiko {
 		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
+		createGameplayScene();
 		//engine.gameRenderer.setScene(startMenuIndex);
 		engine.gameRenderer.setDefaultFont("Noto-Light");
 
@@ -187,6 +192,7 @@ class OpenTaiko {
 
 		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
 		playMenu.addButton("High scores", 1, null, null);
+		playMenu.addButton("Test Gameplay Scene", 2, null, &switchSceneToGameplayScene);
 		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
 		settingsMenu = new VerticalMenu(r.sdlRenderer,
@@ -246,6 +252,27 @@ class OpenTaiko {
 		}
 	}
 
+	void createGameplayScene() {
+
+		GameplayArea playerOne = new GameplayArea(renderer,
+												  0, 0, renderer.windowWidth, renderer.windowHeight / 2,
+												  renderer.getFont("Noto-Regular"));
+
+		GameplayArea playerTwo = new GameplayArea(renderer,
+												  0, renderer.windowHeight / 2, renderer.windowWidth, renderer.windowHeight / 2,
+												  renderer.getFont("Noto-Regular"));
+
+		Scene gameplayScene = new Scene("Gameplay");
+		gameplayScene.addLayer();
+		gameplayScene.addRenderable(0, playerOne);
+		gameplayScene.addRenderable(0, playerTwo);
+
+		gameplaySceneIndex = renderer.addScene(gameplayScene);
+		gameplayBinderIndex = inputHandler.addActionBinder();
+		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
+
+	}
+
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
 	}
@@ -260,6 +287,11 @@ class OpenTaiko {
 	void switchSceneToStartMenu() {
 		engine.gameRenderer.setScene(startMenuIndex);
 		engine.iHandler.setActive(startMenuBinderIndex);
+	}
+
+	void switchSceneToGameplayScene() {
+		renderer.setScene(gameplaySceneIndex);
+		inputHandler.setActive(gameplayBinderIndex);
 	}
 
 	void quitGame() {
