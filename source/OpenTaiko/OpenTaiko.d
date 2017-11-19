@@ -241,7 +241,6 @@ class OpenTaiko {
 
 				songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
 			} catch (Exception e) {
-				writeln(e.msg);
 				songSelectMenu.addItem(song, renderer.getTexture("Default-Thumb"));
 			}
 		}

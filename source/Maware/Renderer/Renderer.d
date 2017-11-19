@@ -42,7 +42,6 @@ class Renderer {
 	private Scene[] scenes; // the scenes present in the renderer
 	private uint currentScene; // the index of the scene to be rendered at present
 
-	private DialogBox messageBox;
 	private Font defaultFont;
 
 
@@ -147,20 +146,15 @@ class Renderer {
 		SDL_RenderPresent(renderer);
 	}
 
-	public DialogBox notifyPopUp(string msg) {
-		if (messageBox !is null) {
-			messageBox.popUp(msg);
-		}
-		return messageBox;
+	public static void notifyPopUp(string msg) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
+								 toStringz(Engine.engineName),
+								 toStringz(msg),
+								 null);
 	}
 
 	public void setDefaultFont(string type) {
 		defaultFont = getFont(type);
-		messageBox = new DialogBox("Generic error",
-								   "OK",
-								   defaultFont,
-								   null,
-								   this);
 	}
 
 	// Register a new texture into the system with the given key from

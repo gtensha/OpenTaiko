@@ -13,6 +13,7 @@ import std.conv : to;
 class Engine {
 
 	private string title;
+	public static immutable string engineName = "Maware! Game Engine";
 
 	private Renderer renderer; // the engine's renderer
 	private AudioMixer audioMixer; // the engine's audio backend
@@ -105,14 +106,17 @@ class Engine {
 
 	// This should be able to render a message on screen in the future as well
 	// as writing to console
-	public void notify(string msg) {
-		void delegate() action = &renderer.notifyPopUp(msg).close;
-		inputHandler.bindAction(notifyBinderIndex, 4, action);
+	public static void notify(string msg) {
+		Renderer.notifyPopUp(msg);
 		writeln(msg);
 	}
 
-	public void notify(int msg) {
+	public static void notify(int msg) {
 		notify(to!string(msg));
+	}
+
+	public string getTitle() {
+		return title;
 	}
 
 }
