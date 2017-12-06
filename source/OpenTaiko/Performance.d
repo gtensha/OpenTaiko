@@ -1,12 +1,16 @@
 module opentaiko.performance;
 
-import opentaiko.drum : Drum, Blue, Red;
+import std.array : array;
+import opentaiko.bashable;
+import maware.renderable.renderable;
+import maware.util.timer;
 import opentaiko.mapgen : MapGen;
 
-class Performance {
+class Performance : Renderable {
 
 	string mapTitle;
-	Drum[] drums;
+	Bashable[] drums;
+	Timer timer;
 	Score score;
 	int i;
 
@@ -18,10 +22,17 @@ class Performance {
 		int highestCombo;
 	}
 
-	this(string map) {
-		mapTitle = map;
-		drums = MapGen.parseMapFromFile(map);
-		drums[0].setParent(this);
+	this(string title, Bashable[] hitObjects, Timer timer, int xOffset, int yOffset) {
+
+		mapTitle = title;
+		drums = array(hitObjects);
+		this.timer = timer;
+
+		foreach (Bashable bashable ; drums) {
+			bashable.renderable.setX(bashable.renderable.getX + xOffset);
+			bashable.renderable.setY(bashable.renderable.getY + yOffset);
+		}
+
 		i = 0;
 	}
 
@@ -29,14 +40,14 @@ class Performance {
 	// and return result
 	int hit(int key, int time) {
 		int hitResult = drums[i].hit(key, time);
-		if (hitResult == 0) {
+		if (hitResult == Bashable.Success.GOOD) {
 			score.good++;
 			score.currentCombo++;
-		} else if (hitResult == 1) {
+		} else if (hitResult == Bashable.Success.OK) {
 			score.ok++;
 			score.currentCombo++;
-		} else if (hitResult == 3) {
-			return 3;
+		} else if (hitResult == Bashable.Success.IGNORE) {
+			return Bashable.Success.IGNORE;
 		} else {
 			score.bad++;
 			score.currentCombo = 0;
@@ -64,17 +75,22 @@ class Performance {
 		}
 	}
 
-	// Iterate to next drum circle in the
-	// game and remove the overdue one
+	// Iterate to next drum circle in the game
 	void nextDrum() {
 		i++;
 	}
 
-	// Return the player's score in the
-	// current game state
+	// Return the player's score in the current game state
 	int calculateScore() {
 		int result = (score.good * 300) + (score.ok * 100);
 		return result;
+	}
+
+	public void render() {
+		Bashable.currentOffset = timer.getTimerPassed();
+		for (int it = this.i; it < drums.length/* && drums[it].currentPosition  time*/; it++) {
+			drums[it].render();
+		}
 	}
 
 }

@@ -2,7 +2,7 @@ module opentaiko.drum;
 
 import opentaiko.performance : Performance;
 
-class Drum {
+deprecated class Drum {
 
 	int hitType;
 	static Performance parent;
@@ -47,7 +47,7 @@ class Drum {
 
 }
 
-class Red : Drum {
+deprecated class Red : Drum {
 
 	this(double time) {
 		super(time);
@@ -60,7 +60,7 @@ class Red : Drum {
 
 }
 
-class Blue : Drum {
+deprecated class Blue : Drum {
 
 	this(double time) {
 		super(time);

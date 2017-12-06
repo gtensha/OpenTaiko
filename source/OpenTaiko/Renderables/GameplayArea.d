@@ -51,7 +51,7 @@ class GameplayArea : Renderable {
 								240, 240, 240, 255);
 
 		this.indicatorArea = new Solid(renderer.sdlRenderer,
-									   100, 100, offsetX, offsetY + header.height,
+									   126, 100, offsetX, offsetY + header.height,
 									   40, 40, 40, 0);
 
 		this.drumConveyor = new Solid(renderer.sdlRenderer,

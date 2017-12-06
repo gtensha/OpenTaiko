@@ -13,8 +13,8 @@ abstract class Drum : Bashable {
 		BLUE = 1
 	};
 
-	protected static SDL_Renderer* renderer;
-	protected static SDL_Texture* texture;
+	static SDL_Renderer* renderer;
+	static SDL_Texture* texture;
 
 	this(Solid renderable, uint position, double scroll) {
 		super(renderable, position, scroll);
@@ -50,13 +50,13 @@ abstract class Drum : Bashable {
 
 abstract class NormalDrum : Drum {
 
-	this(int yOffset, uint position, double scroll) {
+	this(int xOffset, int yOffset, uint position, double scroll) {
 		if (texture is null) {
 			throw new Exception("Tried to create Drum without assigning texture");
 		}
 		super(new Textured(renderer,
 						   texture,
-						   cast(int)(position * scroll),
+						   xOffset + cast(int)(position * scroll),
 						   yOffset),
 			  position,
 			  scroll);
@@ -66,20 +66,20 @@ abstract class NormalDrum : Drum {
 
 class RedDrum : NormalDrum {
 
-	immutable int keyType = Type.RED;
+	static immutable int keyType = Type.RED;
 
-	this(int yOffset, uint position, double scroll) {
-		super(yOffset, position, scroll);
+	this(int xOffset, int yOffset, uint position, double scroll) {
+		super(xOffset, yOffset, position, scroll);
 	}
 
 }
 
 class BlueDrum : NormalDrum {
 
-	immutable int keyType = Type.BLUE;
+	static immutable int keyType = Type.BLUE;
 
-	this(int yOffset, uint position, double scroll) {
-		super(yOffset, position, scroll);
+	this(int xOffset, int yOffset, uint position, double scroll) {
+		super(xOffset, yOffset, position, scroll);
 	}
 
 }

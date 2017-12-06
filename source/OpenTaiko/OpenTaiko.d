@@ -5,6 +5,8 @@ import opentaiko.assets;
 import opentaiko.renderable.menus.songselectmenu;
 import opentaiko.song;
 import opentaiko.mapgen;
+import opentaiko.bashable;
+import opentaiko.performance;
 import opentaiko.renderable.gameplayarea;
 
 import derelict.sdl2.sdl : SDL_Keycode;
@@ -16,7 +18,11 @@ import std.container.dlist : DList;
 void main(string[] args) {
 	OpenTaiko game = new OpenTaiko();
 
-	game.run();
+	try {
+		game.run();
+	} catch (Throwable e) {
+		Engine.notify(e.toString());
+	}
 }
 
 enum Action : int {
@@ -57,6 +63,7 @@ class OpenTaiko {
 
 	private Song[] songs;
 	private string[] playerNames;
+	private Performance[] currentPerformances;
 
 	private bool quit = false;
 
@@ -90,9 +97,38 @@ class OpenTaiko {
 
 	}
 
+	void gameplay() {
+
+		Bashable[] map = MapGen.parseMapFromFile("Default/default.otfm");
+		Timer gameplayTimer = Timer.timers[Timer.addTimer()];
+		gameplayTimer.set(Timer.libInitPassed);
+		if (currentPerformances is null) {
+			// This doesn't work - Drums aren't duped to allow simple copying
+			currentPerformances ~= new Performance("Default", map, gameplayTimer, 50, 160);
+			//currentPerformances ~= new Performance("Default", map, gameplayTimer, 50, 600);
+		} else {
+			currentPerformances[0] = new Performance("Default", map, gameplayTimer, 50, 160);
+			//currentPerformances[1] = new Performance("Default", map, gameplayTimer, 50, 600);
+		}
+
+		renderer.getScene(gameplaySceneIndex).clearLayer(1);
+		foreach (Performance performance ; currentPerformances) {
+			renderer.getScene(gameplaySceneIndex).addRenderable(1, performance);
+		}
+
+		int eventCode;
+		while (eventCode != -1) {
+			eventCode = engine.renderFrame();
+		}
+
+	}
+
 	void loadAssets(Engine e) {
 
 		e.loadAssets(openTaikoAssets(), ASSET_DIR.DEFAULT);
+
+		BlueDrum.setTexture(renderer.sdlRenderer, renderer.getTexture("Default-Thumb"));
+		RedDrum.setTexture(renderer.sdlRenderer, renderer.getTexture("NormalDrum"));
 
 	}
 
@@ -136,6 +172,7 @@ class OpenTaiko {
 		centerInfo.setY(getCenterPos(r.windowHeight, centerInfo.height));
 		r.getScene(*menuIndex).addRenderable(1, centerInfo);
 		r.getScene(*menuIndex).addRenderable(1, r.createTextured("Soul", 0, 0));
+		r.getScene(*menuIndex).addRenderable(1, r.createTextured("NormalDrum", 100, 100));
 		startMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.setActive(startMenuBinderIndex);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
@@ -266,6 +303,7 @@ class OpenTaiko {
 		gameplayScene.addLayer();
 		gameplayScene.addRenderable(0, playerOne);
 		gameplayScene.addRenderable(0, playerTwo);
+		gameplayScene.addLayer();
 
 		gameplaySceneIndex = renderer.addScene(gameplayScene);
 		gameplayBinderIndex = inputHandler.addActionBinder();
@@ -292,6 +330,7 @@ class OpenTaiko {
 	void switchSceneToGameplayScene() {
 		renderer.setScene(gameplaySceneIndex);
 		inputHandler.setActive(gameplayBinderIndex);
+		gameplay();
 	}
 
 	void quitGame() {
