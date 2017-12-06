@@ -43,6 +43,20 @@ class Solid : Renderable {
 		SDL_RenderFillRect(renderer, &rect);
 	}
 
+	public void renderOffset(int x, int y) {
+		SDL_SetRenderDrawColor(renderer,
+							   color.r,
+							   color.g,
+							   color.b,
+							   color.a);
+
+		SDL_Rect realRect = rect;
+		SDL_Rect tempRect = {rect.x + x, rect.y + y, rect.w, rect.h};
+		rect = tempRect;
+		render();
+		rect = realRect;
+	}
+
 	public void setW(uint w) {
 		rect.w = w;
 	}
