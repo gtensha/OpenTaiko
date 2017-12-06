@@ -11,6 +11,7 @@ import std.ascii;
 import std.json;
 
 import opentaiko.drum;
+import opentaiko.bashable;
 import opentaiko.song;
 import opentaiko.gamevars;
 import opentaiko.difficulty;
@@ -37,12 +38,13 @@ class MapGen {
 	*/
 
 	// Returns array of drum objects with desired properties
-	static Drum[] parseMapFromFile(string file) {
+	static Bashable[] parseMapFromFile(string file) {
 		int bpm = 140;
 		int zoom = 4;
+		double scroll = 1;
 		string map = to!string(std.file.read(MAP_DIR ~ file));
 		string[] lines = split(map, std.ascii.newline);
-		Drum[] drumArray;
+		Bashable[] drumArray;
 
 		int i;
 		int offset;
@@ -88,6 +90,11 @@ class MapGen {
 						foundTag = true;
 						break;
 
+					case "!scroll":
+						scroll = to!double(formattedLine[1]);
+						foundTag = true;
+						break;
+
 					default:
 						// Quit early if funky situation occurs
 						if (processAttrs == processMap) {
@@ -106,7 +113,7 @@ class MapGen {
 						zoom = to!int(vars[1]);
 					}
 				} else if (!foundTag && processMap) { // else process as map data
-					drumArray ~= readMapSection(line, bpm, &i, offset);
+					drumArray ~= readMapSection(line, bpm, scroll, &i, offset);
 				}
 			}
 		}
@@ -114,18 +121,28 @@ class MapGen {
 	}
 
 			// Calculate circle's position in milliseconds
-	static double calculatePosition(int i, int offset, int bpm) {
-		return (((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
+	static int calculatePosition(int i, int offset, int bpm) {
+		return cast(int)(((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
 	}
 
-	static Drum[] readMapSection(string section, int bpm, int* i, int offset) {
+	static Bashable[] readMapSection(string section,
+									 int bpm,
+									 double scroll,
+									 int* i,
+									 int offset) {
 		int index = *i;
-		Drum[] drumArray;
+		Bashable[] drumArray;
 		foreach (char type ; section) {
 			if (type == 'D' || type == 'd') {
-				drumArray ~= new Red(calculatePosition(index, offset, bpm));
+				drumArray ~= new RedDrum(calculatePosition(index, offset, bpm),
+										 0,
+										 calculatePosition(index, offset, bpm),
+										 scroll);
 			} else if (type == 'K' || type == 'k') {
-				drumArray ~= new Blue(calculatePosition(index, offset, bpm));
+				drumArray ~= new BlueDrum(calculatePosition(index, offset, bpm),
+										  0,
+										  calculatePosition(index, offset, bpm),
+										  scroll);
 			}
 			index++;
 		}
