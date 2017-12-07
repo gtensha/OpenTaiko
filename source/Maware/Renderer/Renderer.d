@@ -188,6 +188,16 @@ class Renderer {
 		}
 	}
 
+	public void colorTexture(string key, ubyte r, ubyte g, ubyte b) {
+		SDL_Texture* texture = getTexture(key);
+		if (texture is null) {
+			throw new Exception("Error coloring texture: No texture with this key exists");
+		}
+		if (SDL_SetTextureColorMod(texture, r, g, b) < 0) {
+			parent.notify(to!string("Failed to color texture: " ~ fromStringz(SDL_GetError())));
+		}
+	}
+
 	// Register a new Font object into the system
 	public void registerFont(string key, string src) {
 		fonts[key] = new Font(key, src);
