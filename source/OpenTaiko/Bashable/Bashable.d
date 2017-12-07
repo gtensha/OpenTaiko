@@ -25,17 +25,35 @@ abstract class Bashable : Renderable {
 	immutable uint position; /// Object position in milliseconds
 	immutable double scroll; /// How fast the object will advance (multiplier)
 
-	public Solid renderable; /// The renderable (texture, e.l.)
+	public Solid[] renderables; /// The renderable(s) (texture, e.l.)
 
-	this(Solid renderable, uint position, double scroll) {
-		this.renderable = renderable;
+	this(Solid[] renderables, uint position, double scroll) {
+		this.renderables ~= renderables;
 		this.position = position;
 		this.scroll = scroll;
 	}
 
 	public void render() {
-		renderable.renderOffset(0 - cast(int)(currentOffset * scroll), 0);
+		foreach (Solid renderable ; renderables) {
+			renderable.renderOffset(0 - cast(int)(currentOffset * scroll), 0);
+		}
 		//renderable.render();
+	}
+
+	public void adjustX(int xOffset) {
+		foreach (Solid renderable ; renderables) {
+			if (renderable !is null) {
+				renderable.setX(renderable.getX + xOffset);
+			}
+		}
+	}
+
+	public void adjustY(int yOffset) {
+		foreach (Solid renderable ; renderables) {
+			if (renderable !is null) {
+				renderable.setY(renderable.getY + yOffset);
+			}
+		}
 	}
 
 	/// Attempt to hit this object and return success code

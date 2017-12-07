@@ -9,7 +9,9 @@ enum ASSET_DIR : string {
 static Assets openTaikoAssets() {
 	return immutable Assets(["RedDrum" 		 : "red.png",
 							 "BlueDrum"		 : "blue.png",
-							 "NormalDrum"	 : "drum_default.png",
+							 "DrumBorder"	 : "drum_default_border.png",
+							 "DrumCoreRed"	 : "drum_default_core.png",
+							 "DrumCoreBlue"	 : "drum_default_core.png",
 							 "Reception"	 : "reception.png",
 							 "GoodHit" 		 : "good.png",
 							 "OkHit" 		 : "ok.png",

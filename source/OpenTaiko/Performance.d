@@ -29,8 +29,8 @@ class Performance : Renderable {
 		this.timer = timer;
 
 		foreach (Bashable bashable ; drums) {
-			bashable.renderable.setX(bashable.renderable.getX + xOffset);
-			bashable.renderable.setY(bashable.renderable.getY + yOffset);
+			bashable.adjustX(xOffset);
+			bashable.adjustY(yOffset);
 		}
 
 		i = 0;

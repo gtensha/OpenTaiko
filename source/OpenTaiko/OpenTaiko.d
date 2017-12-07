@@ -64,6 +64,7 @@ class OpenTaiko {
 	private Song[] songs;
 	private string[] playerNames;
 	private Performance[] currentPerformances;
+	private Timer gameplayTimer;
 
 	private bool quit = false;
 
@@ -100,7 +101,9 @@ class OpenTaiko {
 	void gameplay() {
 
 		Bashable[] map = MapGen.parseMapFromFile("Default/default.otfm");
-		Timer gameplayTimer = Timer.timers[Timer.addTimer()];
+		if (gameplayTimer is null) {
+			gameplayTimer = Timer.timers[Timer.addTimer()];
+		}
 		gameplayTimer.set(Timer.libInitPassed);
 		if (currentPerformances is null) {
 			// This doesn't work - Drums aren't duped to allow simple copying
@@ -127,8 +130,12 @@ class OpenTaiko {
 
 		e.loadAssets(openTaikoAssets(), ASSET_DIR.DEFAULT);
 
-		BlueDrum.setTexture(renderer.sdlRenderer, renderer.getTexture("Default-Thumb"));
-		RedDrum.setTexture(renderer.sdlRenderer, renderer.getTexture("NormalDrum"));
+		renderer.colorTexture("DrumCoreRed", 237, 39, 128);
+		renderer.colorTexture("DrumCoreBlue", 76, 237, 39);
+		BlueDrum.texture = renderer.getTexture("DrumCoreBlue");
+		Drum.renderer = renderer.sdlRenderer;
+		RedDrum.texture = renderer.getTexture("DrumCoreRed");
+		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
 
 	}
 

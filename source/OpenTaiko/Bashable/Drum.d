@@ -14,17 +14,12 @@ abstract class Drum : Bashable {
 	};
 
 	static SDL_Renderer* renderer;
-	static SDL_Texture* texture;
 
-	this(Solid renderable, uint position, double scroll) {
-		super(renderable, position, scroll);
+	this(Solid[] renderables, uint position, double scroll) {
+		super(renderables, position, scroll);
 	}
 
-	public static void setTexture(SDL_Renderer* someRenderer,
-								  SDL_Texture* someTexture) {
-		renderer = someRenderer;
-		texture = someTexture;
-	}
+	//public static void setTexture(SDL_Renderer* someRenderer, SDL_Texture* someTexture);
 
 	override public int hit(int key, int time) {
 
@@ -50,16 +45,28 @@ abstract class Drum : Bashable {
 
 abstract class NormalDrum : Drum {
 
-	this(int xOffset, int yOffset, uint position, double scroll) {
-		if (texture is null) {
+	static SDL_Texture* rimTexture;
+
+	this(SDL_Texture* texture,
+		 int xOffset, int yOffset, uint position, double scroll) {
+
+		if (texture is null || rimTexture is null) {
 			throw new Exception("Tried to create Drum without assigning texture");
+		} else if (renderer is null) {
+			throw new Exception("Tried to create Drum without assigning renderer");
 		}
-		super(new Textured(renderer,
-						   texture,
-						   xOffset + cast(int)(position * scroll),
-						   yOffset),
-			  position,
-			  scroll);
+		Solid[2] renderables;
+		renderables[0] = new Textured(renderer,
+									  texture,
+									  xOffset + cast(int)(position * scroll),
+									  yOffset);
+
+		renderables[1] = new Textured(renderer,
+									  rimTexture,
+									  renderables[0].getX,
+									  renderables[0].getY);
+
+		super(renderables, position, scroll);
 	}
 
 }
@@ -68,8 +75,10 @@ class RedDrum : NormalDrum {
 
 	static immutable int keyType = Type.RED;
 
+	static SDL_Texture* texture;
+
 	this(int xOffset, int yOffset, uint position, double scroll) {
-		super(xOffset, yOffset, position, scroll);
+		super(texture, xOffset, yOffset, position, scroll);
 	}
 
 }
@@ -78,8 +87,10 @@ class BlueDrum : NormalDrum {
 
 	static immutable int keyType = Type.BLUE;
 
+	static SDL_Texture* texture;
+
 	this(int xOffset, int yOffset, uint position, double scroll) {
-		super(xOffset, yOffset, position, scroll);
+		super(texture, xOffset, yOffset, position, scroll);
 	}
 
 }
