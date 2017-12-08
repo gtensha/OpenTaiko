@@ -45,7 +45,7 @@ class Text : Textured {
 
 	// Update the text in the texture if the new text differs from current
 	public void updateText(string text) {
-		if (!false/*text.equal(currentText)*/) {
+		if (!text.equal(currentText)) {
 			SDL_Surface* tempSurface;
 			if (pretty) {
 				tempSurface = TTF_RenderUTF8_Blended(font, toStringz(text), color);

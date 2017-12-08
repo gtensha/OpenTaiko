@@ -94,4 +94,9 @@ class Scene : Renderable {
 			return null;
 		}
 	}
+
+	/// Returns the name of this scene
+	public string getName() {
+		return name;
+	}
 }
