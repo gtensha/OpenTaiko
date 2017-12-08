@@ -5,6 +5,9 @@ import maware.renderer;
 import maware.renderable;
 import maware.font;
 
+import std.string : rightJustify;
+import std.conv : to;
+
 import derelict.sdl2.sdl : SDL_Renderer;
 
 class GameplayArea : Renderable {
@@ -78,22 +81,34 @@ class GameplayArea : Renderable {
 
 	public void render() {
 
+		score.updateText(rightJustify(to!string(currentPerformance.calculateScore()),
+						 7,
+						 '0'));
+
 		background.render();
 		header.render();
 		drumConveyor.render();
 		indicatorArea.render();
 		reception.render();
+		currentPerformance.render();
 		//player.render();
 		score.render();
-		foreach (Textured drum ; drums) {
+		/*foreach (Textured drum ; drums) {
 			if (drum !is null) {
 				if (drum.getX > offsetX + maxWidth) {
 					break;
 				}
 				drum.render();
 			}
-		}
+		}*/
 
+	}
+
+	public void setPerformance(Performance performance) {
+
+		performance.setRenderableOffset(reception.getX, drumConveyor.getY, drumConveyor.height);
+
+		currentPerformance = performance;
 	}
 
 }

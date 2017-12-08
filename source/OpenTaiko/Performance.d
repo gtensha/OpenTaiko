@@ -27,6 +27,7 @@ class Performance : Renderable {
 		mapTitle = title;
 		drums = array(hitObjects);
 		this.timer = timer;
+		score.good = 0;
 
 		foreach (Bashable bashable ; drums) {
 			bashable.adjustX(xOffset);
@@ -90,6 +91,13 @@ class Performance : Renderable {
 		Bashable.currentOffset = timer.getTimerPassed();
 		for (int it = this.i; it < drums.length/* && drums[it].currentPosition  time*/; it++) {
 			drums[it].render();
+		}
+	}
+
+	public void setRenderableOffset(int xOffset, int yOffset, int maxHeight) {
+		foreach (Bashable bashable ; drums) {
+			bashable.adjustX(xOffset);
+			bashable.adjustY(yOffset + (maxHeight - bashable.getObjectMaxHeight) / 2);
 		}
 	}
 

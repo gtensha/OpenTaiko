@@ -25,6 +25,11 @@ void main(string[] args) {
 	}
 }
 
+/**
+The possible inputs recognised by the game
+0-127 are generic commands
+128-131 + [player amount * 4] are drum inputs for gameplay
+*/
 enum Action : int {
 		// Arrow keys
 		UP = 0,
@@ -36,7 +41,13 @@ enum Action : int {
 		BACK = 5,
 		PAUSE = 6,
 		QUIT = 7,
-		MODESEL = 8
+		MODESEL = 8,
+
+		// Drum actions
+		DRUM_RIGHT_CENTER = 128,
+		DRUM_RIGHT_RIM = 129,
+		DRUM_LEFT_CENTER = 130,
+		DRUM_LEFT_RIM = 131
 
 }
 
@@ -64,6 +75,7 @@ class OpenTaiko {
 	private Song[] songs;
 	private string[] playerNames;
 	private Performance[] currentPerformances;
+	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
 
 	private bool quit = false;
@@ -84,7 +96,7 @@ class OpenTaiko {
 		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
-		createGameplayScene();
+		createGameplayScene(1);
 		//engine.gameRenderer.setScene(startMenuIndex);
 		engine.gameRenderer.setDefaultFont("Noto-Light");
 
@@ -105,19 +117,17 @@ class OpenTaiko {
 			gameplayTimer = Timer.timers[Timer.addTimer()];
 		}
 		gameplayTimer.set(Timer.libInitPassed);
-		if (currentPerformances is null) {
-			// This doesn't work - Drums aren't duped to allow simple copying
-			currentPerformances ~= new Performance("Default", map, gameplayTimer, 50, 160);
-			//currentPerformances ~= new Performance("Default", map, gameplayTimer, 50, 600);
-		} else {
-			currentPerformances[0] = new Performance("Default", map, gameplayTimer, 50, 160);
-			//currentPerformances[1] = new Performance("Default", map, gameplayTimer, 50, 600);
+
+		currentPerformances = null;
+		for (int i = 0; i < playerAreas.length; i++) {
+			currentPerformances ~= new Performance("Default", map, gameplayTimer, 0, 0);
+			playerAreas[i].setPerformance(currentPerformances[i]);
 		}
 
-		renderer.getScene(gameplaySceneIndex).clearLayer(1);
-		foreach (Performance performance ; currentPerformances) {
-			renderer.getScene(gameplaySceneIndex).addRenderable(1, performance);
-		}
+		//renderer.getScene(gameplaySceneIndex).clearLayer(1);
+		//foreach (Performance performance ; currentPerformances) {
+		//	renderer.getScene(gameplaySceneIndex).addRenderable(1, performance);
+		//}
 
 		int eventCode;
 		while (eventCode != -1) {
@@ -273,6 +283,11 @@ class OpenTaiko {
 		i.bind(Action.BACK, 	'\b');
 		i.bind(Action.MODESEL,	'\t');
 		i.bind(Action.PAUSE,	'\033');
+
+		i.bind(Action.DRUM_RIGHT_CENTER, 'j');
+		i.bind(Action.DRUM_RIGHT_RIM,	 'k');
+		i.bind(Action.DRUM_LEFT_CENTER,	 'f');
+		i.bind(Action.DRUM_LEFT_RIM,	 'd');
 	}
 
 	void createSongSelectMenu() {
@@ -296,25 +311,47 @@ class OpenTaiko {
 		}
 	}
 
-	void createGameplayScene() {
+	void createGameplayScene(int players) {
 
-		GameplayArea playerOne = new GameplayArea(renderer,
-												  0, 0, renderer.windowWidth, renderer.windowHeight / 2,
-												  renderer.getFont("Noto-Regular"));
+		if (playerAreas !is null) {
+			playerAreas = null;
+		}
 
-		GameplayArea playerTwo = new GameplayArea(renderer,
-												  0, renderer.windowHeight / 2, renderer.windowWidth, renderer.windowHeight / 2,
-												  renderer.getFont("Noto-Regular"));
+		// TODO: implement vertical split
+		for (int i = 0; i < players; i++) {
+			playerAreas ~= new GameplayArea(renderer,
+											0,
+											i < 1 ? 0 : (renderer.windowHeight / (i + 1)),
+											renderer.windowWidth,
+											renderer.windowHeight / (i + 1),
+											renderer.getFont("Noto-Regular"));
+		}
 
-		Scene gameplayScene = new Scene("Gameplay");
-		gameplayScene.addLayer();
-		gameplayScene.addRenderable(0, playerOne);
-		gameplayScene.addRenderable(0, playerTwo);
-		gameplayScene.addLayer();
+		Scene gameplayScene = renderer.getScene(gameplaySceneIndex);
+		if (gameplayScene is null || gameplayScene.getName() != "Gameplay") {
+			gameplayScene = new Scene("Gameplay");
+			gameplayScene.addLayer();
+			foreach (GameplayArea gameplayArea ; playerAreas) {
+				gameplayScene.addRenderable(0, gameplayArea);
+			}
+			gameplayScene.addLayer();
 
-		gameplaySceneIndex = renderer.addScene(gameplayScene);
-		gameplayBinderIndex = inputHandler.addActionBinder();
-		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
+			gameplaySceneIndex = renderer.addScene(gameplayScene);
+		} else {
+			gameplayScene.clearLayer(0);
+			foreach (GameplayArea gameplayArea ; playerAreas) {
+				gameplayScene.addRenderable(0, gameplayArea);
+			}
+		}
+
+		if (gameplayBinderIndex == 0) {
+			gameplayBinderIndex = inputHandler.addActionBinder();
+			inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER, &hitCenterDrum);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER, &hitCenterDrum);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM, &hitRimDrum);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM, &hitRimDrum);
+		}
 
 	}
 
@@ -399,8 +436,12 @@ class OpenTaiko {
 		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenuStack.front(), 1, 2);
 	}
 
-	void notifyMe() {
-		engine.notify(" ");
+	void hitCenterDrum() {
+		audioMixer.playSFX(0);
+	}
+
+	void hitRimDrum() {
+		audioMixer.playSFX(1);
 	}
 
 }

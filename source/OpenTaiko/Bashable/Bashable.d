@@ -69,4 +69,14 @@ abstract class Bashable : Renderable {
 		return cast(int)(position - currentOffset * scroll);
 	}
 
+	public int getObjectMaxHeight() {
+		int max = 0;
+		foreach (Solid renderable ; renderables) {
+			if (renderable.height > max) {
+				max = renderable.height;
+			}
+		}
+		return max;
+	}
+
 }
