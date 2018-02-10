@@ -124,16 +124,6 @@ class OpenTaiko {
 			playerAreas[i].setPerformance(currentPerformances[i]);
 		}
 
-		//renderer.getScene(gameplaySceneIndex).clearLayer(1);
-		//foreach (Performance performance ; currentPerformances) {
-		//	renderer.getScene(gameplaySceneIndex).addRenderable(1, performance);
-		//}
-
-		int eventCode;
-		while (eventCode != -1) {
-			eventCode = engine.renderFrame();
-		}
-
 	}
 
 	void loadAssets(Engine e) {
