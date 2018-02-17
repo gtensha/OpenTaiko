@@ -30,7 +30,7 @@ class Font {
 			if (someSize is null) {
 				sizes[size] = TTF_OpenFont(toStringz(src), size);
 			}
-			return *someSize;
+			return sizes[size];
 		} else {
 			throw new Exception("Invalid font size");
 		}
