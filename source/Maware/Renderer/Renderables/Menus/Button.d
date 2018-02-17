@@ -45,8 +45,8 @@ class Button : Renderable {
 			this.solid = new Solid(w, h, x, y, r, g, b, a);
 		}
 		if (text !is null) {
-			buttonText.setX(x + 10);
-			buttonText.setY(y);
+			buttonText.rect.x = x + 10;
+			buttonText.rect.y = y;
 		}
 
 	}
@@ -57,11 +57,11 @@ class Button : Renderable {
 	}
 
 	public void setX(int x) {
-		solid.setX(x);
+		solid.rect.x = x;
 	}
 
 	public void setY(int y) {
-		solid.setY(y);
+		solid.rect.y = y;
 	}
 
 	public Traversable getValue() {

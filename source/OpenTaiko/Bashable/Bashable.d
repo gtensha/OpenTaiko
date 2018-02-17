@@ -43,7 +43,7 @@ abstract class Bashable : Renderable {
 	public void adjustX(int xOffset) {
 		foreach (Solid renderable ; renderables) {
 			if (renderable !is null) {
-				renderable.setX(renderable.getX + xOffset);
+				renderable.rect.x = (renderable.rect.x + xOffset);
 			}
 		}
 	}
@@ -51,7 +51,7 @@ abstract class Bashable : Renderable {
 	public void adjustY(int yOffset) {
 		foreach (Solid renderable ; renderables) {
 			if (renderable !is null) {
-				renderable.setY(renderable.getY + yOffset);
+				renderable.rect.y = (renderable.rect.y + yOffset);
 			}
 		}
 	}
@@ -72,8 +72,8 @@ abstract class Bashable : Renderable {
 	public int getObjectMaxHeight() {
 		int max = 0;
 		foreach (Solid renderable ; renderables) {
-			if (renderable.height > max) {
-				max = renderable.height;
+			if (renderable.rect.h > max) {
+				max = renderable.rect.h;
 			}
 		}
 		return max;

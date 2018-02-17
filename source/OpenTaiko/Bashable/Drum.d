@@ -60,8 +60,8 @@ abstract class NormalDrum : Drum {
 									  yOffset);
 
 		renderables[1] = new Textured(rimTexture,
-									  renderables[0].getX,
-									  renderables[0].getY);
+									  renderables[0].rect.x,
+									  renderables[0].rect.y);
 
 		super(renderables, position, scroll);
 	}

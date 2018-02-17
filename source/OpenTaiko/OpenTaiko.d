@@ -158,13 +158,13 @@ class OpenTaiko {
 					 				0, 100,
 					 				40, 40, 40, 255);
 
-		titleHeader.setX(getCenterPos(r.windowWidth, titleHeader.width));
+		titleHeader.rect.x = (getCenterPos(r.windowWidth, titleHeader.rect.w));
 		r.getScene(*menuIndex).addRenderable(1, titleHeader);
 
 		Solid lineCenter = new Solid(r.windowWidth, 80, 0, 0,
 									 40, 40, 40, 255);
 
-		lineCenter.setY(getCenterPos(r.windowHeight, lineCenter.height));
+		lineCenter.rect.y = (getCenterPos(r.windowHeight, lineCenter.rect.h));
 		r.getScene(*menuIndex).addRenderable(1, lineCenter);
 
 		Text centerInfo = new Text("Press any key",
@@ -173,8 +173,8 @@ class OpenTaiko {
 								   0, 0,
 								   240, 240, 240, 255);
 
-		centerInfo.setX(getCenterPos(r.windowWidth, centerInfo.width));
-		centerInfo.setY(getCenterPos(r.windowHeight, centerInfo.height));
+		centerInfo.rect.x = (getCenterPos(r.windowWidth, centerInfo.rect.w));
+		centerInfo.rect.y = (getCenterPos(r.windowHeight, centerInfo.rect.h));
 		r.getScene(*menuIndex).addRenderable(1, centerInfo);
 		r.getScene(*menuIndex).addRenderable(1, new Textured(r.getTexture("Soul"), 0, 0));
 		r.getScene(*menuIndex).addRenderable(1, new Textured(r.getTexture("NormalDrum"), 100, 100));

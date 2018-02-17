@@ -38,14 +38,14 @@ class HorizontalTopBarButton : Button {
 			  x, y, w, h,
 			  r, g, b, a);
 
-		buttonText.setX(x + ((w / 2) - (text.width / 2)));
-		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
+		buttonText.rect.x = (x + ((w / 2) - (text.rect.w / 2)));
+		buttonText.rect.y = (y + (h / 2) - (text.rect.h / 2) - 10);
 
 		invertedText = new Text(buttonText.getText,
 								buttonText.getFont,
 								true,
-								buttonText.getX,
-								buttonText.getY,
+								buttonText.rect.x,
+								buttonText.rect.y,
 								r, g, b, a);
 
 		invertedText.setColor(r, g, b, a);
@@ -68,11 +68,23 @@ class HorizontalTopBarButton : Button {
 			//percentagePassed = to!int(buttonAnimation.getY(percentagePassed));
 		}
 		if (highlighting == 1) {
-			bottomLine.setH(EzMath.getCoords(percentagePassed, 8, solid.height));
-			bottomLine.setY(EzMath.getCoords(percentagePassed, solid.getY + solid.height - (solid.height / 10), solid.getY));
+			bottomLine.rect.h = (EzMath.getCoords(percentagePassed, 
+												  8, 
+												  solid.rect.h));
+			bottomLine.rect.y = (EzMath.getCoords(percentagePassed, 
+												  solid.rect.y 
+												  + solid.rect.h 
+												  - (solid.rect.h / 10),
+												  solid.rect.y));
 		} else {
-			bottomLine.setH(EzMath.getCoords(percentagePassed, solid.height, 8));
-			bottomLine.setY(EzMath.getCoords(percentagePassed, solid.getY, solid.getY + solid.height - (solid.height / 10)));
+			bottomLine.rect.h = (EzMath.getCoords(percentagePassed, 
+												  solid.rect.h, 
+												  8));
+			bottomLine.rect.y = (EzMath.getCoords(percentagePassed, 
+												  solid.rect.y, 
+												  solid.rect.y 
+												  + solid.rect.h 
+												  - (solid.rect.h / 10)));
 		}
 
 		solid.render();
@@ -81,14 +93,15 @@ class HorizontalTopBarButton : Button {
 		invertedText.render();
 
 		SDL_Rect textPortion = {0,
-								buttonText.getY + 10,
+								buttonText.rect.y + 10,
 								0,
-								buttonText.getY - (bottomLine.getY - bottomLine.height)};
+								buttonText.rect.y 
+								- (bottomLine.rect.y - bottomLine.rect.h)};
 		if (textPortion.h <= 0) {
 			buttonText.render();
 		} else {
 			textPortion.w = 0;
-			textPortion.y = invertedText.getY - textPortion.h;
+			textPortion.y = invertedText.rect.y - textPortion.h;
 			//textPortion.y = invertedText.getY + invertedText.height;
 
 			buttonText.renderPart(textPortion);

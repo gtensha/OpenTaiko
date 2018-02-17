@@ -32,15 +32,15 @@ class VerticalButton : Button {
 
 		super(text, value, subMenu, instruction, x, y, w, h, r, g, b, a);
 
-		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
+		buttonText.rect.y = (y + (h / 2) - (text.rect.h / 2) - 10);
 
 		highlightLayer = new Solid(0, h, x, y, 255, 255, 255, 255);
 
 		invertedText = new Text(buttonText.getText,
 								buttonText.getFont,
 								true,
-								buttonText.getX,
-								buttonText.getY,
+								buttonText.rect.x,
+								buttonText.rect.y,
 								r, g, b, a);
 
 		invertedText.setColor(r, g, b, a);
@@ -56,18 +56,18 @@ class VerticalButton : Button {
 		if (percentagePassed > 100) {
 			percentagePassed = 100;
 		} else {
-			//percentagePassed = to!int(buttonAnimation.getY(percentagePassed));
+			//percentagePassed = to!int(buttonAnimation.rect.y(percentagePassed));
 		}
 		if (highlighting) {
-			highlightLayer.setW(EzMath.getCoords(percentagePassed, 0, solid.width));
+			highlightLayer.rect.w = (EzMath.getCoords(percentagePassed, 0, solid.rect.w));
 		} else {
-			highlightLayer.setW(EzMath.getCoords(percentagePassed, solid.width, 0));
+			highlightLayer.rect.w = (EzMath.getCoords(percentagePassed, solid.rect.w, 0));
 		}
 
 		solid.render();
 		buttonText.render();
 		highlightLayer.render();
-		SDL_Rect textPortion = Solid.getUnion(invertedText.getRect, highlightLayer.getRect);
+		SDL_Rect textPortion = Solid.getUnion(&invertedText.rect, &highlightLayer.rect);
 		if (textPortion.w <= 0) {
 			invertedText.render();
 		} else {

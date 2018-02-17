@@ -13,8 +13,8 @@ import derelict.sdl2.sdl : SDL_Rect,
 
 class Solid : Renderable {
 
-	protected SDL_Rect rect;
-	protected SDL_Color color;
+	public SDL_Rect rect;
+	public SDL_Color color;
 	protected SDL_Renderer* renderer;
 
 	this(int w, int h, int x, int y,
@@ -55,42 +55,6 @@ class Solid : Renderable {
 		rect = tempRect;
 		render();
 		rect = realRect;
-	}
-
-	public void setW(uint w) {
-		rect.w = w;
-	}
-
-	public void setH(uint h) {
-		rect.h = h;
-	}
-
-	public int width() {
-		return rect.w;
-	}
-
-	public int height() {
-		return rect.h;
-	}
-
-	public void setX(int x) {
-		rect.x = x;
-	}
-
-	public void setY(int y) {
-		rect.y = y;
-	}
-
-	public int getX() {
-		return rect.x;
-	}
-
-	public int getY() {
-		return rect.y;
-	}
-
-	public SDL_Rect* getRect() {
-		return &rect;
 	}
 
 	// Set the color of the solid, int < 0 for unchanged

@@ -119,8 +119,19 @@ class SongSelectMenuItem : Renderable {
 
 		block = new Solid(w, h, x, y, 250, 250, 250, 255);
 		this.thumbnail = new Textured(thumbnail, w - 20, w - 20, x + 10, y + 10);
-		this.title = new Text(title, titleFont, true, x + 10, y + this.thumbnail.height + 10, 30, 30, 30, 255);
-		this.artist = new Text(artist, artistFont, true, x + 10, y + this.title.height + this.thumbnail.height + 10, 50, 50, 50, 255);
+		this.title = new Text(title, 
+							  titleFont, 
+							  true, 
+							  x + 10, 
+							  y + this.thumbnail.rect.h + 10, 
+							  30, 30, 30, 255);
+							  
+		this.artist = new Text(artist, 
+							   artistFont, 
+							   true, 
+							   x + 10, 
+							   y + this.title.rect.h + this.thumbnail.rect.h + 10,
+							   50, 50, 50, 255);
 
 		for (int i = 0; i < offset; i++) {
 			move(Moves.RIGHT);
@@ -138,17 +149,17 @@ class SongSelectMenuItem : Renderable {
 	void move(bool direction) {
 		int toMove;
 		if (direction == Moves.RIGHT) {
-			toMove = block.width + spacing;
-			block.setX(block.getX + toMove);
-			thumbnail.setX(thumbnail.getX + toMove);
-			title.setX(title.getX + toMove);
-			artist.setX(artist.getX + toMove);
+			toMove = block.rect.w + spacing;
+			block.rect.x = (block.rect.x + toMove);
+			thumbnail.rect.x = (thumbnail.rect.x + toMove);
+			title.rect.x = (title.rect.x + toMove);
+			artist.rect.x = (artist.rect.x + toMove);
 		} else {
-			toMove = block.width + spacing;
-			block.setX(block.getX - toMove);
-			thumbnail.setX(thumbnail.getX - toMove);
-			title.setX(title.getX - toMove);
-			artist.setX(artist.getX - toMove);
+			toMove = block.rect.w + spacing;
+			block.rect.x = (block.rect.x - toMove);
+			thumbnail.rect.x = (thumbnail.rect.x - toMove);
+			title.rect.x = (title.rect.x - toMove);
+			artist.rect.x = (artist.rect.x - toMove);
 		}
 	}
 
