@@ -8,7 +8,7 @@ class Font {
 	private string name;
 	private string src;
 
-	private TTF_Font*[512] sizes;
+	private TTF_Font*[int] sizes;
 
 	this(string name, string src) {
 		this.name = name;
@@ -25,13 +25,14 @@ class Font {
 
 	// Returns the font struct if size exists, else makes new size and returns
 	public TTF_Font* get(uint size) {
-		if (size <= sizes.length) {
-			if (sizes[size] is null) {
+		if (size > 0) {
+			TTF_Font** someSize = size in sizes;
+			if (someSize is null) {
 				sizes[size] = TTF_OpenFont(toStringz(src), size);
 			}
-			return sizes[size];
+			return *someSize;
 		} else {
-			throw new Exception("Error: Font size out of bounds");
+			throw new Exception("Invalid font size");
 		}
 	}
 
