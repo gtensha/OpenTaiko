@@ -24,16 +24,14 @@ class HorizontalTopBarButton : Button {
 	private byte highlighting = 0; // 1 = up, 0 = down
 	private const int animationDuration = 800;
 
-	this(SDL_Renderer* renderer,
-		 Text text,
+	this(Text text,
 		 int value,
 		 Traversable subMenu,
 		 void delegate() instruction,
 		 int x, int y, int w, int h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer,
-			  text,
+		super(text,
 			  value,
 			  subMenu,
 			  instruction,
@@ -43,8 +41,7 @@ class HorizontalTopBarButton : Button {
 		buttonText.setX(x + ((w / 2) - (text.width / 2)));
 		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
 
-		invertedText = new Text(renderer,
-								buttonText.getText,
+		invertedText = new Text(buttonText.getText,
 								buttonText.getFont,
 								true,
 								buttonText.getX,
@@ -54,7 +51,7 @@ class HorizontalTopBarButton : Button {
 		invertedText.setColor(r, g, b, a);
 
 
-		this.bottomLine = new Solid(renderer, w, h / 10, x, y + h - (h / 10),
+		this.bottomLine = new Solid(w, h / 10, x, y + h - (h / 10),
 									255, 255, 255, 255);
 
 		buttonAnimation = new PolynomialFunction!double(-0.0002, 0.0307, -0.037, 0);

@@ -20,8 +20,7 @@ class Menu : Traversable {
 
 	protected int activeButton = -1;
 
-	this(SDL_Renderer* renderer,
-		 string title,
+	this(string title,
 		 Font font,
 		 uint buttonWidth,
 		 uint buttonHeight,
@@ -41,8 +40,7 @@ class Menu : Traversable {
 
 	public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
-		buttons ~= new Button(this.renderer,
-							  new Text(renderer, title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
+		buttons ~= new Button(new Text(title, buttonFont.get(fontSize), true, 0, 0, 255, 255, 255, 255),
 							  value,
 							  subMenu,
 							  instruction,

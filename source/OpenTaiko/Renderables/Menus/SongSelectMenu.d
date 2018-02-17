@@ -43,12 +43,10 @@ class SongSelectMenu : Traversable {
 		this.artistFont = artistFont;
 		this.selectedItem = 0;
 
-		delims[0] = new Solid(parent.sdlRenderer,
-							  5, maxHeight, x - 15, y,
+		delims[0] = new Solid(5, maxHeight, x - 15, y,
 							  127, 127, 127, 255);
 
-		delims[1] = new Solid(parent.sdlRenderer,
-							  5, maxHeight, x + maxWidth + 10, y,
+		delims[1] = new Solid(5, maxHeight, x + maxWidth + 10, y,
 							  127, 127, 127, 255);
 
 	}
@@ -63,8 +61,7 @@ class SongSelectMenu : Traversable {
 
 	void addItem(Song song, SDL_Texture* thumbnail) {
 
-		items ~= new SongSelectMenuItem(parent.sdlRenderer,
-										titleFont,
+		items ~= new SongSelectMenuItem(titleFont,
 										artistFont,
 										thumbnail,
 										song.title,
@@ -107,8 +104,7 @@ class SongSelectMenuItem : Renderable {
 	protected Text title;
 	protected Text artist;
 
-	this(SDL_Renderer* renderer,
-		 TTF_Font* titleFont,
+	this(TTF_Font* titleFont,
 		 TTF_Font* artistFont,
 		 SDL_Texture* thumbnail,
 		 string title,
@@ -117,15 +113,14 @@ class SongSelectMenuItem : Renderable {
 		 int offset,
 		 int x, int y, int w, int h) {
 
-		this.renderer = renderer;
 		this.spacing = spacing;
 		this.offset = offset;
 		this.directory = directory;
 
-		block = new Solid(renderer, w, h, x, y, 250, 250, 250, 255);
-		this.thumbnail = new Textured(renderer, thumbnail, w - 20, w - 20, x + 10, y + 10);
-		this.title = new Text(renderer, title, titleFont, true, x + 10, y + this.thumbnail.height + 10, 30, 30, 30, 255);
-		this.artist = new Text(renderer, artist, artistFont, true, x + 10, y + this.title.height + this.thumbnail.height + 10, 50, 50, 50, 255);
+		block = new Solid(w, h, x, y, 250, 250, 250, 255);
+		this.thumbnail = new Textured(thumbnail, w - 20, w - 20, x + 10, y + 10);
+		this.title = new Text(title, titleFont, true, x + 10, y + this.thumbnail.height + 10, 30, 30, 30, 255);
+		this.artist = new Text(artist, artistFont, true, x + 10, y + this.title.height + this.thumbnail.height + 10, 50, 50, 50, 255);
 
 		for (int i = 0; i < offset; i++) {
 			move(Moves.RIGHT);

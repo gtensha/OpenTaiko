@@ -117,6 +117,9 @@ class MapGen {
 				}
 			}
 		}
+		//foreach(Bashable bashable ; drumArray) {
+		//	writeln(bashable.actualPosition());
+		//}
 		return drumArray;
 	}
 

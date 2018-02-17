@@ -6,7 +6,6 @@ import maware.renderable.scene;
 import maware.renderable.solid;
 import maware.renderable.textured;
 import maware.renderable.text;
-import maware.renderable.dialogbox;
 import maware.font;
 import maware.util.timer;
 
@@ -30,7 +29,7 @@ class Renderer {
 	private Engine parent;
 
 	// The current renderer and window for this Renderer object
-	private SDL_Renderer* renderer;
+	public static SDL_Renderer* renderer;
 	private SDL_Window* window;
 
 	// Stores all the textures in the system for deployment
@@ -41,8 +40,6 @@ class Renderer {
 
 	private Scene[] scenes; // the scenes present in the renderer
 	private uint currentScene; // the index of the scene to be rendered at present
-
-	private Font defaultFont;
 
 
 	// Create the object with the given parent and initiate video
@@ -115,27 +112,27 @@ class Renderer {
 		}
 
 		if (vsync) {
-			this.renderer = SDL_CreateRenderer(this.window,
-											   -1,
-											   SDL_RENDERER_ACCELERATED
-											   |
-											   SDL_RENDERER_PRESENTVSYNC);
+			renderer = SDL_CreateRenderer(this.window,
+										  -1,
+										  SDL_RENDERER_ACCELERATED
+										  |
+										  SDL_RENDERER_PRESENTVSYNC);
 		} else {
-			this.renderer = SDL_CreateRenderer(this.window,
-											   -1,
-											   SDL_RENDERER_ACCELERATED);
+			renderer = SDL_CreateRenderer(this.window,
+										  -1,
+										  SDL_RENDERER_ACCELERATED);
 		}
 
-		if (this.renderer is null) {
+		if (renderer is null) {
 			throw new Exception(to!string("Failed to create renderer: "
 								~ fromStringz(SDL_GetError())));
 		}
 
-		SDL_SetRenderDrawColor(this.renderer, 20, 20, 20, 255);
-		SDL_RenderClear(this.renderer);
-		SDL_RenderPresent(this.renderer);
-		SDL_RaiseWindow(this.window);
-		SDL_SetRenderDrawBlendMode(this.renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
+		SDL_RenderClear(renderer);
+		SDL_RenderPresent(renderer);
+		SDL_RaiseWindow(window);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 	}
 
@@ -151,10 +148,6 @@ class Renderer {
 								 toStringz(Engine.engineName),
 								 toStringz(msg),
 								 null);
-	}
-
-	public void setDefaultFont(string type) {
-		defaultFont = getFont(type);
 	}
 
 	// Register a new texture into the system with the given key from
@@ -273,16 +266,7 @@ class Renderer {
 		return h;
 	}
 
-	public SDL_Renderer* sdlRenderer() {
-		return renderer;
-	}
-
-	public Solid createSolid(int w, int h, int x, int y,
-							 ubyte r, ubyte g, ubyte b, ubyte a) {
-
-		return new Solid(renderer, w, h, x, y, r, g, b, a);
-	}
-
+	/*
 	public Textured createTextured(string texture,
 								   int w, int h, int x, int y) {
 
@@ -295,11 +279,12 @@ class Renderer {
 
 	public Textured createTextured(string texture,
 								   int x, int y) {
-
-		if ((texture in textures) is null) {
+		
+		SDL_Texture** texture = texture in textures;
+		if (!texture) {
 			return null;
 		} else {
-			return new Textured(renderer, textures[texture], x, y);
+			return new Textured(texture, x, y);
 		}
 	}
 
@@ -327,6 +312,6 @@ class Renderer {
 								x, y,
 								r, g, b, a);
 		return newText;
-	}
+	}*/
 
 }

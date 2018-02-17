@@ -15,8 +15,7 @@ class VerticalMenu : Menu {
 	protected int xOffset;
 	protected int yOffset;
 
-	this(SDL_Renderer* renderer,
-		 string title,
+	this(string title,
 		 Font font,
 		 uint buttonWidth,
 		 uint buttonHeight,
@@ -24,8 +23,7 @@ class VerticalMenu : Menu {
 		 int yOffset,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer,
-			  title,
+		super(title,
 			  font,
 			  buttonWidth,
 			  buttonHeight,
@@ -39,8 +37,7 @@ class VerticalMenu : Menu {
 	override public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
 		buttons ~= new VerticalButton(renderer,
-									  new Text(renderer,
-											   title,
+									  new Text(title,
 											   buttonFont.get(fontSize),
 											   true,
 											   xOffset,

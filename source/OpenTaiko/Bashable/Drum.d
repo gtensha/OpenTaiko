@@ -20,19 +20,18 @@ abstract class Drum : Bashable {
 	}
 
 	//public static void setTexture(SDL_Renderer* someRenderer, SDL_Texture* someTexture);
-
 	override public int hit(int key, int time) {
-
-		if (time < position - latestHit) {
+	
+		if (time < actualPosition() - latestHit) {
 			return Success.IGNORE;
 		}
 
 		int successType = Success.BAD;
 		if (key == keyType) {
 
-			if (time < position + goodHit && time > position - goodHit) {
+			if (time < actualPosition() + goodHit && time > actualPosition() - goodHit) {
 				successType = Success.GOOD;
-			} else if (time < position + latestHit && time > position - latestHit) {
+			} else if (time < actualPosition() + latestHit && time > actualPosition() - latestHit) {
 				successType = Success.OK;
 			}
 		}
@@ -56,13 +55,11 @@ abstract class NormalDrum : Drum {
 			throw new Exception("Tried to create Drum without assigning renderer");
 		}
 		Solid[2] renderables;
-		renderables[0] = new Textured(renderer,
-									  texture,
+		renderables[0] = new Textured(texture,
 									  xOffset + cast(int)(position * scroll),
 									  yOffset);
 
-		renderables[1] = new Textured(renderer,
-									  rimTexture,
+		renderables[1] = new Textured(rimTexture,
 									  renderables[0].getX,
 									  renderables[0].getY);
 

@@ -23,14 +23,13 @@ class Text : Textured {
 	private TTF_Font* font;
 	private bool pretty;
 
-	this(SDL_Renderer* renderer,
-		 string text,
+	this(string text,
 		 TTF_Font* font,
 		 bool pretty,
 		 int x, int y,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer, null, 0, 0, x, y, r, g, b, a);
+		super(null, 0, 0, x, y, r, g, b, a);
 
 		this.font = font;
 		this.pretty = pretty;

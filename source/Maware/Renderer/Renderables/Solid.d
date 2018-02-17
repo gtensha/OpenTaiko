@@ -1,6 +1,7 @@
 module maware.renderable.solid;
 
 import maware.renderable.renderable;
+import maware.renderer;
 
 import std.conv : to;
 
@@ -16,8 +17,7 @@ class Solid : Renderable {
 	protected SDL_Color color;
 	protected SDL_Renderer* renderer;
 
-	this(SDL_Renderer* renderer,
-		 int w, int h, int x, int y,
+	this(int w, int h, int x, int y,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
 		rect.w = w;
@@ -30,7 +30,7 @@ class Solid : Renderable {
 		color.b = b;
 		color.a = a;
 
-		this.renderer = renderer;
+		renderer = Renderer.renderer;
 	}
 
 	public void render() {

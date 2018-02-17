@@ -13,22 +13,19 @@ class HorizontalTopBarMenu : Menu {
 
 	private SDL_Color fontColor;
 
-	this(SDL_Renderer* renderer,
-		 string title,
+	this(string title,
 		 Font font,
 		 uint buttonWidth,
 		 uint buttonHeight,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer, title, font, buttonWidth, buttonHeight, r, g, b, a);
+		super(title, font, buttonWidth, buttonHeight, r, g, b, a);
 		this.fontSize = 3 * (buttonHeight / 8);
 	}
 
 	override public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
-		buttons ~= new HorizontalTopBarButton(renderer,
-							  				  new Text(renderer,
-								  	   				   title,
+		buttons ~= new HorizontalTopBarButton(new Text(title,
 									   	   			   buttonFont.get(fontSize),
 									   	   			   true,
 									   	   			   0, 0,

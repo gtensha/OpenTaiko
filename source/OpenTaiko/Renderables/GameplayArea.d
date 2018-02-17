@@ -45,31 +45,25 @@ class GameplayArea : Renderable {
 		this.maxWidth = maxWidth;
 		this.maxHeight = maxHeight;
 
-		this.background = new Solid(renderer.sdlRenderer,
-									maxWidth, maxHeight, offsetX, offsetY,
+		this.background = new Solid(maxWidth, maxHeight, offsetX, offsetY,
 									40, 40, 40, 255);
 
-		this.header = new Solid(renderer.sdlRenderer,
-								maxWidth, maxHeight / 3, offsetX, offsetY,
+		this.header = new Solid(maxWidth, maxHeight / 3, offsetX, offsetY,
 								240, 240, 240, 255);
 
-		this.indicatorArea = new Solid(renderer.sdlRenderer,
-									   126, 100, offsetX, offsetY + header.height,
+		this.indicatorArea = new Solid(126, 100, offsetX, offsetY + header.height,
 									   40, 40, 40, 0);
 
-		this.drumConveyor = new Solid(renderer.sdlRenderer,
-									  maxWidth, 100, offsetX, offsetY + header.height,
+		this.drumConveyor = new Solid(maxWidth, 100, offsetX, offsetY + header.height,
 									  20, 20, 20, 255);
 
-		this.reception = new Textured(renderer.sdlRenderer,
-									  renderer.getTexture("Reception"),
+		this.reception = new Textured(renderer.getTexture("Reception"),
 									  offsetX + indicatorArea.width + 10, 0);
 
 		reception.setY(offsetY + header.height + drumConveyor.height / 2 - reception.height / 2);
 
 
-		this.score = new Text(renderer.sdlRenderer,
-							  "0000000",
+		this.score = new Text("0000000",
 							  uiFont.get(32),
 							  true,
 							  0, offsetY,

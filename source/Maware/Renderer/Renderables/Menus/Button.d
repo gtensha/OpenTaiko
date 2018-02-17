@@ -25,8 +25,7 @@ class Button : Renderable {
 	protected byte transitioned;
 	protected bool transitionDirection; // true -> highlighting
 
-	this(SDL_Renderer* renderer,
-		 Text text,
+	this(Text text,
 		 int value,
 		 Traversable subMenu,
 		 void delegate() instruction,
@@ -43,7 +42,7 @@ class Button : Renderable {
 		this.color.b = b;
 		this.color.a = a;
 		if (w > 0 && h > 0) {
-			this.solid = new Solid(renderer, w, h, x, y, r, g, b, a);
+			this.solid = new Solid(w, h, x, y, r, g, b, a);
 		}
 		if (text !is null) {
 			buttonText.setX(x + 10);

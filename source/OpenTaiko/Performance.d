@@ -37,10 +37,10 @@ class Performance : Renderable {
 		i = 0;
 	}
 
-	// Attempt to hit current drum circle
-	// and return result
+	import std.stdio;
+	/// Attempt to hit current drum circle and return result
 	int hit(int key, int time) {
-		int hitResult = drums[i].hit(key, time);
+		const int hitResult = drums[i].hit(key, time);
 		if (hitResult == Bashable.Success.GOOD) {
 			score.good++;
 			score.currentCombo++;
@@ -56,6 +56,8 @@ class Performance : Renderable {
 		if (score.currentCombo > score.highestCombo) {
 			score.highestCombo = score.currentCombo;
 		}
+		writeln(hitResult);
+		i++;
 		return hitResult;
 	}
 

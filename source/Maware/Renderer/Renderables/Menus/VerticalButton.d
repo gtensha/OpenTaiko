@@ -30,14 +30,13 @@ class VerticalButton : Button {
 		 int x, int y, uint w, uint h,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(renderer, text, value, subMenu, instruction, x, y, w, h, r, g, b, a);
+		super(text, value, subMenu, instruction, x, y, w, h, r, g, b, a);
 
 		buttonText.setY(y + (h / 2) - (text.height / 2) - 10);
 
-		highlightLayer = new Solid(renderer, 0, h, x, y, 255, 255, 255, 255);
+		highlightLayer = new Solid(0, h, x, y, 255, 255, 255, 255);
 
-		invertedText = new Text(renderer,
-								buttonText.getText,
+		invertedText = new Text(buttonText.getText,
 								buttonText.getFont,
 								true,
 								buttonText.getX,
