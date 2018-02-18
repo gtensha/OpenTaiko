@@ -16,7 +16,7 @@ abstract class Bashable : Renderable {
 		OK = 1,
 		BAD = 2,
 		IGNORE = 3
-	};
+	}
 
 	public static int currentOffset; /// The current time offset in ms
 
@@ -27,13 +27,13 @@ abstract class Bashable : Renderable {
 
 	this(Solid[] renderables, uint position, double scroll) {
 		this.renderables ~= renderables;
-		this.position = position;
-		this.scroll = 1;
+		this.position = cast(int)(position * scroll);
+		this.scroll = scroll;
 	}
 
 	public void render() {
 		foreach (Solid renderable ; renderables) {
-			renderable.renderOffset(0 - currentOffset/*cast(int)(currentOffset * scroll)*/, 0);
+			renderable.renderOffset(0 - cast(int)(currentOffset * scroll), 0);
 		}
 		//renderable.render();
 	}

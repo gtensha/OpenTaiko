@@ -56,7 +56,6 @@ class Performance : Renderable {
 		if (score.currentCombo > score.highestCombo) {
 			score.highestCombo = score.currentCombo;
 		}
-		writeln(hitResult);
 		i++;
 		return hitResult;
 	}
@@ -67,7 +66,7 @@ class Performance : Renderable {
 		if (i >= drums.length - 1) {
 			return false;
 		}
-		if (drums[i].position + 200 < timer.getTimerPassed()) {
+		if (drums[i].actualPosition() + 200 < timer.getTimerPassed()) {
 			i++;
 
 			score.bad++;

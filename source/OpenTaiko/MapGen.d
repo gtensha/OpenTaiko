@@ -117,10 +117,6 @@ class MapGen {
 				}
 			}
 		}
-		/*foreach (Bashable bashable ; drumArray) {
-			write(bashable.actualPosition());
-			write(", ");
-		}*/
 		return drumArray;
 	}
 
