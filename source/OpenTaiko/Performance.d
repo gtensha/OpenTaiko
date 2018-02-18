@@ -37,7 +37,6 @@ class Performance : Renderable {
 		i = 0;
 	}
 
-	import std.stdio;
 	/// Attempt to hit current drum circle and return result
 	int hit(int key) {
 		const int hitResult = drums[i].hit(key);

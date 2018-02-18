@@ -421,22 +421,25 @@ class OpenTaiko {
 	}
 
 	void hitCenterDrum() {
-		audioMixer.playSFX(0);
-		if (currentPerformances[0].hit(Drum.Type.RED) == Bashable.Success.BAD) {
-			playBadSound();
-		}
-		//writeln(gameplayTimer.getTimerPassed());
+		hitDrum(Drum.Type.RED);
 	}
 
 	void hitRimDrum() {
-		audioMixer.playSFX(1);
-		if (currentPerformances[0].hit(Drum.Type.BLUE) == Bashable.Success.BAD) {
+		hitDrum(Drum.Type.BLUE);
+	}
+	
+	void hitDrum(int key) {
+		audioMixer.playSFX(key);
+		int hitResult = currentPerformances[0].hit(key);
+		if (hitResult == Bashable.Success.BAD) {
 			playBadSound();
 		}
+		playerAreas[0].giveHitStatus(hitResult);
 	}
 	
 	void playBadSound() {
 		audioMixer.playSFX(2);
+		playerAreas[0].giveHitStatus(2);
 	}
 
 }

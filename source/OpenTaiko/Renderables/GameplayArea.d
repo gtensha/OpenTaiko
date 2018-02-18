@@ -1,6 +1,7 @@
 module opentaiko.renderable.gameplayarea;
 
 import opentaiko.performance;
+import opentaiko.renderable.hitstatus;
 import maware.renderer;
 import maware.renderable;
 import maware.font;
@@ -9,6 +10,13 @@ import std.string : rightJustify;
 import std.conv : to;
 
 import derelict.sdl2.sdl : SDL_Renderer;
+
+/// Status types for hit result effects
+enum StatusType {
+	GOOD = 0,
+	OK = 1,
+	BAD = 2
+}
 
 class GameplayArea : Renderable {
 
@@ -26,6 +34,8 @@ class GameplayArea : Renderable {
 	protected Solid drumConveyor;
 
 	protected Textured reception;
+	
+	protected HitStatus hitResultEffect;
 
 	protected Text player;
 	protected Text score;
@@ -74,6 +84,14 @@ class GameplayArea : Renderable {
 							  40, 40, 40, 255);
 
 		score.rect.x = (offsetX + maxWidth - score.rect.w - 20);
+		
+		this.hitResultEffect = new HitStatus([new Textured(renderer.getTexture("GoodHit"),
+														   0, 0),
+											  new Textured(renderer.getTexture("OkHit"),
+														   0, 0),
+											  new Textured(renderer.getTexture("BadHit"),
+														   0, 0)],
+											 this.reception);
 
 	}
 
@@ -91,6 +109,7 @@ class GameplayArea : Renderable {
 		currentPerformance.render();
 		//player.render();
 		score.render();
+		hitResultEffect.render();
 		/*foreach (Textured drum ; drums) {
 			if (drum !is null) {
 				if (drum.getX > offsetX + maxWidth) {
@@ -111,6 +130,12 @@ class GameplayArea : Renderable {
 		performance.setRenderableOffset(reception.rect.x, drumConveyor.rect.y, drumConveyor.rect.h);
 
 		currentPerformance = performance;
+	}
+	
+	public void giveHitStatus(int statusCode) {
+		if (statusCode < 3 && statusCode > -1) {
+			hitResultEffect.setEffect(statusCode);
+		}
 	}
 
 }
