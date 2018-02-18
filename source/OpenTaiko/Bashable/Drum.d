@@ -11,27 +11,36 @@ abstract class Drum : Bashable {
 	enum Type : int {
 		RED = 0,
 		BLUE = 1
-	};
+	}
+	
+	immutable int keyType;
 
 	static SDL_Renderer* renderer;
 
-	this(Solid[] renderables, uint position, double scroll) {
+	this(Solid[] renderables, uint position, double scroll, int keyType) {
 		super(renderables, position, scroll);
+		this.keyType = keyType;
 	}
-
-	//public static void setTexture(SDL_Renderer* someRenderer, SDL_Texture* someTexture);
-	override public int hit(int key, int time) {
 	
-		if (time < actualPosition() - latestHit) {
+	//public static void setTexture(SDL_Renderer* someRenderer, SDL_Texture* someTexture);
+	override public int hit(int key) {
+	
+		if (currentOffset < actualPosition() - latestHit) {
 			return Success.IGNORE;
 		}
 
 		int successType = Success.BAD;
-		if (key == keyType) {
+		if (key == this.keyType) {
 
-			if (time < actualPosition() + goodHit && time > actualPosition() - goodHit) {
+			if (currentOffset < actualPosition() + goodHit 
+				&& 
+				currentOffset > actualPosition() - goodHit) {
+
 				successType = Success.GOOD;
-			} else if (time < actualPosition() + latestHit && time > actualPosition() - latestHit) {
+			} else if (currentOffset < actualPosition() + latestHit 
+					   && 
+					   currentOffset > actualPosition() - latestHit) {
+
 				successType = Success.OK;
 			}
 		}
@@ -47,7 +56,7 @@ abstract class NormalDrum : Drum {
 	static SDL_Texture* rimTexture;
 
 	this(SDL_Texture* texture,
-		 int xOffset, int yOffset, uint position, double scroll) {
+		 int xOffset, int yOffset, uint position, double scroll, int keyType) {
 
 		if (texture is null || rimTexture is null) {
 			throw new Exception("Tried to create Drum without assigning texture");
@@ -63,31 +72,27 @@ abstract class NormalDrum : Drum {
 									  renderables[0].rect.x,
 									  renderables[0].rect.y);
 
-		super(renderables, position, scroll);
+		super(renderables, position, scroll, keyType);
 	}
 
 }
 
 class RedDrum : NormalDrum {
 
-	static immutable int keyType = Type.RED;
-
 	static SDL_Texture* texture;
 
 	this(int xOffset, int yOffset, uint position, double scroll) {
-		super(texture, xOffset, yOffset, position, scroll);
+		super(texture, xOffset, yOffset, position, scroll, Type.RED);
 	}
 
 }
 
 class BlueDrum : NormalDrum {
 
-	static immutable int keyType = Type.BLUE;
-
 	static SDL_Texture* texture;
 
 	this(int xOffset, int yOffset, uint position, double scroll) {
-		super(texture, xOffset, yOffset, position, scroll);
+		super(texture, xOffset, yOffset, position, scroll, Type.BLUE);
 	}
 
 }

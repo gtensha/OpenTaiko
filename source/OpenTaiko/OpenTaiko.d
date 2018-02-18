@@ -307,7 +307,8 @@ class OpenTaiko {
 											i < 1 ? 0 : (renderer.windowHeight / (i + 1)),
 											renderer.windowWidth,
 											renderer.windowHeight / (i + 1),
-											renderer.getFont("Noto-Regular"));
+											renderer.getFont("Noto-Regular"),
+											&playBadSound);
 		}
 
 		Scene gameplayScene = renderer.getScene(gameplaySceneIndex);
@@ -421,13 +422,21 @@ class OpenTaiko {
 
 	void hitCenterDrum() {
 		audioMixer.playSFX(0);
-		currentPerformances[0].hit(Drum.Type.RED, gameplayTimer.getTimerPassed());
-		writeln(gameplayTimer.getTimerPassed());
+		if (currentPerformances[0].hit(Drum.Type.RED) == Bashable.Success.BAD) {
+			playBadSound();
+		}
+		//writeln(gameplayTimer.getTimerPassed());
 	}
 
 	void hitRimDrum() {
 		audioMixer.playSFX(1);
-		currentPerformances[0].hit(Drum.Type.BLUE, gameplayTimer.getTimerPassed());
+		if (currentPerformances[0].hit(Drum.Type.BLUE) == Bashable.Success.BAD) {
+			playBadSound();
+		}
+	}
+	
+	void playBadSound() {
+		audioMixer.playSFX(2);
 	}
 
 }

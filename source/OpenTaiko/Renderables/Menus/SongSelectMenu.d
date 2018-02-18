@@ -126,7 +126,7 @@ class SongSelectMenuItem : Renderable {
 							  y + this.thumbnail.rect.h + 10, 
 							  30, 30, 30, 255);
 							  
-		this.artist = new Text(artist, 
+		this.artist = new Text(artist,
 							   artistFont, 
 							   true, 
 							   x + 10, 

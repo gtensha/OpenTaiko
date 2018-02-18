@@ -31,19 +31,23 @@ class GameplayArea : Renderable {
 	protected Text score;
 
 	protected Textured[] drums;
+	
+	protected void delegate() missEventCallback;
 
 	this(Renderer renderer,
 		 int offsetX,
 		 int offsetY,
 		 int maxWidth,
 		 int maxHeight,
-		 Font uiFont) {
+		 Font uiFont,
+		 void delegate() missEventCallback) {
 
 		this.renderer = renderer;
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 		this.maxWidth = maxWidth;
 		this.maxHeight = maxHeight;
+		this.missEventCallback = missEventCallback;
 
 		this.background = new Solid(maxWidth, maxHeight, offsetX, offsetY,
 									40, 40, 40, 255);
@@ -95,7 +99,11 @@ class GameplayArea : Renderable {
 				drum.render();
 			}
 		}*/
-
+		
+		if (currentPerformance.checkTardiness()) {
+			missEventCallback();
+		}
+		
 	}
 
 	public void setPerformance(Performance performance) {

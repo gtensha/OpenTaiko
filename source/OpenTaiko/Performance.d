@@ -39,8 +39,8 @@ class Performance : Renderable {
 
 	import std.stdio;
 	/// Attempt to hit current drum circle and return result
-	int hit(int key, int time) {
-		const int hitResult = drums[i].hit(key, time);
+	int hit(int key) {
+		const int hitResult = drums[i].hit(key);
 		if (hitResult == Bashable.Success.GOOD) {
 			score.good++;
 			score.currentCombo++;
@@ -63,11 +63,11 @@ class Performance : Renderable {
 
 	// Return true if this circle should've
 	// been hit but wasn't
-	bool checkTardiness(int time) {
+	bool checkTardiness() {
 		if (i >= drums.length - 1) {
 			return false;
 		}
-		if (drums[i].position + 200 < time) {
+		if (drums[i].position + 200 < timer.getTimerPassed()) {
 			i++;
 
 			score.bad++;

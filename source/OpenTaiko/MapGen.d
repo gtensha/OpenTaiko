@@ -117,9 +117,10 @@ class MapGen {
 				}
 			}
 		}
-		//foreach(Bashable bashable ; drumArray) {
-		//	writeln(bashable.actualPosition());
-		//}
+		/*foreach (Bashable bashable ; drumArray) {
+			write(bashable.actualPosition());
+			write(", ");
+		}*/
 		return drumArray;
 	}
 
@@ -137,12 +138,12 @@ class MapGen {
 		Bashable[] drumArray;
 		foreach (char type ; section) {
 			if (type == 'D' || type == 'd') {
-				drumArray ~= new RedDrum(calculatePosition(index, offset, bpm),
+				drumArray ~= new RedDrum(0,
 										 0,
 										 calculatePosition(index, offset, bpm),
 										 scroll);
 			} else if (type == 'K' || type == 'k') {
-				drumArray ~= new BlueDrum(calculatePosition(index, offset, bpm),
+				drumArray ~= new BlueDrum(0,
 										  0,
 										  calculatePosition(index, offset, bpm),
 										  scroll);

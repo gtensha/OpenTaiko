@@ -20,8 +20,6 @@ abstract class Bashable : Renderable {
 
 	public static int currentOffset; /// The current time offset in ms
 
-	static immutable int keyType = 0;
-
 	immutable uint position; /// Object position in milliseconds
 	immutable double scroll; /// How fast the object will advance (multiplier)
 
@@ -30,12 +28,12 @@ abstract class Bashable : Renderable {
 	this(Solid[] renderables, uint position, double scroll) {
 		this.renderables ~= renderables;
 		this.position = position;
-		this.scroll = scroll;
+		this.scroll = 1;
 	}
 
 	public void render() {
 		foreach (Solid renderable ; renderables) {
-			renderable.renderOffset(0 - cast(int)(currentOffset * scroll), 0);
+			renderable.renderOffset(0 - currentOffset/*cast(int)(currentOffset * scroll)*/, 0);
 		}
 		//renderable.render();
 	}
@@ -57,7 +55,7 @@ abstract class Bashable : Renderable {
 	}
 
 	/// Attempt to hit this object and return success code
-	public abstract int hit(int key, int time);
+	public abstract int hit(int key);
 
 	/// Return this object's actual (relative) position on the timeline
 	public int actualPosition() {
