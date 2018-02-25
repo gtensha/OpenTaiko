@@ -2,6 +2,7 @@ module opentaiko.renderable.gameplayarea;
 
 import opentaiko.performance;
 import opentaiko.renderable.hitstatus;
+import opentaiko.game : OpenTaiko;
 import maware.renderer;
 import maware.renderable;
 import maware.font;
@@ -60,16 +61,28 @@ class GameplayArea : Renderable {
 		this.missEventCallback = missEventCallback;
 
 		this.background = new Solid(maxWidth, maxHeight, offsetX, offsetY,
-									40, 40, 40, 255);
+									OpenTaiko.guiColors.playAreaLower.r,
+									OpenTaiko.guiColors.playAreaLower.g,
+									OpenTaiko.guiColors.playAreaLower.b,
+									OpenTaiko.guiColors.playAreaLower.a);
 
 		this.header = new Solid(maxWidth, maxHeight / 3, offsetX, offsetY,
-								240, 240, 240, 255);
+								OpenTaiko.guiColors.playAreaUpper.r,
+								OpenTaiko.guiColors.playAreaUpper.g,
+								OpenTaiko.guiColors.playAreaUpper.b,
+								OpenTaiko.guiColors.playAreaUpper.a);
 
 		this.indicatorArea = new Solid(126, 100, offsetX, offsetY + header.rect.h,
-									   40, 40, 40, 0);
+									   OpenTaiko.guiColors.playAreaConveyor.r,
+									   OpenTaiko.guiColors.playAreaConveyor.g,
+									   OpenTaiko.guiColors.playAreaConveyor.b,
+									   OpenTaiko.guiColors.playAreaConveyor.a);
 
 		this.drumConveyor = new Solid(maxWidth, 100, offsetX, offsetY + header.rect.h,
-									  20, 20, 20, 255);
+									  OpenTaiko.guiColors.playAreaConveyor.r,
+									  OpenTaiko.guiColors.playAreaConveyor.g,
+									  OpenTaiko.guiColors.playAreaConveyor.b,
+									  OpenTaiko.guiColors.playAreaConveyor.a);
 
 		this.reception = new Textured(renderer.getTexture("Reception"),
 									  offsetX + indicatorArea.rect.w + 10, 0);
@@ -81,7 +94,10 @@ class GameplayArea : Renderable {
 							  uiFont.get(32),
 							  true,
 							  0, offsetY,
-							  40, 40, 40, 255);
+							  OpenTaiko.guiColors.buttonTextColor.r,
+							  OpenTaiko.guiColors.buttonTextColor.g,
+							  OpenTaiko.guiColors.buttonTextColor.b,
+							  OpenTaiko.guiColors.buttonTextColor.a);
 
 		score.rect.x = (offsetX + maxWidth - score.rect.w - 20);
 		

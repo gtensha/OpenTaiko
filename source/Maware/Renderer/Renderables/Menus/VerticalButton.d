@@ -32,9 +32,13 @@ class VerticalButton : Button {
 
 		super(text, value, subMenu, instruction, x, y, w, h, r, g, b, a);
 
-		buttonText.rect.y = (y + (h / 2) - (text.rect.h / 2) - 10);
+		buttonText.rect.y = (this.solid.rect.h - text.rect.h) / 2 + y;
 
-		highlightLayer = new Solid(0, h, x, y, 255, 255, 255, 255);
+		highlightLayer = new Solid(0, h, x, y, 
+								   text.color.r, 
+								   text.color.g, 
+								   text.color.b, 
+								   text.color.a);
 
 		invertedText = new Text(buttonText.getText,
 								buttonText.getFont,

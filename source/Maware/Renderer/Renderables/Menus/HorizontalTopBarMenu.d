@@ -12,15 +12,21 @@ import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 class HorizontalTopBarMenu : Menu {
 
 	private SDL_Color fontColor;
+	private SDL_Color complementColor;
 
 	this(string title,
 		 Font font,
 		 uint buttonWidth,
 		 uint buttonHeight,
-		 ubyte r, ubyte g, ubyte b, ubyte a) {
+		 SDL_Color buttonColor,
+		 SDL_Color fontColor,
+		 SDL_Color complementColor) {
 
-		super(title, font, buttonWidth, buttonHeight, r, g, b, a);
+		super(title, font, buttonWidth, buttonHeight, 
+			  buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a);
 		this.fontSize = 3 * (buttonHeight / 8);
+		this.complementColor = complementColor;
+		this.fontColor = fontColor;
 	}
 
 	override public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
@@ -29,12 +35,16 @@ class HorizontalTopBarMenu : Menu {
 									   	   			   buttonFont.get(fontSize),
 									   	   			   true,
 									   	   			   0, 0,
-									   	   			   255, 255, 255, 255),
+									   	   			   fontColor.r, 
+													   fontColor.g, 
+													   fontColor.b, 
+													   fontColor.a),
 							  				   value,
 							  		   		   subMenu,
 							  		   		   instruction,
 							  		   		   (cast(int)buttons.length) * buttonWidth, 0, buttonWidth, buttonHeight,
-							  		   		   color.r, color.g, color.b, color.a);
+							  		   		   color,
+											   complementColor);
 
 		if (activeButton < 0) {
 			activeButton = 0;

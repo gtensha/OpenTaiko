@@ -8,12 +8,14 @@ import maware.renderable.menus.verticalbutton;
 import maware.renderable.text;
 import maware.renderable.menus.menu;
 
-import derelict.sdl2.sdl : SDL_Renderer;
+import derelict.sdl2.sdl : SDL_Renderer, SDL_Color;
 
 class VerticalMenu : Menu {
 
 	protected int xOffset;
 	protected int yOffset;
+	
+	protected SDL_Color textColor;
 
 	this(string title,
 		 Font font,
@@ -21,13 +23,16 @@ class VerticalMenu : Menu {
 		 uint buttonHeight,
 		 int xOffset,
 		 int yOffset,
-		 ubyte r, ubyte g, ubyte b, ubyte a) {
+		 SDL_Color buttonColor,
+		 SDL_Color textColor) {
 
 		super(title,
 			  font,
 			  buttonWidth,
 			  buttonHeight,
-			  r, g, b, a);
+			  buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a);
+			  
+		this.textColor = textColor;
 
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
@@ -42,7 +47,7 @@ class VerticalMenu : Menu {
 											   true,
 											   xOffset,
 											   0,
-											   255, 255, 255, 255),
+											   textColor.r, textColor.g, textColor.b, textColor.a),
 									  value,
 									  subMenu,
 									  instruction,

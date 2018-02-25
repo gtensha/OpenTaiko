@@ -12,7 +12,7 @@ import maware.util.math.ezmath;
 
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect, SDL_UnionRect;
+import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect, SDL_UnionRect, SDL_Color;
 
 class HorizontalTopBarButton : Button {
 
@@ -29,30 +29,38 @@ class HorizontalTopBarButton : Button {
 		 Traversable subMenu,
 		 void delegate() instruction,
 		 int x, int y, int w, int h,
-		 ubyte r, ubyte g, ubyte b, ubyte a) {
+		 SDL_Color buttonColor,
+		 SDL_Color complementColor) {
 
 		super(text,
 			  value,
 			  subMenu,
 			  instruction,
 			  x, y, w, h,
-			  r, g, b, a);
+			  buttonColor.r, 
+			  buttonColor.g, 
+			  buttonColor.b, 
+			  buttonColor.a);
 
 		buttonText.rect.x = (x + ((w / 2) - (text.rect.w / 2)));
 		buttonText.rect.y = (y + (h / 2) - (text.rect.h / 2) - 10);
 
-		invertedText = new Text(buttonText.getText,
+		/*invertedText = new Text(buttonText.getText,
 								buttonText.getFont,
 								true,
 								buttonText.rect.x,
 								buttonText.rect.y,
 								r, g, b, a);
 
-		invertedText.setColor(r, g, b, a);
+		invertedText.setColor(r, g, b, a);*/
+		invertedText = text;
 
 
 		this.bottomLine = new Solid(w, h / 10, x, y + h - (h / 10),
-									255, 255, 255, 255);
+									complementColor.r, 
+									complementColor.g, 
+									complementColor.b, 
+									complementColor.a);
 
 		buttonAnimation = new PolynomialFunction!double(-0.0002, 0.0307, -0.037, 0);
 		timerIndex = Timer.addTimer();

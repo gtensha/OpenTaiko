@@ -73,7 +73,7 @@ class AudioMixer {
 
 	// Plays the already registered music track with the given title
 	public void playTrack(string title) {
-		Mix_PauseMusic();
+		//Mix_PauseMusic();
 		if (Mix_PlayMusic(music[title], 1) < 0) {
 			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
 						  			~ fromStringz(Mix_GetError())));
