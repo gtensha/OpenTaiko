@@ -1,5 +1,8 @@
 # OpenTaiko
-OpenTaikoは、D言語とSDL2([DerelictSDL2][3])で書いてあげた太鼓の達人的なオープンソースゲームです。
+OpenTaikoは、D言語とSDL2([DerelictSDL2][3])で書いてあげた太鼓の達人的なオープンソースゲームです。  
+![曲選択画面](screenshot0.png)
+![遊び中](screenshot1.png)
+
 
 # コンパイル方法
 コンパイルするにはD言語のDUBとDMDを使って、ファイルがダウンロードされたディレクトリで「dub　build」のコマンドを実行してください。持ってないなら[dlang.org][1]からダウンロードすることができます。Windowsを使ってる場合はその上に[libsdl.org][2]から様々な.dllファイルを手に入る必要もあります。SDL2の本ライブラリーとSDL_Mixer、SDL_Image、SDL_ttfの必要があります。Linuxの場合は同じようにディストリビューションのlibsdl2パッケージをインストールだけで十分でしょう。

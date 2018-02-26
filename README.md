@@ -1,5 +1,8 @@
 # OpenTaiko
-Open source, cross-platform Taiko no Tatsujin clone written in the D programming language using SDL 2.0 ([DerelictSDL2][3])
+Open source, cross-platform Taiko no Tatsujin clone written in the D programming language using SDL 2.0 ([DerelictSDL2][3])  
+![Song select](screenshot0.png)
+![Gameplay](screenshot1.png)
+
 
 # Compilation
 The easiest way to compile and install this would be with DUB and DMD, with a simple "dub build" in the directory the repository was cloned/downloaded to. If you don't have them installed you can download them from [dlang.org][1].
