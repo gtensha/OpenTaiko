@@ -22,8 +22,7 @@ class VerticalButton : Button {
 	private bool highlighting = false;
 	private uint animationDuration = 800;
 
-	this(SDL_Renderer* renderer,
-		 Text text,
+	this(Text text,
 		 int value,
 		 Traversable subMenu,
 		 void delegate() instruction,

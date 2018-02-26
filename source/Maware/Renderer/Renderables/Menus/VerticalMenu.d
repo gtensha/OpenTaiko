@@ -41,8 +41,7 @@ class VerticalMenu : Menu {
 
 	override public Button addButton(string title, int value, Traversable subMenu, void delegate() instruction) {
 
-		buttons ~= new VerticalButton(renderer,
-									  new Text(title,
+		buttons ~= new VerticalButton(new Text(title,
 											   buttonFont.get(fontSize),
 											   true,
 											   xOffset,

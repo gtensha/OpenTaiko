@@ -12,6 +12,7 @@ import opentaiko.palette;
 import opentaiko.player;
 import opentaiko.playerdisplay;
 import opentaiko.textinputfield;
+import opentaiko.browsablelist : BrowsableList;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -78,6 +79,7 @@ class OpenTaiko {
 
 	private Menu topBarMenu;
 	private Menu playMenu;
+	private Menu playersMenu;
 	private Menu playerSelectMenu;
 	private Menu settingsMenu;
 	private SongSelectMenu songSelectMenu;
@@ -269,7 +271,8 @@ class OpenTaiko {
 		r.getScene(*menuIndex).addRenderable(1, newMenu);
 		topBarMenu = newMenu;
 		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
-		newMenu.addButton("Settings", 1, null, &switchToSettingsMenu);								
+		newMenu.addButton("Players", 1, null, null);
+		newMenu.addButton("Settings", 2, null, &switchToSettingsMenu);								
 
 		playMenu = new VerticalMenu("Play",
 									r.getFont("Noto-Light"),
@@ -290,7 +293,25 @@ class OpenTaiko {
 											newMenu.getH + 20,
 											guiColors.activeButtonColor,
 											guiColors.buttonTextColor);
+											
+		playersMenu = new VerticalMenu("Players",
+									   r.getFont("Noto-Light"),
+									   r.windowWidth / 3,
+									   60,
+									   10,
+									   GUIDimensions.TOP_BAR_HEIGHT + 20,
+									   guiColors.activeButtonColor,
+									   guiColors.buttonTextColor);
 
+		BrowsableList testList = new BrowsableList(r.getFont("Noto-Light"),
+												   300, 30, 200, 100, 100);
+													 
+		testList.addButton("List option 1", 0, null, null);
+		testList.addButton("List option 2", 1, null, null);
+		testList.addButton("List option 3", 2, null, null);
+		testList.addButton("List option 4", 3, null, null);
+		testList.addButton("List option 5", 4, null, null);
+									   
 		playerSelectMenu.addButton("Single play", 0, songSelectMenu, null);
 		playerSelectMenu.addButton("Multi play", 1, null, null);
 		playerSelectMenu.addButton("Back", 2, null, &navigateMenuBack);
@@ -299,6 +320,9 @@ class OpenTaiko {
 		playMenu.addButton("High scores", 1, null, null);
 		playMenu.addButton("Test Gameplay Scene", 2, null, &switchSceneToGameplayScene);
 		playMenu.addButton("Test text input", 3, null, &testEditing);
+		playMenu.addButton("Test BrowseableList", 4, testList, null);
+		
+		playersMenu.addButton("Add player", 0, null, null);
 		
 		testField = new TextInputField(r.getFont("Noto-Bold"),
 									   null,
@@ -306,7 +330,9 @@ class OpenTaiko {
 									   0, r.windowHeight - 60);
 												 
 		r.getScene(*menuIndex).addRenderable(1, testField);
-													  
+
+
+
 		engine.iHandler.setInputBinder(testField.getBindings());
 		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 

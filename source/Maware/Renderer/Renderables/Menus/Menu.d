@@ -8,9 +8,8 @@ import maware.renderable.text;
 
 import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
 
-class Menu : Traversable {
+abstract class Menu : Traversable {
 
-	protected SDL_Renderer* renderer;
 	protected SDL_Color color;
 	protected uint buttonWidth;
 	protected uint buttonHeight;
@@ -31,7 +30,6 @@ class Menu : Traversable {
 		color.b = b;
 		color.a = a;
 
-		this.renderer = renderer;
 		this.buttonWidth = buttonWidth;
 		this.buttonHeight = buttonHeight;
 		this.fontSize = buttonHeight - 15;
