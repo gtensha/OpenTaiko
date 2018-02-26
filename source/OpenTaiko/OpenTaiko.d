@@ -9,6 +9,8 @@ import opentaiko.bashable;
 import opentaiko.performance;
 import opentaiko.renderable.gameplayarea;
 import opentaiko.palette;
+import opentaiko.player;
+import opentaiko.playerdisplay;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -54,7 +56,8 @@ enum Action : int {
 
 /// Various size dimensions for GUI elements
 enum GUIDimensions : int {
-	TOP_BAR_HEIGHT = 80
+	TOP_BAR_HEIGHT = 80,
+	UNDERLINE_HEIGHT = 8
 }
 
 class OpenTaiko {
@@ -77,9 +80,11 @@ class OpenTaiko {
 	private Menu playerSelectMenu;
 	private Menu settingsMenu;
 	private SongSelectMenu songSelectMenu;
+	private PlayerDisplay playerDisplay;
 
 	private Song[] songs;
 	private string[] playerNames;
+	private Player*[] players;
 	private Performance[] currentPerformances;
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
@@ -105,10 +110,11 @@ class OpenTaiko {
 		loadAssets(engine);
 		bindKeys(engine.iHandler);
 		songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+		loadPlayers();
 		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
-		createGameplayScene(1);
+		createGameplayScene(cast(int)players.length);
 		//engine.gameRenderer.setScene(startMenuIndex);
 
 		int eventCode;
@@ -123,15 +129,16 @@ class OpenTaiko {
 
 	void gameplay() {
 
-		Bashable[] map = MapGen.parseMapFromFile("Default/default.otfm");
+		//Bashable[] map = MapGen.parseMapFromFile("Default/default.otfm");
 		if (gameplayTimer is null) {
 			gameplayTimer = Timer.timers[Timer.addTimer()];
 		}
 
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
-			currentPerformances ~= new Performance("Default", map, gameplayTimer, 0, 0);
+			currentPerformances ~= new Performance("Default", MapGen.parseMapFromFile("Default/default.otfm"), gameplayTimer, 0, 0);
 			playerAreas[i].setPerformance(currentPerformances[i]);
+			playerAreas[i].setPlayer(players[i], i);
 		}
 		Timer.refresh(renderer.getTicks());
 		gameplayTimer.set(Timer.libInitPassed);
@@ -158,6 +165,18 @@ class OpenTaiko {
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
 
 	}
+	
+	void loadPlayers() {
+		Player* player = new Player();
+		player.name = "gtensha";
+		player.id = 0;
+		player.keybinds = null;
+		players ~= player;
+		player = new Player();
+		player.name = "栄子";
+		player.id = 1;
+		players ~= player;
+	}
 
 	void createStartMenu(uint* menuIndex) {
 		Renderer r = engine.gameRenderer;
@@ -176,7 +195,7 @@ class OpenTaiko {
 		r.getScene(*menuIndex).addLayer;
 
 		Text titleHeader = new Text("OpenTaiko",
-									r.getFont("Noto-Light").get(36),
+									r.getFont("Noto-Regular").get(36),
 									true,
 					 				0, 100,
 					 				guiColors.buttonTextColor.r, 
@@ -248,7 +267,7 @@ class OpenTaiko {
 		r.getScene(*menuIndex).addRenderable(1, newMenu);
 		topBarMenu = newMenu;
 		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
-		newMenu.addButton("Settings", 1, null, &switchToSettingsMenu);
+		newMenu.addButton("Settings", 1, null, &switchToSettingsMenu);								
 
 		playMenu = new VerticalMenu("Play",
 									r.getFont("Noto-Light"),
@@ -292,6 +311,15 @@ class OpenTaiko {
 
 		settingsMenu.addButton("Name entry", 0, null, null);
 		settingsMenu.addButton("Vsync", 1, null, null);
+		
+		playerDisplay = new PlayerDisplay(players,
+										  r.getFont("Noto-Light"),
+										  (r.windowWidth / 3 * 2),
+										  GUIDimensions.TOP_BAR_HEIGHT,
+										  r.windowWidth, 0);
+										  
+		r.getScene(*menuIndex).addLayer();
+		r.getScene(*menuIndex).addRenderable(2, playerDisplay);
 
 		mainMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &navigateMenuBack);
@@ -354,7 +382,7 @@ class OpenTaiko {
 											0,
 											i < 1 ? 0 : (renderer.windowHeight / (i + 1)),
 											renderer.windowWidth,
-											renderer.windowHeight / (i + 1),
+											renderer.windowHeight / players,
 											renderer.getFont("Noto-Regular"),
 											&playBadSound);
 		}
@@ -487,7 +515,6 @@ class OpenTaiko {
 	
 	void playBadSound() {
 		audioMixer.playSFX(2);
-		playerAreas[0].giveHitStatus(2);
 	}
 	
 	void playSong(Song song) {

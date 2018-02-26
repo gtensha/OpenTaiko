@@ -3,6 +3,8 @@ module opentaiko.renderable.gameplayarea;
 import opentaiko.performance;
 import opentaiko.renderable.hitstatus;
 import opentaiko.game : OpenTaiko;
+import opentaiko.playerdisplay;
+import opentaiko.player;
 import maware.renderer;
 import maware.renderable;
 import maware.font;
@@ -22,13 +24,15 @@ enum StatusType {
 class GameplayArea : Renderable {
 
 	protected Renderer renderer;
+	protected Font font;
 	protected int offsetX;
 	protected int offsetY;
 	protected int maxWidth;
 	protected int maxHeight;
 
 	protected Performance currentPerformance;
-
+	protected Player currentPlayer;
+	
 	protected Solid background;
 	protected Solid header;
 	protected Solid indicatorArea;
@@ -38,7 +42,8 @@ class GameplayArea : Renderable {
 	
 	protected HitStatus hitResultEffect;
 
-	protected Text player;
+	//protected Text player;
+	protected NameBox playerDisplay;
 	protected Text score;
 
 	protected Textured[] drums;
@@ -59,6 +64,7 @@ class GameplayArea : Renderable {
 		this.maxWidth = maxWidth;
 		this.maxHeight = maxHeight;
 		this.missEventCallback = missEventCallback;
+		this.font = uiFont;
 
 		this.background = new Solid(maxWidth, maxHeight, offsetX, offsetY,
 									OpenTaiko.guiColors.playAreaLower.r,
@@ -91,7 +97,7 @@ class GameplayArea : Renderable {
 
 
 		this.score = new Text("0000000",
-							  uiFont.get(32),
+							  uiFont.get(36),
 							  true,
 							  0, offsetY,
 							  OpenTaiko.guiColors.buttonTextColor.r,
@@ -134,8 +140,10 @@ class GameplayArea : Renderable {
 				drum.render();
 			}
 		}*/
+		playerDisplay.render();
 		
 		if (currentPerformance.checkTardiness()) {
+			this.giveHitStatus(StatusType.BAD);
 			missEventCallback();
 		}
 		
@@ -146,6 +154,17 @@ class GameplayArea : Renderable {
 		performance.setRenderableOffset(reception.rect.x, drumConveyor.rect.y, drumConveyor.rect.h);
 
 		currentPerformance = performance;
+	}
+	
+	public void setPlayer(Player* player, int number) {
+		playerDisplay = new NameBox(player,
+									number,
+									font,
+									drumConveyor.rect.h / 2,
+									background.rect.w,
+									drumConveyor.rect.h / 2,
+									background.rect.x + background.rect.w,
+									drumConveyor.rect.y + drumConveyor.rect.h);
 	}
 	
 	public void giveHitStatus(int statusCode) {
