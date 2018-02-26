@@ -11,6 +11,7 @@ import opentaiko.renderable.gameplayarea;
 import opentaiko.palette;
 import opentaiko.player;
 import opentaiko.playerdisplay;
+import opentaiko.textinputfield;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -81,6 +82,7 @@ class OpenTaiko {
 	private Menu settingsMenu;
 	private SongSelectMenu songSelectMenu;
 	private PlayerDisplay playerDisplay;
+	private TextInputField testField;
 
 	private Song[] songs;
 	private string[] playerNames;
@@ -296,6 +298,16 @@ class OpenTaiko {
 		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
 		playMenu.addButton("High scores", 1, null, null);
 		playMenu.addButton("Test Gameplay Scene", 2, null, &switchSceneToGameplayScene);
+		playMenu.addButton("Test text input", 3, null, &testEditing);
+		
+		testField = new TextInputField(r.getFont("Noto-Bold"),
+									   null,
+									   400, 30,
+									   0, r.windowHeight - 60);
+												 
+		r.getScene(*menuIndex).addRenderable(1, testField);
+													  
+		engine.iHandler.setInputBinder(testField.getBindings());
 		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
 		settingsMenu = new VerticalMenu("Play",
@@ -418,6 +430,8 @@ class OpenTaiko {
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
 	}
+	
+	/* --- Various callback functions go under here --- */
 
 	void switchSceneToMainMenu() {
 		engine.gameRenderer.setScene(mainMenuIndex);
@@ -530,6 +544,11 @@ class OpenTaiko {
 		}
 		audioMixer.playTrack(song.title);
 		audioMixer.resumeMusic();
+	}
+	
+	void testEditing() {
+		testField.activate();
+		inputHandler.enableTextEditing();
 	}
 
 }
