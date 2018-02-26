@@ -343,7 +343,13 @@ class DifficultyListMenu : Traversable {
 									OpenTaiko.guiColors.cardTextColor.a);
 		
 		foreach (int i, Difficulty diff ; song.difficulties) {
-			difficultyList.addButton(diff.name, i, null, null);
+			wchar[10] starparts = ['☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆'];
+			for (int ii = 0; ii < diff.difficulty && ii < 10; ii++) {
+				starparts[9 - ii] = '★';
+			}
+			const string stars = to!string(starparts);
+			
+			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, null);
 			
 			difficultyTitle[i] = new Text(diff.name,
 										  boldFont.get(textSize + (textSize * 2) / 2),
@@ -366,7 +372,7 @@ class DifficultyListMenu : Traversable {
 									 OpenTaiko.guiColors.cardTextColor.b, 
 									 OpenTaiko.guiColors.cardTextColor.a);
 									 
-			difficultyLevel[i] = new Text(to!string(diff.difficulty),
+			difficultyLevel[i] = new Text(stars ~ " (" ~ to!string(diff.difficulty) ~ ")",
 										  textFont.get(textSize),
 										  true,
 										  difficultyInfoPadding.rect.x + BORDER_SPACING,
