@@ -32,6 +32,12 @@ class Solid : Renderable {
 
 		renderer = Renderer.renderer;
 	}
+	
+	this(int w, int h, int x, int y,
+		 SDL_Color color) {
+		
+		this(w, h, x, y, color.r, color.g, color.b, color.a);
+	}
 
 	public void render() {
 		SDL_SetRenderDrawColor(renderer,

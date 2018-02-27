@@ -11,7 +11,8 @@ import derelict.sdl2.sdl : SDL_CreateTextureFromSurface,
 						   SDL_Renderer,
 						   SDL_Surface,
 						   SDL_FreeSurface,
-						   SDL_QueryTexture;
+						   SDL_QueryTexture,
+						   SDL_Color;
 import derelict.sdl2.ttf : TTF_Font,
  						   TTF_RenderUTF8_Solid,
 						   TTF_RenderUTF8_Shaded,
@@ -34,6 +35,15 @@ class Text : Textured {
 		this.font = font;
 		this.pretty = pretty;
 		this.updateText(text);
+	}
+	
+	this(string text,
+		 TTF_Font* font,
+		 bool pretty,
+		 int x, int y,
+		 SDL_Color color) {
+		
+		this(text, font, pretty, x, y, color.r, color.g, color.b, color.a);
 	}
 
 	~this() {
