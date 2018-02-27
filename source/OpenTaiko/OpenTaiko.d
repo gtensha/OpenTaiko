@@ -17,6 +17,7 @@ import opentaiko.browsablelist : BrowsableList;
 import derelict.sdl2.sdl : SDL_Keycode;
 
 import std.conv : to;
+import std.algorithm.comparison : equal;
 import std.stdio;
 import std.container.dlist : DList;
 
@@ -74,6 +75,8 @@ class OpenTaiko {
 	private uint mainMenuBinderIndex;
 	private uint gameplaySceneIndex;
 	private uint gameplayBinderIndex;
+	private int menuRenderableIndex;
+	private int menuRenderableLayer;
 
 	private DList!Traversable activeMenuStack;
 
@@ -184,19 +187,9 @@ class OpenTaiko {
 
 	void createStartMenu(uint* menuIndex) {
 		Renderer r = engine.gameRenderer;
-		*menuIndex = r.addScene("Start");
-		r.getScene(*menuIndex).addLayer;
-		r.getScene(*menuIndex)
-		 .addRenderable(0,
-				  		new Solid(r.windowWidth,
-								  r.windowHeight,
-								  0, 0,
-								  guiColors.backgroundColor.r, 
-								  guiColors.backgroundColor.g, 
-								  guiColors.backgroundColor.b, 
-								  guiColors.backgroundColor.a));
-
-		r.getScene(*menuIndex).addLayer;
+		*menuIndex = r.addScene("Start", 1);
+		
+		r.getScene(*menuIndex).backgroundColor = guiColors.backgroundColor;
 
 		Text titleHeader = new Text("OpenTaiko",
 									r.getFont("Noto-Regular").get(36),
@@ -208,7 +201,7 @@ class OpenTaiko {
 									guiColors.buttonTextColor.a);
 
 		titleHeader.rect.x = (getCenterPos(r.windowWidth, titleHeader.rect.w));
-		r.getScene(*menuIndex).addRenderable(1, titleHeader);
+		r.getScene(*menuIndex).addRenderable(0, titleHeader);
 
 		Solid lineCenter = new Solid(r.windowWidth, 80, 0, 0,
 									 guiColors.uiColorSecondary.r, 
@@ -217,7 +210,7 @@ class OpenTaiko {
 									 guiColors.uiColorSecondary.a);
 
 		lineCenter.rect.y = (getCenterPos(r.windowHeight, lineCenter.rect.h));
-		r.getScene(*menuIndex).addRenderable(1, lineCenter);
+		r.getScene(*menuIndex).addRenderable(0, lineCenter);
 
 		Text centerInfo = new Text("Press any key",
 								   r.getFont("Noto-Light").get(24),
@@ -227,9 +220,9 @@ class OpenTaiko {
 
 		centerInfo.rect.x = (getCenterPos(r.windowWidth, centerInfo.rect.w));
 		centerInfo.rect.y = (getCenterPos(r.windowHeight, centerInfo.rect.h));
-		r.getScene(*menuIndex).addRenderable(1, centerInfo);
-		r.getScene(*menuIndex).addRenderable(1, new Textured(r.getTexture("Soul"), 0, 0));
-		r.getScene(*menuIndex).addRenderable(1, new Textured(r.getTexture("NormalDrum"), 100, 100));
+		r.getScene(*menuIndex).addRenderable(0, centerInfo);
+		r.getScene(*menuIndex).addRenderable(0, new Textured(r.getTexture("Soul"), 0, 0));
+		r.getScene(*menuIndex).addRenderable(0, new Textured(r.getTexture("NormalDrum"), 100, 100));
 		startMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.setActive(startMenuBinderIndex);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
@@ -239,20 +232,10 @@ class OpenTaiko {
 
 	void createMainMenu(uint* menuIndex) {
 		Renderer r = engine.gameRenderer;
-		*menuIndex = r.addScene("Main Menu");
-		r.getScene(*menuIndex).addLayer();
-		r.getScene(*menuIndex).addRenderable(0, new Solid(r.windowWidth, r.windowHeight, 0, 0, 
-														  guiColors.backgroundColor.r,
-														  guiColors.backgroundColor.g, 
-														  guiColors.backgroundColor.b, 
-														  guiColors.backgroundColor.a));
-		/*r.getScene(*menuIndex).addRenderable(0, new Text("Main Menu",
-														 r.getFont("Noto-Light").get(r.windowHeight / 3),
-														 true,
-														 10,
-														 (r.windowHeight / 3) * 2 - 60,
-														 200, 200, 200, 255));*/
-		r.getScene(*menuIndex).addLayer();
+		*menuIndex = r.addScene("Main Menu", 3);
+		Scene s = r.getScene(*menuIndex);
+		
+		s.backgroundColor = guiColors.backgroundColor;
 		HorizontalTopBarMenu newMenu = new HorizontalTopBarMenu("Banan",
 																r.getFont("Noto-Light"),
 																160,
@@ -261,14 +244,15 @@ class OpenTaiko {
 																guiColors.buttonTextColor,
 																guiColors.uiColorSecondary);
 
-		r.getScene(*menuIndex).addRenderable(1, new Solid(r.windowWidth,
-														  GUIDimensions.TOP_BAR_HEIGHT,
-														  0, 0,
-														  guiColors.uiColorMain.r,
-														  guiColors.uiColorMain.g, 
-														  guiColors.uiColorMain.b,
-														  guiColors.uiColorMain.a));
-		r.getScene(*menuIndex).addRenderable(1, newMenu);
+		s.addRenderable(0, new Solid(r.windowWidth,
+									 GUIDimensions.TOP_BAR_HEIGHT,
+									 0, 0,
+									 guiColors.uiColorMain.r,
+									 guiColors.uiColorMain.g, 
+									 guiColors.uiColorMain.b,
+									 guiColors.uiColorMain.a));
+		menuRenderableLayer = 0;
+		s.addRenderable(0, newMenu);
 		topBarMenu = newMenu;
 		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
 		newMenu.addButton("Players", 1, null, null);
@@ -283,7 +267,7 @@ class OpenTaiko {
 									guiColors.activeButtonColor,
 									guiColors.buttonTextColor);
 
-		r.getScene(*menuIndex).addRenderable(1, playMenu);
+		menuRenderableIndex = s.addRenderable(0, playMenu);
 
 		playerSelectMenu = new VerticalMenu("Player select",
 											r.getFont("Noto-Light"),
@@ -329,7 +313,7 @@ class OpenTaiko {
 									   400, 30,
 									   0, r.windowHeight - 60);
 												 
-		r.getScene(*menuIndex).addRenderable(1, testField);
+		s.addRenderable(0, testField);
 
 
 
@@ -356,17 +340,17 @@ class OpenTaiko {
 										  GUIDimensions.TOP_BAR_HEIGHT,
 										  r.windowWidth, 0);
 										  
-		r.getScene(*menuIndex).addLayer();
-		r.getScene(*menuIndex).addRenderable(2, playerDisplay);
+		
+		s.addRenderable(1, playerDisplay);
 
 		mainMenuBinderIndex = engine.iHandler.addActionBinder();
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &navigateMenuBack);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &pressMenuButton);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.DOWN, &moveRightMenu);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.UP, &moveLeftMenu);
-		engine.iHandler.bindAction(mainMenuBinderIndex, Action.MODESEL, &navigateTopBarRight);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &navigateMenuBack);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.SELECT, &pressMenuButton);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.RIGHT, &moveRightMenu);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.DOWN, &moveRightMenu);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.UP, &moveLeftMenu);
+		inputHandler.bindAction(mainMenuBinderIndex, Action.MODESEL, &navigateTopBarRight);
 
 	}
 
@@ -426,13 +410,11 @@ class OpenTaiko {
 		}
 
 		Scene gameplayScene = renderer.getScene(gameplaySceneIndex);
-		if (gameplayScene is null || gameplayScene.getName() != "Gameplay") {
-			gameplayScene = new Scene("Gameplay");
-			gameplayScene.addLayer();
+		if (gameplayScene is null || !gameplayScene.name.equal("Gameplay")) {
+			gameplayScene = new Scene("Gameplay", 2);
 			foreach (GameplayArea gameplayArea ; playerAreas) {
 				gameplayScene.addRenderable(0, gameplayArea);
 			}
-			gameplayScene.addLayer();
 
 			gameplaySceneIndex = renderer.addScene(gameplayScene);
 		} else {
@@ -463,7 +445,7 @@ class OpenTaiko {
 		engine.gameRenderer.setScene(mainMenuIndex);
 		engine.iHandler.setActive(mainMenuBinderIndex);
 		engine.aMixer.playSFX(0);
-		activeMenuStack.insertFront(cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(1, 2));
+		activeMenuStack.insertFront(cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(0, 2));
 	}
 
 	void switchSceneToStartMenu() {
@@ -533,7 +515,9 @@ class OpenTaiko {
 	}
 
 	void updateMainMenu() {
-		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenuStack.front(), 1, 2);
+		engine.gameRenderer.getScene(mainMenuIndex).setObjectAt(activeMenuStack.front(), 
+																menuRenderableLayer, 
+																menuRenderableIndex);
 	}
 
 	void hitCenterDrum() {

@@ -2,24 +2,29 @@ module maware.renderable.scene;
 
 import maware.renderable.renderable;
 
-import std.conv : to;
+import derelict.sdl2.sdl : SDL_Color;
 
 /// A renderable class that holds other renderables to act as a "scene" in the game.
 /// Some of the methods in this class will throw a RangeError if bad indices
 /// are supplied.
 class Scene : Renderable {
 
-	private string name;
+	immutable string name; /// The scene's name
 
 	/* The renderables for the renderer to render each render() call.
 	   Uses a layered principle, objects in the lower layers will render first
 	   and at the bottom of the screen
 	*/
 	private Renderable[][] renderables;
+	private Renderable[][] hiddenLayers; // temporary storage for hidden layers
+	
+	SDL_Color backgroundColor; /// The background color to render with
 
-	/// Create a new Scene with the given name
-	this(string name) {
+	/// Create a new Scene with the given name and amount of layers
+	this(string name, int layerCount) {
 		this.name = name;
+		this.renderables = new Renderable[][layerCount];
+		this.hiddenLayers = new Renderable[][layerCount];
 	}
 
 	/// Render all the renderables in this scene
@@ -33,19 +38,34 @@ class Scene : Renderable {
 		}
 	}
 
-	/// Adds a layer of renderables and returns its index
-	public int addLayer() {
-		renderables ~= null;
-		return cast(uint)renderables.length - 1;
-	}
-
 	/// Clears the layer at the given index of renderables
-	public void clearLayer(uint layer) {
+	public void clearLayer(int layer) {
 		renderables[layer] = null;
+	}
+	
+	/// "Hides" a layer, so that it is not rendered
+	public void hideLayer(int layer) {
+		hiddenLayers[layer] = renderables[layer];
+		renderables[layer] = null;
+	}
+	
+	/// "Shows" a layer, so that it is shown yet again
+	public void showLayer(int layer) {
+		renderables[layer] = hiddenLayers[layer];
+		hiddenLayers[layer] = null;
+	}
+	
+	/// "Toggles" a layer by hiding if shown, and showing if hidden
+	public void toggleLayer(int layer) {
+		if (hiddenLayers[layer] is null) {
+			hideLayer(layer);
+		} else {
+			showLayer(layer);
+		}
 	}
 
 	/// Registers a renderable to the specified layer and returns its index
-	public int addRenderable(uint layer, Renderable renderable) {
+	public int addRenderable(int layer, Renderable renderable) {
 			renderables[layer] ~= renderable;
 			return cast(uint)renderables[layer].length - 1;
 	}
@@ -70,8 +90,4 @@ class Scene : Renderable {
 		return toReplace;
 	}
 
-	/// Returns the name of this scene
-	public string getName() {
-		return name;
-	}
 }

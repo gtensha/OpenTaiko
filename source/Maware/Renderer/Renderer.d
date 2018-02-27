@@ -22,7 +22,7 @@ ShouldThrow myMissingSymCB(string symbolName) {
     return ShouldThrow.No;
 }
 
-// A renderer class for creating and rendering on-screen objects and scenes
+/// A renderer class for creating and rendering on-screen objects and scenes
 class Renderer {
 
 	// The parent game engine of this renderer
@@ -42,7 +42,7 @@ class Renderer {
 	private uint currentScene; // the index of the scene to be rendered at present
 
 
-	// Create the object with the given parent and initiate video
+	/// Create the object with the given parent and initiate video
 	this(Engine parent) {
 
 		if (parent is null) {
@@ -91,8 +91,7 @@ class Renderer {
 		SDL_Quit();
 	}
 
-	// Create a new window with given properties, used for startup or changing
-	// settings
+	/// Create a new window with given properties
 	public void createNewWindow(int x, int y, bool vsync, string title) {
 
 		if (title is null) {
@@ -136,13 +135,17 @@ class Renderer {
 
 	}
 
+	/// Render a frame for the current scene
 	public void renderFrame() {
-		SDL_SetRenderDrawColor(renderer, 20, 20, 20, 255);
+		Scene s = scenes[currentScene];
+		const SDL_Color c = s.backgroundColor;
+		SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
 		SDL_RenderClear(renderer);
-		scenes[currentScene].render();
+		s.render();
 		SDL_RenderPresent(renderer);
 	}
 
+	/// Show an OS specific popup box on screen
 	public static void notifyPopUp(string msg) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
 								 toStringz(Engine.engineName),
@@ -150,8 +153,8 @@ class Renderer {
 								 null);
 	}
 
-	// Register a new texture into the system with the given key from
-	// a path to a supported image file
+	/// Register a new texture into the renderer with the given key from
+	/// a path to a supported image file
 	public void registerTexture(string key, string src) {
 		SDL_Surface* tempSurface = IMG_Load(toStringz(src));
 		if (tempSurface is null) {
@@ -160,8 +163,8 @@ class Renderer {
 		registerTexture(key, tempSurface);
 	}
 
-	// Register a new texture into the system with the given key
-	// from an already created surface
+	/// Register a new texture into the system with the given key
+	/// from a pre created surface
 	public void registerTexture(string key, SDL_Surface* surface) {
 		SDL_Texture* tempTexture = SDL_CreateTextureFromSurface(this.renderer,
 																surface);
@@ -172,6 +175,7 @@ class Renderer {
 		textures[key] = tempTexture;
 	}
 
+	/// Gets the SDL_Texture* assigned to this key, if it exists
 	public SDL_Texture* getTexture(string key) {
 		SDL_Texture** someTexture = (key in textures);
 		if (someTexture !is null) {
@@ -181,6 +185,7 @@ class Renderer {
 		}
 	}
 
+	/// Colors an already registered texture with the given rgb values
 	public void colorTexture(string key, ubyte r, ubyte g, ubyte b) {
 		SDL_Texture* texture = getTexture(key);
 		if (texture is null) {
@@ -191,12 +196,12 @@ class Renderer {
 		}
 	}
 
-	// Register a new Font object into the system
+	/// Register a new Font object from src path on disk disk into the renderer
 	public void registerFont(string key, string src) {
 		fonts[key] = new Font(key, src);
 	}
 
-	// Returns Font object if exists, else returns null
+	/// Returns Font object if exists, else returns null
 	public Font getFont(string key) {
 		if ((key in fonts) !is null) {
 			return fonts[key];
@@ -205,36 +210,30 @@ class Renderer {
 		}
 	}
 
-	public uint addScene(string name) {
-		scenes ~= new Scene(name);
-		return to!uint(scenes.length - 1);
+	/// Create a scene with the given name and layer count for the renderer
+	public uint addScene(string name, int layerCount) {
+		scenes ~= new Scene(name, layerCount);
+		return cast(uint)scenes.length - 1;
 	}
 
+	/// Add the given Scene to the renderer
 	public uint addScene(Scene scene) {
 		scenes ~= scene;
-		return to!uint(scenes.length - 1);
+		return cast(uint)scenes.length - 1;
 	}
 
-	// Sets the renderer's active scene, returns it or null upon failure
-	public Scene setScene(uint index) {
-		if (index > scenes.length - 1) {
-			return null;
-		} else {
-			currentScene = index;
-			return scenes[currentScene];
-		}
+	/// Sets the renderer's active scene and returns it
+	public Scene setScene(int index) {
+		currentScene = index;
+		return scenes[currentScene];
 	}
 
-	// Returns the scene at the specified index
-	public Scene getScene(uint index) {
-		if (index > scenes.length - 1) {
-			return null;
-		} else {
-			return scenes[index];
-		}
+	/// Returns the scene at the specified index
+	public Scene getScene(int index) {
+		return scenes[index];
 	}
 
-	// Gets the currently rendered scene
+	/// Gets the currently rendered scene or null if there are none
 	public Scene getCurrentScene() {
 		if (scenes.length > 0) {
 			return scenes[currentScene];
@@ -243,75 +242,28 @@ class Renderer {
 		}
 	}
 
-	public uint getCurrentSceneIndex() {
+	/// Returns the index of the currently rendered scene
+	public int getCurrentSceneIndex() {
 		return currentScene;
 	}
 
-	// Return the amount of milliseconds since library init
+	/// Return the amount of milliseconds since library init
 	public static uint getTicks() {
 		return SDL_GetTicks();
 	}
 
-	// Return the window's current width in pixels
+	/// Return the window's current width in pixels
 	public int windowWidth() {
 		int w;
 		SDL_GetWindowSize(window, &w, null);
 		return w;
 	}
 
-	// Return the window's current height in pixels
+	/// Return the window's current height in pixels
 	public int windowHeight() {
 		int h;
 		SDL_GetWindowSize(window, null, &h);
 		return h;
 	}
-
-	/*
-	public Textured createTextured(string texture,
-								   int w, int h, int x, int y) {
-
-		if ((texture in textures) is null) {
-			return null;
-		} else {
-			return new Textured(renderer, textures[texture], w, h, x, y);
-		}
-	}
-
-	public Textured createTextured(string texture,
-								   int x, int y) {
-		
-		SDL_Texture** texture = texture in textures;
-		if (!texture) {
-			return null;
-		} else {
-			return new Textured(texture, x, y);
-		}
-	}
-
-	public Text createText(string text,
-						   string font,
-						   uint size,
-						   bool pretty,
-						   int x, int y,
-						   ubyte r, ubyte g, ubyte b, ubyte a) {
-
-		TTF_Font* fontFace = getFont(font).get(size);
-		if (fontFace is null) {
-			parent.notify("There was an error opening the font "
-						  ~ font
-						  ~ " with size "
-						  ~ to!string(size));
-
-			return null;
-		}
-
-		Text newText = new Text(this.renderer,
-								text,
-								fontFace,
-								pretty,
-								x, y,
-								r, g, b, a);
-		return newText;
-	}*/
 
 }
