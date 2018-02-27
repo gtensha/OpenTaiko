@@ -45,14 +45,18 @@ class Scene : Renderable {
 	
 	/// "Hides" a layer, so that it is not rendered
 	public void hideLayer(int layer) {
-		hiddenLayers[layer] = renderables[layer];
-		renderables[layer] = null;
+		if (hiddenLayers[layer] is null) {
+			hiddenLayers[layer] = renderables[layer];
+			renderables[layer] = null;
+		}
 	}
 	
 	/// "Shows" a layer, so that it is shown yet again
 	public void showLayer(int layer) {
-		renderables[layer] = hiddenLayers[layer];
-		hiddenLayers[layer] = null;
+		if (hiddenLayers[layer] !is null) {
+			renderables[layer] = hiddenLayers[layer];
+			hiddenLayers[layer] = null;
+		}
 	}
 	
 	/// "Toggles" a layer by hiding if shown, and showing if hidden
