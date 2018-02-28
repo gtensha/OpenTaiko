@@ -50,11 +50,8 @@ class InputHandler {
 		while (SDL_PollEvent(&event) == 1) {
 			// for some reason, using a switch here makes the game unresponsive
 			// if you switch to a different window, so if/else will have to do
-			if (event.type == SDL_KEYDOWN) {
+			if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
 				if (!isTextEditing) {
-					if (event.key.repeat != 0) {
-						//goto default;
-					}
 					int* binding = (event.key.keysym.sym in bindings);
 					if (binding !is null) {
 						doAction(*binding);
