@@ -50,6 +50,7 @@ class BrowsableList : Menu {
 		
 		buttons ~= new ListItem(title,
 								buttonFont, 
+								value,
 								subMenu,
 								instruction,
 								buttonWidth, 
@@ -58,8 +59,19 @@ class BrowsableList : Menu {
 								y + cast(int)buttons.length * buttonHeight + PADDING);
 								
 		frame.rect.h += buttonHeight;
-								
+		if (activeButton < 0) {
+			activeButton = 0;
+			buttons[activeButton].toggleHighlighted();
+		}
 		return buttons[buttons.length - 1];
+	}
+	
+	public int getX() {
+		return x;
+	}
+	
+	public int getY() {
+		return y;
 	}
 	
 }
@@ -74,6 +86,7 @@ class ListItem : Button {
 	
 	this(string text, 
 		 Font font,
+		 int value,
 		 Traversable subMenu,
 		 void delegate() instruction,
 		 int w, 
@@ -81,7 +94,7 @@ class ListItem : Button {
 		 int x, 
 		 int y) {
 		
-		super(null, -1, subMenu, instruction, x, y, w, h, 0, 0, 0, 0);
+		super(null, value, subMenu, instruction, x, y, w, h, 0, 0, 0, 0);
 		solid.color = OpenTaiko.guiColors.uiColorMain;
 		this.color = solid.color;
 		

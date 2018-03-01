@@ -70,6 +70,10 @@ class Button : Renderable {
 		}
 		return subMenu;
 	}
+	
+	public int getId() {
+		return value;
+	}
 
 	public void setDescription(string description) {
 		this.description = description;
@@ -87,6 +91,10 @@ class Button : Renderable {
 			highlighted = true;
 			solid.setColor(255, 255, 255, -1);
 		}
+	}
+	
+	public string getTitle() {
+		return buttonText.getText();
 	}
 
 }

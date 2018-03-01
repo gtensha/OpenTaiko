@@ -24,10 +24,12 @@ class TextInputField : Renderable {
 	protected TextInputBinder bindings;
 	
 	protected string previousText;
+	protected string* putDestination;
 	
 	/// Create a new text input field with given dimensions and font
 	this(Font font,
 		 void delegate() commitCallback,
+		 string* destination,
 		 int w, int h, int x, int y) {
 			 
 		this.font = font;
@@ -50,7 +52,10 @@ class TextInputField : Renderable {
 		this.bindings.commit = &deactivate;
 		
 		this.commitCallback = commitCallback;
+		this.putDestination = destination;
 	}
+	
+	
 	
 	/// Give a character and handle
 	void giveText(string text) {
@@ -76,16 +81,21 @@ class TextInputField : Renderable {
 		currentText.updateText(CURSOR ~ "");
 	}
 	
+	/// Deactivates the input window and commits text
 	void deactivate() {
 		previousText = currentText.getText();
-		currentText.updateText("");
+		if (putDestination !is null) {
+			*putDestination = getCurrentText();
+		}
 		if (commitCallback !is null) {
 			commitCallback();
 		}
+		currentText.updateText("");
 	}
 	
 	string getCurrentText() {
-		return currentText.getText();
+		string text = currentText.getText();
+		return text[0 .. text.length - 1];
 	}
 	
 	string getPreviousText() {

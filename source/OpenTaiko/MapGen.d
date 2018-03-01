@@ -16,6 +16,7 @@ import opentaiko.song;
 import opentaiko.gamevars;
 import opentaiko.difficulty;
 import opentaiko.performance;
+import opentaiko.player;
 
 enum {
 	string MAP_DIR = "maps/",
@@ -405,4 +406,61 @@ class MapGen {
 
 		return gameVars;
 	}
+	
+	/// Reads the JSON file from given path and returns an AA of pointers to
+	/// Player structs
+	static Player*[int] readPlayerList(string fileLoc) {
+		
+		Player*[int] players;
+		try {
+			isFile(fileLoc);
+		} catch (FileException e) {
+			return null;
+		}
+		
+		string input = cast(string)std.file.read(fileLoc);
+		
+		JSONValue vars = parseJSON(input);
+		
+		foreach (JSONValue player ; vars["players"].array) {
+			string name;
+			int id;
+			int[] keybinds;
+			
+			name = player["name"].str;
+			id = cast(int)player["id"].integer;
+			foreach (JSONValue binding ; player["keybinds"].array) {
+				keybinds ~= cast(int)binding.integer;
+			}
+			if (id in players) {
+				throw new Exception("Player id mismatch in players.json: "
+									~ name ~ " conflicts with " ~ players[id].name
+									~ " with id " ~ to!string(id));
+			}
+			players[id] = new Player(name, id, keybinds);
+		}
+		
+		return players;
+		
+	}
+	
+	/// Writes the Player array to JSON format in the given file
+	static void writePlayerList(Player*[int] players, Player*[] activePlayers, string dest) {
+		if (players !is null) {
+			JSONValue[] vars;
+			
+			foreach (Player* player ; players) {
+				JSONValue data;
+				data["name"] = JSONValue(player.name);
+				data["id"] = JSONValue(player.id);
+				data["keybinds"] = JSONValue(player.keybinds);
+				vars ~= data;
+			}
+			JSONValue lastOne = ["players": vars];
+			lastOne.object["lastActive"] = JSONValue(activePlayers is null ? -1 : activePlayers[0].id);
+			std.file.write(dest, toJSON(lastOne, true));
+		}
+		
+	}
+	
 }

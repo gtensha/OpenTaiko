@@ -93,6 +93,14 @@ abstract class Menu : Traversable {
 	public Traversable press() {
 		return buttons[activeButton].getValue();
 	}
+	
+	public int getActiveButtonId() {
+		return buttons[activeButton].getId();
+	}
+	
+	public string getActiveButtonTitle() {
+		return buttons[activeButton].getTitle();
+	}
 
 	public uint getH() {
 		return buttonHeight;

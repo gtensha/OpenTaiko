@@ -31,7 +31,6 @@ class PlayerDisplay : Renderable {
 		 int maxWidth, int height,
 		 int startX, int y) {
 			 
-		this.players = players;
 		this.font = font;
 		this.height = height;
 		this.startX = startX;
@@ -42,7 +41,7 @@ class PlayerDisplay : Renderable {
 								   OpenTaiko.guiColors.uiColorSecondary.b,
 								   OpenTaiko.guiColors.uiColorSecondary.a);
 								   
-		this.addName();
+		this.updatePlayers(players);
 	}
 	
 	void render() {
@@ -52,8 +51,13 @@ class PlayerDisplay : Renderable {
 		}
 	}
 	
-	private int addName() {
-		for (int i = prevPlayerCount; i < players.length; i++) {
+	/// Updates the list with new player data
+	public void updatePlayers(Player*[] updated) {
+		players = updated;
+		names = null;
+		underline.rect.w = 0;
+		underline.rect.x = startX;
+		for (int i = 0; i < players.length; i++) {
 			names ~= new NameBox(players[i],
 								 i,
 								 font,
@@ -66,8 +70,7 @@ class PlayerDisplay : Renderable {
 			underline.rect.w += newWidth;
 			underline.rect.x -= newWidth;
 		}
-		prevPlayerCount = cast(int)players.length;
-		return prevPlayerCount;
+		
 	}
 	
 }

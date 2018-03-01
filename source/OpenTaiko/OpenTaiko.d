@@ -18,7 +18,10 @@ import derelict.sdl2.sdl : SDL_Keycode;
 
 import std.conv : to;
 import std.algorithm.comparison : equal;
+//import std.algorithm.mutation : copy;
+import std.array : array;
 import std.stdio;
+import std.ascii : newline;
 import std.container.dlist : DList;
 
 void main(string[] args) {
@@ -58,10 +61,20 @@ enum Action : int {
 }
 
 /// Various size dimensions for GUI elements
-enum GUIDimensions : int {
+enum GUIDimensions {
 	TOP_BAR_HEIGHT = 80,
-	UNDERLINE_HEIGHT = 8
+	UNDERLINE_HEIGHT = 8,
+	PLAYER_PICKER_LIST_WIDTH = 300,
+	BROWSABLELIST_ELM_HEIGHT = 30,
+	BROWSABLELIST_DESC_TEXT_SIZE = 24
 }
+
+/// GUI Scale sizes
+enum GUIScale : float {
+	BROWSABLELIST_MAX_HEIGHT = 0.75, // of screen height
+}
+
+enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 
 class OpenTaiko {
 
@@ -77,8 +90,12 @@ class OpenTaiko {
 	private uint gameplayBinderIndex;
 	private int menuRenderableIndex;
 	private int menuRenderableLayer;
+	private int originMenuRenderableIndex;
+	private int originMenuRenderableLayer;
+	private int extraMenuLayer;
 
 	private DList!Traversable activeMenuStack;
+	private DList!Traversable previousMenuStack;
 
 	private Menu topBarMenu;
 	private Menu playMenu;
@@ -88,17 +105,23 @@ class OpenTaiko {
 	private SongSelectMenu songSelectMenu;
 	private PlayerDisplay playerDisplay;
 	private TextInputField testField;
+	private BrowsableList playerSelectList;
 
 	private Song[] songs;
 	private string[] playerNames;
-	private Player*[] players;
+	private Player*[int] players;
+	private Player*[] activePlayers;
 	private Performance[] currentPerformances;
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
 	
+	private string inputFieldDest;
+	
 	static immutable ColorPalette guiColors;
 
-	private bool quit = false;
+	private bool quit;
+	private bool shouldWritePlayerList;
+	private bool disablePlayerListWrite;
 	
 	static this() {
 		guiColors = standardPalette;
@@ -131,6 +154,8 @@ class OpenTaiko {
 				break;
 			}
 		}
+		
+		writeValues();
 
 	}
 
@@ -150,6 +175,14 @@ class OpenTaiko {
 		Timer.refresh(renderer.getTicks());
 		gameplayTimer.set(Timer.libInitPassed);
 
+	}
+	
+	/// Writes player data, settings and scores to disk
+	void writeValues() {
+		if (shouldWritePlayerList && !disablePlayerListWrite) {
+			shouldWritePlayerList = false;
+			MapGen.writePlayerList(players, activePlayers, PLAYER_DATA_FILE);
+		}
 	}
 
 	void loadAssets(Engine e) {
@@ -174,7 +207,22 @@ class OpenTaiko {
 	}
 	
 	void loadPlayers() {
-		Player* player = new Player();
+		try {
+			players = MapGen.readPlayerList(PLAYER_DATA_FILE);
+		} catch (Exception e) {
+			Engine.notify("Error loading player list: " 
+						  ~ e.msg
+						  ~ std.ascii.newline
+						  ~ "Player list write has been disabled. "
+						  ~ "Please correct the file's formatting.");
+			disablePlayerListWrite = true;
+		}
+		if (players is null) {
+			Player* player = new Player("Player", 0, null);
+			players[player.id] = player;
+		}
+		activePlayers ~= players[0]; // temporarily do this
+		/*Player* player = new Player();
 		player.name = "gtensha";
 		player.id = 0;
 		player.keybinds = null;
@@ -182,7 +230,7 @@ class OpenTaiko {
 		player = new Player();
 		player.name = "栄子";
 		player.id = 1;
-		players ~= player;
+		players ~= player;*/
 	}
 
 	void createStartMenu(uint* menuIndex) {
@@ -234,6 +282,7 @@ class OpenTaiko {
 		Renderer r = engine.gameRenderer;
 		*menuIndex = r.addScene("Main Menu", 3);
 		Scene s = r.getScene(*menuIndex);
+		extraMenuLayer = 2;
 		
 		s.backgroundColor = guiColors.backgroundColor;
 		HorizontalTopBarMenu newMenu = new HorizontalTopBarMenu("Banan",
@@ -252,10 +301,11 @@ class OpenTaiko {
 									 guiColors.uiColorMain.b,
 									 guiColors.uiColorMain.a));
 		menuRenderableLayer = 0;
+		originMenuRenderableLayer = menuRenderableLayer;
 		s.addRenderable(0, newMenu);
 		topBarMenu = newMenu;
 		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
-		newMenu.addButton("Players", 1, null, null);
+		newMenu.addButton("Players", 1, null, &switchToPlayersMenu);
 		newMenu.addButton("Settings", 2, null, &switchToSettingsMenu);								
 
 		playMenu = new VerticalMenu("Play",
@@ -268,6 +318,7 @@ class OpenTaiko {
 									guiColors.buttonTextColor);
 
 		menuRenderableIndex = s.addRenderable(0, playMenu);
+		originMenuRenderableIndex = menuRenderableIndex;
 
 		playerSelectMenu = new VerticalMenu("Player select",
 											r.getFont("Noto-Light"),
@@ -306,9 +357,11 @@ class OpenTaiko {
 		playMenu.addButton("Test text input", 3, null, &testEditing);
 		playMenu.addButton("Test BrowseableList", 4, testList, null);
 		
-		playersMenu.addButton("Add player", 0, null, null);
+		playersMenu.addButton("Add player", 0, null, &popupPlayerSelection);
+		playersMenu.addButton("Remove player", 1, null, &popupPlayerRemoveSelection);
 		
 		testField = new TextInputField(r.getFont("Noto-Bold"),
+									   null,
 									   null,
 									   400, 30,
 									   0, r.windowHeight - 60);
@@ -334,7 +387,7 @@ class OpenTaiko {
 		settingsMenu.addButton("Name entry", 0, null, null);
 		settingsMenu.addButton("Vsync", 1, null, null);
 		
-		playerDisplay = new PlayerDisplay(players,
+		playerDisplay = new PlayerDisplay(activePlayers,
 										  r.getFont("Noto-Light"),
 										  (r.windowWidth / 3 * 2),
 										  GUIDimensions.TOP_BAR_HEIGHT,
@@ -434,6 +487,52 @@ class OpenTaiko {
 		}
 
 	}
+	
+	/// Makes a selection list and puts it in the active menu stack
+	void makeSelectionList(string desc) {
+		int w = GUIDimensions.PLAYER_PICKER_LIST_WIDTH;
+		int h = cast(int)(GUIScale.BROWSABLELIST_MAX_HEIGHT * renderer.windowHeight);
+		int x = (renderer.windowWidth - w) / 2;
+		int y = (renderer.windowHeight - h) / 2;
+		BrowsableList playerList;
+		playerList = new BrowsableList(renderer.getFont("Noto-Light"),
+									   w,
+									   GUIDimensions.BROWSABLELIST_ELM_HEIGHT,
+									   h,
+									   x, y);
+									   
+		previousMenuStack.clear();
+		previousMenuStack = activeMenuStack.dup();
+		activeMenuStack.clear();
+		activeMenuStack.insertFront(playerList);
+		
+		menuRenderableLayer = originMenuRenderableLayer;
+		
+		
+		Solid shade = new Solid(renderer.windowWidth,
+								renderer.windowHeight,
+								0, 0,
+								guiColors.backgroundColor);
+
+		shade.color.a -= cast(int)(shade.color.a / 2);
+		
+		Text description;
+		description = new Text(desc,
+							   renderer.getFont("Noto-Light").get(GUIDimensions.BROWSABLELIST_DESC_TEXT_SIZE),
+							   true,
+							   playerList.getX, 0,
+							   guiColors.buttonTextColor);
+							   
+		description.rect.y = playerList.getY - description.rect.h;
+		
+		Scene s = renderer.getScene(mainMenuIndex);
+		s.clearLayer(extraMenuLayer);
+		s.showLayer(extraMenuLayer);
+		s.addRenderable(extraMenuLayer, shade);
+		s.addRenderable(extraMenuLayer, description);
+		menuRenderableIndex = s.addRenderable(extraMenuLayer, playerList);
+		
+	}
 
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
@@ -474,7 +573,16 @@ class OpenTaiko {
 	void navigateMenuBack() {
 		activeMenuStack.removeFront();
 		if (activeMenuStack.empty) {
-			switchSceneToStartMenu();
+			if (!previousMenuStack.empty) {
+				activeMenuStack = previousMenuStack.dup();
+				previousMenuStack.clear();
+				menuRenderableLayer = originMenuRenderableLayer;
+				menuRenderableIndex = originMenuRenderableIndex;
+				renderer.getScene(mainMenuIndex).hideLayer(extraMenuLayer);
+				updateMainMenu();
+			} else {
+				switchSceneToStartMenu();
+			}
 		} else {
 			updateMainMenu();
 		}
@@ -512,6 +620,86 @@ class OpenTaiko {
 		activeMenuStack.clear();
 		activeMenuStack.insertFront(settingsMenu);
 		updateMainMenu();
+	}
+	
+	void switchToPlayersMenu() {
+		activeMenuStack.clear();
+		activeMenuStack.insertFront(playersMenu);
+		updateMainMenu();
+	}
+	
+	void popupPlayerRemoveSelection() {
+		const string message = "Select player to remove";
+		bool proceed = true;
+		if (activePlayers.length < 1) {
+			proceed = false;
+		}
+		makeSelectionList(proceed ? message : "Add a player first!");
+		BrowsableList list = cast(BrowsableList)activeMenuStack.front();
+		playerSelectList = list;
+		if (!proceed) {
+			list.addButton("[Return]", 0, null, &navigateMenuBack);
+			return;
+		}
+		foreach (int i, Player* player ; activePlayers) {
+			list.addButton(player.name, i, null, &removeActiveName);
+		}
+	}
+	
+	void popupPlayerSelection() {
+		makeSelectionList("Select a player...");
+		BrowsableList list = cast(BrowsableList)activeMenuStack.front();
+		playerSelectList = list;
+		list.addButton("[Name entry]", -1, null, &doNameEntry);
+		foreach (Player* player ; players) {
+			list.addButton(player.name, player.id, null, &selectActiveName);
+		}
+	}
+	
+	void removeActiveName() {
+		const int i = playerSelectList.getActiveButtonId();
+		activePlayers = activePlayers[0 .. i] 
+						~ activePlayers[i + 1 .. activePlayers.length];
+		playerDisplay.updatePlayers(activePlayers);
+		playerSelectMenu = null;
+		navigateMenuBack();
+	}
+	
+	void selectActiveName() {
+		activePlayers ~= players[playerSelectList.getActiveButtonId()];
+		playerDisplay.updatePlayers(activePlayers);
+		playerSelectMenu = null;
+		navigateMenuBack();
+	}
+	
+	void doNameEntry() {
+		TextInputField f = new TextInputField(renderer.getFont("Noto-Light"),
+											  &addPlayer,
+											  &inputFieldDest,
+											  400, 30, 0, 0);
+		
+		renderer.getScene(mainMenuIndex).addRenderable(extraMenuLayer, f);
+		inputHandler.setInputBinder(f.getBindings());
+		f.activate();
+		inputHandler.enableTextEditing();
+	}
+	
+	void addPlayer() {
+		string player = inputFieldDest.dup;
+		if (player !is null && player.length > 0) {
+			for (int i = 0; i < cast(uint)-1; i++) {
+				if (i !in players) {
+					players[i] = new Player(player, i, null);
+					activePlayers ~= players[i];
+					break;
+				}
+			}
+			playerDisplay.updatePlayers(activePlayers);
+			shouldWritePlayerList = true;
+			writeValues();
+		}
+		inputHandler.stopTextEditing();
+		navigateMenuBack();
 	}
 
 	void updateMainMenu() {
