@@ -41,6 +41,7 @@ class Scene : Renderable {
 	/// Clears the layer at the given index of renderables
 	public void clearLayer(int layer) {
 		renderables[layer] = null;
+		hiddenLayers[layer] = null;
 	}
 	
 	/// "Hides" a layer, so that it is not rendered
