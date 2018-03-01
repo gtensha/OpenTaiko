@@ -104,11 +104,10 @@ class Engine {
 		renderer.setScene(index);
 	}
 
-	// This should be able to render a message on screen in the future as well
-	// as writing to console
+	/// Write msg to stdout and give user a popup if possible
 	public static void notify(string msg) {
-		Renderer.notifyPopUp(msg);
 		writeln(msg);
+		Renderer.notifyPopUp(msg);
 	}
 
 	public static void notify(int msg) {
