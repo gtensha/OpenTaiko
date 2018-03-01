@@ -1,6 +1,7 @@
 module maware;
 
 public import maware.renderer;
+public import maware.font;
 public import maware.audiomixer;
 public import maware.inputhandler;
 public import maware.engine;
