@@ -4,6 +4,7 @@ import maware;
 import opentaiko.assets;
 import opentaiko.renderable.menus.songselectmenu;
 import opentaiko.song;
+import opentaiko.difficulty;
 import opentaiko.mapgen;
 import opentaiko.bashable;
 import opentaiko.performance;
@@ -66,7 +67,8 @@ enum GUIDimensions {
 	UNDERLINE_HEIGHT = 8,
 	PLAYER_PICKER_LIST_WIDTH = 300,
 	BROWSABLELIST_ELM_HEIGHT = 30,
-	BROWSABLELIST_DESC_TEXT_SIZE = 24
+	BROWSABLELIST_DESC_TEXT_SIZE = 24,
+	TEXT_SPACING = 10
 }
 
 /// GUI Scale sizes
@@ -108,6 +110,8 @@ class OpenTaiko {
 	private BrowsableList playerSelectList;
 
 	private Song[] songs;
+	private Song activeSong;
+	private Difficulty activeDifficulty;
 	private string[] playerNames;
 	private Player*[int] players;
 	private Player*[] activePlayers;
@@ -160,19 +164,36 @@ class OpenTaiko {
 
 	}
 
-	void gameplay() {
+	/// Initiates gameplay for the selected Song and Difficulty.
+	/// The next frames rendered will be those of the gameplay
+	void gameplay(Song song, Difficulty diff) {
 
-		//Bashable[] map = MapGen.parseMapFromFile("Default/default.otfm");
+		if (activePlayers.length < 1) { // in the future, we can autoplay map instead
+			throw new Exception("No players registered");
+		}
+		
 		if (gameplayTimer is null) {
 			gameplayTimer = Timer.timers[Timer.addTimer()];
 		}
 
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
-			currentPerformances ~= new Performance("Default", MapGen.parseMapFromFile("Default/default.otfm"), gameplayTimer, 0, 0);
+			Bashable[] map = MapGen.parseMapFromFile(song.title ~ "/" ~ diff.name ~ ".otfm");
+			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0);
 			playerAreas[i].setPerformance(currentPerformances[i]);
 			//playerAreas[i].setPlayer(players[i], i);
 		}
+		Text songTitle = new Text(song.artist ~ " - " ~ song.title,
+								  renderer.getFont("Noto-Light").get(30),
+								  true,
+								  GUIDimensions.TEXT_SPACING, 0,
+								  guiColors.buttonTextColor);
+		
+		renderer.getScene(gameplaySceneIndex).clearLayer(1);
+		renderer.getScene(gameplaySceneIndex).addRenderable(1, songTitle);
+		renderer.setScene(gameplaySceneIndex);
+		inputHandler.setActive(gameplayBinderIndex);
+		playSong(song);
 		Timer.refresh(renderer.getTicks());
 		gameplayTimer.set(Timer.libInitPassed);
 
@@ -213,7 +234,7 @@ class OpenTaiko {
 		} catch (Exception e) {
 			Engine.notify("Error loading player list: " 
 						  ~ e.msg
-						  ~ std.ascii.newline
+						  ~ newline
 						  ~ "Player list write has been disabled. "
 						  ~ "Please correct the file's formatting.");
 			disablePlayerListWrite = true;
@@ -354,7 +375,6 @@ class OpenTaiko {
 
 		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
 		playMenu.addButton("High scores", 1, null, null);
-		playMenu.addButton("Test Gameplay Scene", 2, null, &switchSceneToGameplayScene);
 		playMenu.addButton("Test text input", 3, null, &testEditing);
 		playMenu.addButton("Test BrowseableList", 4, testList, null);
 		
@@ -431,6 +451,7 @@ class OpenTaiko {
 		int y = renderer.windowHeight - (h + 50);
 		songSelectMenu = new SongSelectMenu(renderer,
 											&playSong,
+											&playSelectedSong,
 											renderer.getFont("Noto-Bold"),
 											renderer.getFont("Noto-Light"),
 											x, y, w, h);
@@ -448,6 +469,10 @@ class OpenTaiko {
 
 	void createGameplayScene() {
 
+		if (activePlayers.length < 1) {
+			return;
+		}
+	
 		if (playerAreas !is null) {
 			playerAreas = null;
 		}
@@ -549,7 +574,7 @@ class OpenTaiko {
 		engine.gameRenderer.setScene(mainMenuIndex);
 		engine.iHandler.setActive(mainMenuBinderIndex);
 		engine.aMixer.playSFX(0);
-		activeMenuStack.insertFront(cast(Menu)engine.gameRenderer.getScene(mainMenuIndex).objectAt(0, 2));
+		switchToPlayMenu();
 	}
 
 	void switchSceneToStartMenu() {
@@ -560,7 +585,7 @@ class OpenTaiko {
 	void switchSceneToGameplayScene() {
 		renderer.setScene(gameplaySceneIndex);
 		inputHandler.setActive(gameplayBinderIndex);
-		gameplay();
+		gameplay(activeSong, activeDifficulty);
 	}
 
 	void quitGame() {
@@ -707,6 +732,16 @@ class OpenTaiko {
 		}
 		inputHandler.stopTextEditing();
 		navigateMenuBack();
+	}
+	
+	void playSelectedSong() {
+		activeSong = songSelectMenu.getSelectedSong();
+		activeDifficulty = songSelectMenu.getSelectedDifficulty();
+		try {
+			gameplay(activeSong, activeDifficulty);
+		} catch (Exception e) {
+			Engine.notify("Difficulty load failed: " ~ newline ~ e.msg);
+		}
 	}
 
 	void updateMainMenu() {

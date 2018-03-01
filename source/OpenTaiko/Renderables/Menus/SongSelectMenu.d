@@ -32,12 +32,14 @@ class SongSelectMenu : Traversable {
 
 	protected SongSelectMenuItem[] items;
 	protected void delegate(Song song) musicPlaybackFun;
+	protected void delegate() songSelectCallback;
 	protected uint selectedItem;
 
 	protected Solid[2] delims;
 
 	this(Renderer parent,
-		 void delegate(Song song) musicPlaybackFun,
+		 void delegate(Song) musicPlaybackFun,
+		 void delegate() songSelectCallback,
 		 Font titleFont,
 		 Font artistFont,
 		 int x, int y, int maxWidth, int maxHeight) {
@@ -51,6 +53,7 @@ class SongSelectMenu : Traversable {
 		this.artistFont = artistFont;
 		this.selectedItem = 0;
 		this.musicPlaybackFun = musicPlaybackFun;
+		this.songSelectCallback = songSelectCallback;
 
 		delims[0] = new Solid(5, maxHeight, x - 15, y,
 							  127, 127, 127, 255);
@@ -76,6 +79,7 @@ class SongSelectMenu : Traversable {
 										artistFont,
 										thumbnail,
 										song,
+										songSelectCallback,
 										spacing,
 										cast(int)items.length,
 										x, y, maxWidth, maxHeight);
@@ -105,6 +109,18 @@ class SongSelectMenu : Traversable {
 	public Traversable press() {
 		return items[selectedItem].getMenu();
 	}
+	
+	/// Returns the Song struct of the currently selected song
+	public Song getSelectedSong() {
+		return items[selectedItem].song;
+	}
+	
+	/// Returns the Difficulty struct of the currently selected song's diff
+	/// menu's Difficulty
+	public Difficulty getSelectedDifficulty() {
+		SongSelectMenuItem item = items[selectedItem];
+		return item.song.difficulties[item.getMenu.getActiveButtonId];
+	}
 
 }
 
@@ -115,7 +131,7 @@ class SongSelectMenuItem : Renderable {
 	protected int offset;
 	protected string directory;
 	Song song;
-	protected Traversable diffListMenu;
+	protected DifficultyListMenu diffListMenu;
 	
 	bool active;
 
@@ -129,6 +145,7 @@ class SongSelectMenuItem : Renderable {
 		 Font artistFont,
 		 SDL_Texture* thumbnail,
 		 Song song,
+		 void delegate() songSelectCallback,
 		 int spacing,
 		 int offset,
 		 int x, int y, int w, int h) {
@@ -172,6 +189,7 @@ class SongSelectMenuItem : Renderable {
 											  titleFont,
 											  artistFont,
 											  song,
+											  songSelectCallback,
 											  renderer.windowHeight - block.rect.y);
 
 	}
@@ -185,7 +203,7 @@ class SongSelectMenuItem : Renderable {
 			diffListMenu.render();
 	}
 	
-	public Traversable getMenu() {
+	public DifficultyListMenu getMenu() {
 		return diffListMenu;
 	}
 
@@ -237,6 +255,7 @@ class DifficultyListMenu : Traversable {
 		 Font boldFont,
 		 Font textFont,
 		 Song song,
+		 void delegate() songSelectCallback,
 		 int lowerSectionReserved) {
 		
 		this.song = song;
@@ -332,24 +351,24 @@ class DifficultyListMenu : Traversable {
 									  OpenTaiko.guiColors.cardTextColor.a);
 									  
 		highScoreText = new Text("High Scores",
-									boldFont.get(textSize),
-									true,
-									difficultyInfoPadding.rect.x + BORDER_SPACING,
-									difficultyLevel[0].rect.y
-									+ difficultyLevel[0].rect.h + TEXT_SPACING,
-									OpenTaiko.guiColors.cardTextColor.r, 
-									OpenTaiko.guiColors.cardTextColor.g, 
-									OpenTaiko.guiColors.cardTextColor.b, 
-									OpenTaiko.guiColors.cardTextColor.a);
+								 boldFont.get(textSize),
+								 true,
+								 difficultyInfoPadding.rect.x + BORDER_SPACING,
+								 difficultyLevel[0].rect.y
+								 + difficultyLevel[0].rect.h + TEXT_SPACING,
+								 OpenTaiko.guiColors.cardTextColor.r, 
+								 OpenTaiko.guiColors.cardTextColor.g, 
+								 OpenTaiko.guiColors.cardTextColor.b, 
+								 OpenTaiko.guiColors.cardTextColor.a);
 		
 		foreach (int i, Difficulty diff ; song.difficulties) {
 			wchar[10] starparts = ['☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆'];
 			for (int ii = 0; ii < diff.difficulty && ii < 10; ii++) {
-				starparts[9 - ii] = '★';
+				starparts[ii] = '★';
 			}
 			const string stars = to!string(starparts);
 			
-			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, null);
+			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, songSelectCallback);
 			
 			difficultyTitle[i] = new Text(diff.name,
 										  boldFont.get(textSize + (textSize * 2) / 2),
@@ -409,6 +428,10 @@ class DifficultyListMenu : Traversable {
 		difficultyText.render();
 		difficultyLevel[activeDiffIndex].render();
 		highScoreText.render();
+	}
+	
+	int getActiveButtonId() {
+		return activeDiffIndex;
 	}
 	
 }
