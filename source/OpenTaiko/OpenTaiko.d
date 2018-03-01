@@ -82,12 +82,12 @@ class OpenTaiko {
 	private Renderer renderer;
 	private AudioMixer audioMixer;
 	private InputHandler inputHandler;
-	private uint startMenuIndex;
-	private uint startMenuBinderIndex;
-	private uint mainMenuIndex;
-	private uint mainMenuBinderIndex;
-	private uint gameplaySceneIndex;
-	private uint gameplayBinderIndex;
+	private int startMenuIndex;
+	private int startMenuBinderIndex;
+	private int mainMenuIndex;
+	private int mainMenuBinderIndex;
+	private int gameplaySceneIndex;
+	private int gameplayBinderIndex = -1;
 	private int menuRenderableIndex;
 	private int menuRenderableLayer;
 	private int originMenuRenderableIndex;
@@ -144,7 +144,7 @@ class OpenTaiko {
 		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
-		createGameplayScene(cast(int)players.length);
+		createGameplayScene();
 		//engine.gameRenderer.setScene(startMenuIndex);
 
 		int eventCode;
@@ -170,7 +170,7 @@ class OpenTaiko {
 		for (int i = 0; i < playerAreas.length; i++) {
 			currentPerformances ~= new Performance("Default", MapGen.parseMapFromFile("Default/default.otfm"), gameplayTimer, 0, 0);
 			playerAreas[i].setPerformance(currentPerformances[i]);
-			playerAreas[i].setPlayer(players[i], i);
+			//playerAreas[i].setPlayer(players[i], i);
 		}
 		Timer.refresh(renderer.getTicks());
 		gameplayTimer.set(Timer.libInitPassed);
@@ -233,7 +233,7 @@ class OpenTaiko {
 		players ~= player;*/
 	}
 
-	void createStartMenu(uint* menuIndex) {
+	void createStartMenu(int* menuIndex) {
 		Renderer r = engine.gameRenderer;
 		*menuIndex = r.addScene("Start", 1);
 		
@@ -278,7 +278,7 @@ class OpenTaiko {
 
 	}
 
-	void createMainMenu(uint* menuIndex) {
+	void createMainMenu(int* menuIndex) {
 		Renderer r = engine.gameRenderer;
 		*menuIndex = r.addScene("Main Menu", 3);
 		Scene s = r.getScene(*menuIndex);
@@ -445,21 +445,25 @@ class OpenTaiko {
 		}
 	}
 
-	void createGameplayScene(int players) {
+	void createGameplayScene() {
 
 		if (playerAreas !is null) {
 			playerAreas = null;
 		}
 
+		const int w = renderer.windowWidth;
+		const int h = renderer.windowHeight / cast(int)activePlayers.length;
+		Font font = renderer.getFont("Noto-Regular");
 		// TODO: implement vertical split
-		for (int i = 0; i < players; i++) {
-			playerAreas ~= new GameplayArea(renderer,
-											0,
-											i < 1 ? 0 : (renderer.windowHeight / (i + 1)),
-											renderer.windowWidth,
-											renderer.windowHeight / players,
-											renderer.getFont("Noto-Regular"),
-											&playBadSound);
+		for (int i = 0; i < activePlayers.length; i++) {
+			const int x = 0;
+			const int y = i * (renderer.windowHeight / cast(int)activePlayers.length);
+			GameplayArea area = new GameplayArea(renderer,
+												 x, y, w, h,
+												 font,
+												 &playBadSound);
+			area.setPlayer(activePlayers[i], i);
+			playerAreas ~= area;
 		}
 
 		Scene gameplayScene = renderer.getScene(gameplaySceneIndex);
@@ -477,7 +481,7 @@ class OpenTaiko {
 			}
 		}
 
-		if (gameplayBinderIndex == 0) {
+		if (gameplayBinderIndex < 1) {
 			gameplayBinderIndex = inputHandler.addActionBinder();
 			inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
 			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER, &hitCenterDrum);
@@ -662,6 +666,7 @@ class OpenTaiko {
 						~ activePlayers[i + 1 .. activePlayers.length];
 		playerDisplay.updatePlayers(activePlayers);
 		playerSelectMenu = null;
+		createGameplayScene();
 		navigateMenuBack();
 	}
 	
@@ -669,6 +674,7 @@ class OpenTaiko {
 		activePlayers ~= players[playerSelectList.getActiveButtonId()];
 		playerDisplay.updatePlayers(activePlayers);
 		playerSelectMenu = null;
+		createGameplayScene();
 		navigateMenuBack();
 	}
 	
@@ -677,7 +683,7 @@ class OpenTaiko {
 											  &addPlayer,
 											  &inputFieldDest,
 											  400, 30, 0, 0);
-		
+
 		renderer.getScene(mainMenuIndex).addRenderable(extraMenuLayer, f);
 		inputHandler.setInputBinder(f.getBindings());
 		f.activate();
@@ -687,7 +693,7 @@ class OpenTaiko {
 	void addPlayer() {
 		string player = inputFieldDest.dup;
 		if (player !is null && player.length > 0) {
-			for (int i = 0; i < cast(uint)-1; i++) {
+			for (int i = 0; i <= 0x7f_ff_ff_ff; i++) {
 				if (i !in players) {
 					players[i] = new Player(player, i, null);
 					activePlayers ~= players[i];
