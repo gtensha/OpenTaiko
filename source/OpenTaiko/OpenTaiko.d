@@ -136,6 +136,7 @@ class OpenTaiko {
 		renderer = engine.gameRenderer();
 		audioMixer = engine.aMixer();
 		inputHandler = engine.iHandler();
+		inputHandler.stopTextEditing();
 
 		loadAssets(engine);
 		bindKeys(engine.iHandler);
