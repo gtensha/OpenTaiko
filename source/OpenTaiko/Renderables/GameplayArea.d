@@ -169,6 +169,9 @@ class GameplayArea : Renderable {
 		performance.setRenderableOffset(reception.rect.x, drumConveyor.rect.y, drumConveyor.rect.h);
 
 		currentPerformance = performance;
+		
+		resultDisplay = null;
+		done = false;
 	}
 	
 	public void setPlayer(Player* player, int number) {
