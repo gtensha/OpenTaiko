@@ -45,6 +45,9 @@ class GameplayArea : Renderable {
 	//protected Text player;
 	protected NameBox playerDisplay;
 	protected Text score;
+	protected Text combo;
+	protected Renderable[] resultDisplay;
+	protected bool done;
 
 	protected Textured[] drums;
 	
@@ -104,6 +107,15 @@ class GameplayArea : Renderable {
 							  OpenTaiko.guiColors.buttonTextColor.g,
 							  OpenTaiko.guiColors.buttonTextColor.b,
 							  OpenTaiko.guiColors.buttonTextColor.a);
+							  
+		this.combo = new Text("000",
+							  uiFont.get(30),
+							  true,
+							  drumConveyor.rect.x, drumConveyor.rect.y,
+							  OpenTaiko.guiColors.buttonTextColor);
+							  
+		combo.rect.y += (drumConveyor.rect.h - combo.rect.h) / 2;
+		combo.rect.x += ((reception.rect.x - drumConveyor.rect.x) - combo.rect.w) / 2;
 
 		score.rect.x = (offsetX + maxWidth - score.rect.w - 20);
 		
@@ -122,6 +134,8 @@ class GameplayArea : Renderable {
 		score.updateText(rightJustify(to!string(currentPerformance.calculateScore()),
 						 7,
 						 '0'));
+						 
+		combo.updateText(to!string(currentPerformance.score.currentCombo));
 
 		background.render();
 		header.render();
@@ -129,22 +143,23 @@ class GameplayArea : Renderable {
 		indicatorArea.render();
 		reception.render();
 		currentPerformance.render();
-		//player.render();
 		score.render();
+		combo.render();
 		hitResultEffect.render();
-		/*foreach (Textured drum ; drums) {
-			if (drum !is null) {
-				if (drum.getX > offsetX + maxWidth) {
-					break;
-				}
-				drum.render();
-			}
-		}*/
 		playerDisplay.render();
+		
+		if (done) {
+			foreach (Renderable r ; resultDisplay) {
+				r.render();
+			}
+			return;
+		}
 		
 		if (currentPerformance.checkTardiness()) {
 			this.giveHitStatus(StatusType.BAD);
 			missEventCallback();
+		} else if (currentPerformance.finished) {
+			drawResults();
 		}
 		
 	}
@@ -171,6 +186,42 @@ class GameplayArea : Renderable {
 		if (statusCode < 3 && statusCode > -1) {
 			hitResultEffect.setEffect(statusCode);
 		}
+	}
+	
+	private void drawResults() {
+		Text good = new Text("Good: " ~ to!string(currentPerformance.score.good),
+							 score.getFont(),
+							 true,
+							 drumConveyor.rect.x + 10, drumConveyor.rect.y,
+							 OpenTaiko.guiColors.buttonTextColor);
+		good.rect.y -= good.rect.h;
+		resultDisplay ~= good;
+		
+		Text ok = new Text("Ok: " ~ to!string(currentPerformance.score.ok),
+						   score.getFont(),
+						   true,
+						   good.rect.x + good.rect.w + 20, drumConveyor.rect.y,
+						   OpenTaiko.guiColors.buttonTextColor);
+		ok.rect.y -= ok.rect.h;
+		resultDisplay ~= ok;
+		
+		Text bad = new Text("Bad: " ~ to!string(currentPerformance.score.bad),
+						    score.getFont(),
+						    true,
+						    ok.rect.x + ok.rect.w + 20, drumConveyor.rect.y,
+						    OpenTaiko.guiColors.buttonTextColor);
+		bad.rect.y -= bad.rect.h;
+		resultDisplay ~= bad;
+		
+		Text combo = new Text("Max combo: " ~ to!string(currentPerformance.score.highestCombo),
+						   score.getFont(),
+						   true,
+						   bad.rect.x + bad.rect.w + 20, drumConveyor.rect.y,
+						   OpenTaiko.guiColors.buttonTextColor);
+		combo.rect.y -= combo.rect.h;
+		resultDisplay ~= combo;
+		
+		done = true;
 	}
 
 }

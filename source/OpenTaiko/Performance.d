@@ -13,6 +13,7 @@ class Performance : Renderable {
 	Timer timer;
 	Score score;
 	int i;
+	bool finished;
 
 	struct Score {
 		int good;
@@ -39,7 +40,13 @@ class Performance : Renderable {
 
 	/// Attempt to hit current drum circle and return result
 	int hit(int key) {
-		const int hitResult = drums[i].hit(key);
+		int hitResult;
+		if (i < drums.length) {
+			hitResult = drums[i].hit(key);
+		} else {
+			finished = true;
+			return Bashable.Success.IGNORE;
+		}
 		if (hitResult == Bashable.Success.GOOD) {
 			score.good++;
 			score.currentCombo++;
@@ -62,7 +69,8 @@ class Performance : Renderable {
 	// Return true if this circle should've
 	// been hit but wasn't
 	bool checkTardiness() {
-		if (i >= drums.length - 1) {
+		if (i >= drums.length) {
+			finished = true;
 			return false;
 		}
 		if (drums[i].actualPosition() + 200 < timer.getTimerPassed()) {
