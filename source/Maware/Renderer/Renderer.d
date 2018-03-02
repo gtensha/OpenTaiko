@@ -24,6 +24,8 @@ ShouldThrow myMissingSymCB(string symbolName) {
 
 /// A renderer class for creating and rendering on-screen objects and scenes
 class Renderer {
+	
+	static bool sdlIsInit;
 
 	// The parent game engine of this renderer
 	private Engine parent;
@@ -75,11 +77,13 @@ class Renderer {
 			throw new Exception(to!string("Failed to initialise SDL_ttf: "
 										  ~ fromStringz(TTF_GetError())));
 		}
-
+		
+		sdlIsInit = true;
 
 	}
 
 	~this() {
+		sdlIsInit = false;
 		foreach (SDL_Texture* texture ; textures) {
 			SDL_DestroyTexture(texture);
 		}
@@ -147,10 +151,12 @@ class Renderer {
 
 	/// Show an OS specific popup box on screen
 	public static void notifyPopUp(string msg) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
-								 toStringz(Engine.engineName),
-								 toStringz(msg),
-								 null);
+		if (sdlIsInit) {
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
+									 toStringz(Engine.engineName),
+									 toStringz(msg),
+									 null);
+		}
 	}
 
 	/// Register a new texture into the renderer with the given key from
