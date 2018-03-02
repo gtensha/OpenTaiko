@@ -8,6 +8,7 @@ import opentaiko.difficulty;
 import opentaiko.mapgen;
 import opentaiko.bashable;
 import opentaiko.performance;
+import opentaiko.gamevars;
 import opentaiko.renderable.gameplayarea;
 import opentaiko.palette;
 import opentaiko.player;
@@ -77,6 +78,7 @@ enum GUIScale : float {
 }
 
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
+enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
 
 class OpenTaiko {
 
@@ -119,6 +121,8 @@ class OpenTaiko {
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
 	
+	private GameVars options;
+	
 	private string inputFieldDest;
 	
 	static immutable ColorPalette guiColors;
@@ -134,8 +138,13 @@ class OpenTaiko {
 	public void run() {
 
 		engine = new Engine("OpenTaiko");
+		
+		loadSettings();
 
-		engine.start(1600, 900, true, "OpenTaiko v0.2");
+		engine.start(options.resolution[0], 
+					 options.resolution[1], 
+					 options.vsync, 
+					 "OpenTaiko v0.2");
 
 		renderer = engine.gameRenderer();
 		audioMixer = engine.aMixer();
@@ -226,6 +235,21 @@ class OpenTaiko {
 		RedDrum.texture = renderer.getTexture("DrumCoreRed");
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
 
+	}
+	
+	/// Loads options from settings.json into the options GameVars struct
+	void loadSettings() {
+		try {
+			options = MapGen.readConfFile(CONFIG_FILE_PATH);
+		} catch (Exception e) {
+			Engine.notify("Failed to load settings from " ~ CONFIG_FILE_PATH
+						  ~ newline ~ e.msg
+						  ~ newline ~ "Using fallback settings");
+						  
+			options.defaultKeys = [100, 102, 106, 107];
+			options.resolution = [1280, 1024];
+			options.vsync = true;
+		}
 	}
 	
 	void loadPlayers() {
@@ -438,10 +462,10 @@ class OpenTaiko {
 		i.bind(Action.MODESEL,	'\t');
 		i.bind(Action.PAUSE,	'\033');
 
-		i.bind(Action.DRUM_RIGHT_CENTER, 'j');
-		i.bind(Action.DRUM_RIGHT_RIM,	 'k');
-		i.bind(Action.DRUM_LEFT_CENTER,	 'f');
-		i.bind(Action.DRUM_LEFT_RIM,	 'd');
+		i.bind(Action.DRUM_RIGHT_CENTER, options.defaultKeys[2]);
+		i.bind(Action.DRUM_RIGHT_RIM,	 options.defaultKeys[3]);
+		i.bind(Action.DRUM_LEFT_CENTER,	 options.defaultKeys[1]);
+		i.bind(Action.DRUM_LEFT_RIM,	 options.defaultKeys[0]);
 	}
 
 	void createSongSelectMenu() {

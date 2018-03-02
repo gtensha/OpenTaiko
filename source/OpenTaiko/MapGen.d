@@ -364,6 +364,7 @@ class MapGen {
 		return songs;
 	}
 
+	/// Returns a GameVars struct reflecting the .json file from fileLoc
 	static GameVars readConfFile(string fileLoc) {
 
 		GameVars gameVars;
@@ -371,9 +372,7 @@ class MapGen {
 
 		JSONValue vars = parseJSON(input);
 
-		if (!(vars["p1"].array.length == 4
-			  &&
-			  vars["p2"].array.length == 4
+		if (!(vars["defaultKeys"].array.length == 4
 			  &&
 			  vars["resolution"].array.length == 2
 			  &&
@@ -383,13 +382,8 @@ class MapGen {
 		}
 
 		int i;
-		foreach (JSONValue key ; vars["p1"].array) {
-			gameVars.p1[i] = to!int(key.integer);
-			i++;
-		} i = 0;
-
-		foreach (JSONValue key ; vars["p2"].array) {
-			gameVars.p2[i] = to!int(key.integer);
+		foreach (JSONValue key ; vars["defaultKeys"].array) {
+			gameVars.defaultKeys[i] = to!int(key.integer);
 			i++;
 		} i = 0;
 
