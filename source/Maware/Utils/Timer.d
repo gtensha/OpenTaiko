@@ -13,21 +13,15 @@ class Timer {
 		return to!int(timers.length - 1);
 	}
 
-	// The raw time in ms
+	/// The raw time in ms
 	public shared static uint libInitPassed;
 
-	// The current ms value to calculate from
-	private uint measureFrom;
-	// The current ms value to calculate to
-	private uint measureTo;
+	/// The current ms value to calculate from
+	protected uint measureFrom;
+	/// The current ms value to calculate to
+	protected uint measureTo;
 
-	// Only allow creating from static factory method
-	private this() {
-		this.libInitPassed = 0;
-		this.measureFrom = 0;
-	}
-
-	// Refresh time and recalculate
+	/// Refresh time and recalculate
 	public static void refresh(uint currentTime) {
 		libInitPassed = currentTime;
 	}

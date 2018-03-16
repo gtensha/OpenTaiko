@@ -25,6 +25,7 @@ import std.array : array;
 import std.stdio;
 import std.ascii : newline;
 import std.container.dlist : DList;
+import std.math : sin;
 
 void main(string[] args) {
 	OpenTaiko game = new OpenTaiko();
@@ -94,6 +95,7 @@ class OpenTaiko {
 	private int gameplayBinderIndex = -1;
 	private int menuRenderableIndex;
 	private int menuRenderableLayer;
+	private int testSceneIndex;
 	private int originMenuRenderableIndex;
 	private int originMenuRenderableLayer;
 	private int extraMenuLayer;
@@ -315,7 +317,19 @@ class OpenTaiko {
 		centerInfo.rect.x = (getCenterPos(r.windowWidth, centerInfo.rect.w));
 		centerInfo.rect.y = (getCenterPos(r.windowHeight, centerInfo.rect.h));
 		r.getScene(*menuIndex).addRenderable(0, centerInfo);
-		r.getScene(*menuIndex).addRenderable(0, new Textured(r.getTexture("Soul"), 0, 0));
+		
+		Textured soul = new Textured(r.getTexture("Soul"), 0, 0);
+		IntervalTimer soulTimer = new IntervalTimer();
+		soulTimer.setInterval(1000);
+		void delegate(Timer, Solid) soulRule = (Timer timer, Solid solid){
+			const int percentage = timer.getPercentagePassed();
+			solid.rect.y = cast(int)(20 + (100 * sin(0.03142 * percentage)));
+		};
+		r.getScene(*menuIndex).addAnimatable(new Animation(soulTimer,
+														   soul,
+														   soulRule));
+		
+		r.getScene(*menuIndex).addRenderable(0, soul);
 		r.getScene(*menuIndex).addRenderable(0, new Textured(r.getTexture("NormalDrum"), 100, 100));
 		startMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.setActive(startMenuBinderIndex);
@@ -610,6 +624,10 @@ class OpenTaiko {
 		renderer.setScene(gameplaySceneIndex);
 		inputHandler.setActive(gameplayBinderIndex);
 		gameplay(activeSong, activeDifficulty);
+	}
+	
+	void switchSceneToTestScene() {
+		engine.gameRenderer.setScene(testSceneIndex);
 	}
 
 	void quitGame() {
