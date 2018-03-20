@@ -31,7 +31,7 @@ class Timer {
 		return libInitPassed - measureFrom;
 	}
 
-	// Returns percentage value of how much of the time has passed
+	/*// Returns percentage value of how much of the time has passed
 	public int getPercentagePassed() {
 		if (libInitPassed >= measureTo) {
 			return 100;
@@ -39,6 +39,17 @@ class Timer {
 			return 0;
 		} else {
 			return ((libInitPassed - measureFrom) * 100) / (measureTo - libInitPassed);
+		}
+	}*/
+	
+	/// Returns percentage value of how much of the time has passed
+	public double getPercentagePassed() {
+		if (libInitPassed >= measureTo) {
+			return 100;
+		} else if (libInitPassed <= measureFrom) {
+			return 0;
+		} else {
+			return ((libInitPassed - measureFrom) * 100.0) / (measureTo - libInitPassed);
 		}
 	}
 

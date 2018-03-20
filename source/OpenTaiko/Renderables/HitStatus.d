@@ -28,7 +28,7 @@ class HitStatus : Renderable {
 	}
 	
 	void render() {
-		const int percentage = effectTimer.getPercentagePassed();
+		const int percentage = cast(int)effectTimer.getPercentagePassed();
 		if (percentage < 100) {
 			hitStatusEffects[activeEffect].color.a = cast(ubyte)((0xff / 100) * percentage);
 			hitStatusEffects[activeEffect].render();

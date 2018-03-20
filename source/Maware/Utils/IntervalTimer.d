@@ -17,8 +17,8 @@ class IntervalTimer : Timer {
 		return passed - interval * excess;
 	}
 	
-	override public int getPercentagePassed() {
-		return cast(int)((getTimerPassed() / cast(double)interval) * 100.0);
+	override public double getPercentagePassed() {
+		return ((getTimerPassed() / cast(double)interval) * 100.0);
 	}
 	
 	/// Sets the timer's interval to the given length

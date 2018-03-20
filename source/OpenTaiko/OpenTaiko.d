@@ -314,6 +314,25 @@ class OpenTaiko {
 								   0, 0,
 								   240, 240, 240, 255);
 
+		IntervalTimer infoTimer = new IntervalTimer();
+		infoTimer.setInterval(1000);
+		immutable int w = centerInfo.rect.w;
+		immutable int h = centerInfo.rect.h;
+		void delegate(Timer, Solid) infoRule = (Timer timer, Solid solid){
+			const double percentage = timer.getPercentagePassed();
+			if (percentage >= 75) {
+				solid.rect.w = 0;
+				solid.rect.h = 0;
+			} else {
+				solid.rect.w = w;
+				solid.rect.h = h;
+			}
+		};
+		
+		r.getScene(*menuIndex).addAnimatable(new Animation(infoTimer,
+														   centerInfo,
+														   infoRule));
+								   
 		centerInfo.rect.x = (getCenterPos(r.windowWidth, centerInfo.rect.w));
 		centerInfo.rect.y = (getCenterPos(r.windowHeight, centerInfo.rect.h));
 		r.getScene(*menuIndex).addRenderable(0, centerInfo);
@@ -322,7 +341,7 @@ class OpenTaiko {
 		IntervalTimer soulTimer = new IntervalTimer();
 		soulTimer.setInterval(1000);
 		void delegate(Timer, Solid) soulRule = (Timer timer, Solid solid){
-			const int percentage = timer.getPercentagePassed();
+			const double percentage = timer.getPercentagePassed();
 			solid.rect.y = cast(int)(20 + (100 * sin(0.03142 * percentage)));
 		};
 		r.getScene(*menuIndex).addAnimatable(new Animation(soulTimer,
@@ -330,7 +349,7 @@ class OpenTaiko {
 														   soulRule));
 		
 		r.getScene(*menuIndex).addRenderable(0, soul);
-		r.getScene(*menuIndex).addRenderable(0, new Textured(r.getTexture("NormalDrum"), 100, 100));
+		
 		startMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.setActive(startMenuBinderIndex);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
@@ -454,6 +473,35 @@ class OpenTaiko {
 										  
 		
 		s.addRenderable(1, playerDisplay);
+		
+		Text greeting = new Text("Welcome to OpenTaiko!",
+								 renderer.getFont("Noto-Light").get(24),
+								 true,
+								 0, 0,
+								 guiColors.buttonTextColor);
+		
+		greeting.rect.y = renderer.windowHeight - greeting.rect.h - 1;
+		
+		Timer dummyTimer = new Timer();
+		immutable int initX = 0 - greeting.rect.w;
+		immutable int maxX = renderer.windowWidth;
+		void delegate(Timer, Solid) greetingRule = (Timer timer, Solid solid){
+			const int passed = timer.getTimerPassed();
+			if (passed < 12) {
+				return;
+			}
+
+			solid.rect.x += passed / 12;
+			if (solid.rect.x > maxX) {
+				solid.rect.x = initX;
+			}
+			timer.set(Timer.libInitPassed);
+		};
+		
+		s.addRenderable(1, greeting);
+		s.addAnimatable(new Animation(dummyTimer,
+									  greeting,
+									  greetingRule));
 
 		mainMenuBinderIndex = engine.iHandler.addActionBinder();
 		inputHandler.bindAction(mainMenuBinderIndex, Action.PAUSE, &navigateMenuBack);
