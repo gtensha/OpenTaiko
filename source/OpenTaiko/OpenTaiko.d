@@ -122,8 +122,11 @@ class OpenTaiko {
 	private Performance[] currentPerformances;
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
+	private string assetDir = ASSET_DIR ~ ASSETS_DEFAULT;
 	
 	private GameVars options;
+	private bool titleMusicEnabled;
+	private bool menuMusicEnabled;
 	
 	private string inputFieldDest;
 	
@@ -161,6 +164,7 @@ class OpenTaiko {
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
 		createGameplayScene();
+		switchSceneToStartMenu();
 		//engine.gameRenderer.setScene(startMenuIndex);
 
 		int eventCode;
@@ -220,7 +224,7 @@ class OpenTaiko {
 
 	void loadAssets(Engine e) {
 
-		e.loadAssets(openTaikoAssets(), ASSET_DIR.DEFAULT);
+		e.loadAssets(openTaikoAssets(), assetDir);
 
 		renderer.colorTexture("DrumCoreRed", 
 							  guiColors.redDrumColor.r, 
@@ -236,6 +240,25 @@ class OpenTaiko {
 		Drum.renderer = renderer.renderer;
 		RedDrum.texture = renderer.getTexture("DrumCoreRed");
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
+		try {
+			audioMixer.registerMusic("title-loop", assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE);
+			titleMusicEnabled = true;
+		} catch (Exception e) {
+			try {
+				audioMixer.registerMusic("title-loop", ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE);
+				titleMusicEnabled = true;
+			} catch (Exception e) {}
+		}
+		try {
+			audioMixer.registerMusic("menu-loop", assetDir ~ ASSETS_BGM ~ ASSETS_BGM_MENU);
+			menuMusicEnabled = true;
+		} catch (Exception e) {
+			try {
+				audioMixer.registerMusic("menu-loop", ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_MENU);
+				menuMusicEnabled = true;
+			} catch (Exception e) {}
+		}
+		
 
 	}
 	
@@ -426,7 +449,7 @@ class OpenTaiko {
 		testList.addButton("List option 4", 3, null, null);
 		testList.addButton("List option 5", 4, null, null);
 									   
-		playerSelectMenu.addButton("Single play", 0, songSelectMenu, null);
+		playerSelectMenu.addButton("Single play", 0, songSelectMenu, &audioMixer.pauseMusic);
 		playerSelectMenu.addButton("Multi play", 1, null, null);
 		playerSelectMenu.addButton("Back", 2, null, &navigateMenuBack);
 
@@ -660,12 +683,18 @@ class OpenTaiko {
 		engine.gameRenderer.setScene(mainMenuIndex);
 		engine.iHandler.setActive(mainMenuBinderIndex);
 		engine.aMixer.playSFX(0);
+		if (menuMusicEnabled) {
+			audioMixer.playTrackLooped("menu-loop");
+		}
 		switchToPlayMenu();
 	}
 
 	void switchSceneToStartMenu() {
 		engine.gameRenderer.setScene(startMenuIndex);
 		engine.iHandler.setActive(startMenuBinderIndex);
+		if (titleMusicEnabled) {
+			audioMixer.playTrackLooped("title-loop");
+		}
 	}
 
 	void switchSceneToGameplayScene() {

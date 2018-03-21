@@ -78,6 +78,15 @@ class AudioMixer {
 			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
 						  			~ fromStringz(Mix_GetError())));
 		}
+		resumeMusic();
+	}
+	
+	public void playTrackLooped(string title) {
+		if (Mix_PlayMusic(music[title], -1) < 0) {
+			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
+						  			~ fromStringz(Mix_GetError())));
+		}
+		resumeMusic();
 	}
 
 	// Pauses any currently playing music

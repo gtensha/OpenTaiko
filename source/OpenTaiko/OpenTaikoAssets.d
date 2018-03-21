@@ -2,9 +2,11 @@ module opentaiko.assets;
 
 import maware.assets;
 
-enum ASSET_DIR : string {
-	DEFAULT = "assets/default/",
-};
+enum ASSET_DIR = "assets/"; /// Folder path for asset directory
+enum ASSETS_BGM = "bgm/"; /// Subfolder for background music
+enum ASSETS_BGM_TITLE = "title.ogg"; /// Filename for title music loop
+enum ASSETS_BGM_MENU = "menu.ogg"; /// Filename for menu music loop
+enum ASSETS_DEFAULT = "default/"; /// Default asset folder
 
 static Assets openTaikoAssets() {
 	return immutable Assets(["RedDrum" 		 : "red.png",
