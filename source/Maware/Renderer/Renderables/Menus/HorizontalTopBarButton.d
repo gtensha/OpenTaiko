@@ -63,7 +63,7 @@ class HorizontalTopBarButton : Button {
 			if (x <= 60) {
 				percentagePassed = 100 * sin(x / (120 / PI) - PI / 2) + 100;
 			} else {
-				percentagePassed = 20 * cos(x / (40 / PI) - PI) + 100;
+				percentagePassed = 10 * cos(x / (40 / PI) - PI) + 100;
 			}
 		} else {
 			percentagePassed = 100;
