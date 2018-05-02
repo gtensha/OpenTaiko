@@ -17,6 +17,7 @@ import opentaiko.gamevars;
 import opentaiko.difficulty;
 import opentaiko.performance;
 import opentaiko.player;
+import opentaiko.keybinds;
 
 enum {
 	string MAP_DIR = "maps/",
@@ -26,7 +27,7 @@ enum {
 	int RED2 = 1,
 	int BLUE1 = 2,
 	int BLUE2 = 3,
-};
+}
 
 class MapGen {
 
@@ -456,5 +457,37 @@ class MapGen {
 		}
 		
 	}
+	
+	/// Read key bindings from fileLoc and return array of Keybinds[] values
+	static Keybinds[] readKeybindsFile(string fileLoc) {
+
+		Keybinds[] playerBinds;
+		isFile(fileLoc);
+		
+		JSONValue vars = parseJSON(cast(string)read(fileLoc));
+		
+		foreach (JSONValue binds ; vars["bindings"].array) {
+			Keybinds bindings;
+			const(JSONValue)* keyboard = "keyboard" in binds;
+			if (keyboard !is null) {
+				JSONValue keyboardz = *keyboard;
+				foreach (int i, JSONValue key ; keyboardz.array) {
+					bindings.keyboard.drumKeys[i] = cast(int)key.integer;
+				}
+			}
+			
+			const(JSONValue)* controller = "controller" in binds;
+			if (controller !is null) {
+				JSONValue controllerz = *controller;
+				foreach (int i, JSONValue button ; controllerz.array) {
+					bindings.controller.drumKeys[i] = cast(int)button.integer;
+				}
+			}
+			playerBinds ~= bindings;
+		}
+		
+		return playerBinds;		
+		
+	}	
 	
 }

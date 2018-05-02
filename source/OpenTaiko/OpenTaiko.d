@@ -15,6 +15,7 @@ import opentaiko.player;
 import opentaiko.playerdisplay;
 import opentaiko.textinputfield;
 import opentaiko.browsablelist : BrowsableList;
+import opentaiko.keybinds;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -63,6 +64,9 @@ enum Action : int {
 
 }
 
+/// How much the next player's drum action codes are offset from the previous'
+enum DRUM_ACTION_OFFSET = 4;
+
 /// Various size dimensions for GUI elements
 enum GUIDimensions {
 	TOP_BAR_HEIGHT = 80,
@@ -74,12 +78,13 @@ enum GUIDimensions {
 }
 
 /// GUI Scale sizes
-enum GUIScale : float {
+enum GUIScale : double {
 	BROWSABLELIST_MAX_HEIGHT = 0.75, // of screen height
 }
 
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
+enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
 
 class OpenTaiko {
 
@@ -119,6 +124,7 @@ class OpenTaiko {
 	private string[] playerNames;
 	private Player*[int] players;
 	private Player*[] activePlayers;
+	private Keybinds[] playerKeybinds;
 	private Performance[] currentPerformances;
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
@@ -157,6 +163,7 @@ class OpenTaiko {
 		inputHandler.stopTextEditing();
 
 		loadAssets(engine);
+		gameplayBinderIndex = inputHandler.addActionBinder();
 		bindKeys(engine.iHandler);
 		songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
 		loadPlayers();
@@ -183,7 +190,7 @@ class OpenTaiko {
 	/// The next frames rendered will be those of the gameplay
 	void gameplay(Song song, Difficulty diff) {
 
-		if (activePlayers.length < 1) { // in the future, we can autoplay map instead
+		if (activePlayers.length < 1) { // TODO: in the future, we can autoplay map instead
 			throw new Exception("No players registered");
 		}
 		
@@ -264,6 +271,7 @@ class OpenTaiko {
 	
 	/// Loads options from settings.json into the options GameVars struct
 	void loadSettings() {
+		const int[4] fallbackKeys = [100, 102, 106, 107]; // dfjk
 		try {
 			options = MapGen.readConfFile(CONFIG_FILE_PATH);
 		} catch (Exception e) {
@@ -271,9 +279,20 @@ class OpenTaiko {
 						  ~ newline ~ e.msg
 						  ~ newline ~ "Using fallback settings");
 						  
-			options.defaultKeys = [100, 102, 106, 107];
+			options.defaultKeys = fallbackKeys;
 			options.resolution = [1280, 1024];
 			options.vsync = true;
+		}
+		
+		try {
+			playerKeybinds = MapGen.readKeybindsFile(KEYBINDS_FILE_PATH);
+		} catch (Exception e) {
+			Engine.notify("Failed to load key mappings from " ~ KEYBINDS_FILE_PATH
+						  ~ newline ~ e.msg
+						  ~ newline ~ "Using fallback keys (d f j k)");
+			Keybinds bindings;
+			bindings.keyboard.drumKeys = fallbackKeys;
+			playerKeybinds ~= bindings;
 		}
 	}
 	
@@ -537,7 +556,9 @@ class OpenTaiko {
 
 	}
 
+	/// Bind input actions and player keybindings from the playerKeybinds array
 	void bindKeys(InputHandler i) {
+		// TODO: rebindable action keys
 		i.bind(Action.RIGHT, 	1073741903);
 		i.bind(Action.LEFT, 	1073741904);
 		i.bind(Action.DOWN, 	1073741905);
@@ -546,11 +567,26 @@ class OpenTaiko {
 		i.bind(Action.BACK, 	'\b');
 		i.bind(Action.MODESEL,	'\t');
 		i.bind(Action.PAUSE,	'\033');
-
-		i.bind(Action.DRUM_RIGHT_CENTER, options.defaultKeys[2]);
-		i.bind(Action.DRUM_RIGHT_RIM,	 options.defaultKeys[3]);
-		i.bind(Action.DRUM_LEFT_CENTER,	 options.defaultKeys[1]);
-		i.bind(Action.DRUM_LEFT_RIM,	 options.defaultKeys[0]);
+		
+		void delegate() makeHitClosure(int player, int variant) {
+			return {hitDrum(player, variant);};
+		}
+		
+		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
+		
+		for (int ii; ii < playerKeybinds.length; ii++) {
+		    const int offset = ii * DRUM_ACTION_OFFSET;
+		    i.bind(Action.DRUM_RIGHT_CENTER + offset, 	playerKeybinds[ii].keyboard.drumKeys[2]);
+		    i.bind(Action.DRUM_RIGHT_RIM + offset,	 	playerKeybinds[ii].keyboard.drumKeys[3]);
+		    i.bind(Action.DRUM_LEFT_CENTER + offset,	playerKeybinds[ii].keyboard.drumKeys[1]);
+		    i.bind(Action.DRUM_LEFT_RIM + offset,		playerKeybinds[ii].keyboard.drumKeys[0]);
+			void delegate() hitCenter = makeHitClosure(ii, Drum.Type.RED);
+			void delegate() hitRim = makeHitClosure(ii, Drum.Type.BLUE);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenter);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenter);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRim);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRim);
+		}
 	}
 
 	void createSongSelectMenu() {
@@ -614,15 +650,6 @@ class OpenTaiko {
 			foreach (GameplayArea gameplayArea ; playerAreas) {
 				gameplayScene.addRenderable(0, gameplayArea);
 			}
-		}
-
-		if (gameplayBinderIndex < 1) {
-			gameplayBinderIndex = inputHandler.addActionBinder();
-			inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER, &hitCenterDrum);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER, &hitCenterDrum);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM, &hitRimDrum);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM, &hitRimDrum);
 		}
 
 	}
@@ -779,10 +806,7 @@ class OpenTaiko {
 	
 	void popupPlayerRemoveSelection() {
 		const string message = "Select player to remove";
-		bool proceed = true;
-		if (activePlayers.length < 1) {
-			proceed = false;
-		}
+		bool proceed = activePlayers.length > 0;
 		makeSelectionList(proceed ? message : "Add a player first!");
 		BrowsableList list = cast(BrowsableList)activeMenuStack.front();
 		playerSelectList = list;
@@ -879,6 +903,9 @@ class OpenTaiko {
 	
 	void hitDrum(int playerNum, int key) {
 		audioMixer.playSFX(key);
+		if (playerNum > currentPerformances.length - 1) {
+			return;		
+		}		
 		Performance current = currentPerformances[playerNum];
 		int hitResult;
 		if (!current.finished) {
