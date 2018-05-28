@@ -16,6 +16,7 @@ import opentaiko.playerdisplay;
 import opentaiko.textinputfield;
 import opentaiko.browsablelist : BrowsableList;
 import opentaiko.keybinds;
+import opentaiko.renderable.inputbox;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -104,6 +105,7 @@ class OpenTaiko {
 	private int originMenuRenderableIndex;
 	private int originMenuRenderableLayer;
 	private int extraMenuLayer;
+	private int inputFieldIndex;
 
 	private DList!Traversable activeMenuStack;
 	private DList!Traversable previousMenuStack;
@@ -115,7 +117,7 @@ class OpenTaiko {
 	private Menu settingsMenu;
 	private SongSelectMenu songSelectMenu;
 	private PlayerDisplay playerDisplay;
-	private TextInputField testField;
+	private InputBox testField;
 	private BrowsableList playerSelectList;
 
 	private Song[] songs;
@@ -461,6 +463,17 @@ class OpenTaiko {
 
 		BrowsableList testList = new BrowsableList(r.getFont("Noto-Light"),
 												   300, 30, 200, 100, 100);
+
+		testField = new InputBox("TestBox",
+								 r.getFont("Noto-Bold"),
+								 {
+									inputHandler.stopTextEditing(); 
+									renderer.getScene(mainMenuIndex).clearLayer(extraMenuLayer);
+								 },
+								 &hideTextInputField,
+								 null,
+								 r.windowWidth - 20, 80,
+								 10, r.windowHeight / 2);
 													 
 		testList.addButton("List option 1", 0, null, null);
 		testList.addButton("List option 2", 1, null, null);
@@ -474,23 +487,15 @@ class OpenTaiko {
 
 		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
 		playMenu.addButton("High scores", 1, null, null);
-		playMenu.addButton("Test text input", 3, null, &testEditing);
+		playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
 		playMenu.addButton("Test BrowseableList", 4, testList, null);
 		
 		playersMenu.addButton("Add player", 0, null, &popupPlayerSelection);
 		playersMenu.addButton("Remove player", 1, null, &popupPlayerRemoveSelection);
-		
-		testField = new TextInputField(r.getFont("Noto-Bold"),
-									   null,
-									   null,
-									   400, 30,
-									   0, r.windowHeight - 60);
 												 
-		s.addRenderable(0, testField);
+		//s.addRenderable(0, testField);
 
-
-
-		engine.iHandler.setInputBinder(testField.getBindings());
+		//engine.iHandler.setInputBinder(testField.inputField.getBindings());
 		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
 		settingsMenu = new VerticalMenu("Play",
@@ -848,7 +853,16 @@ class OpenTaiko {
 	}
 	
 	void doNameEntry() {
-		TextInputField f = new TextInputField(renderer.getFont("Noto-Light"),
+		popupTextInputField(new InputBox("Enter player name",
+		                                 renderer.getFont("Noto-Light"),
+		                                 &addPlayer,
+										 &hideTextInputField,
+										 &inputFieldDest,
+										 renderer.windowWidth - 2 * GUIDimensions.TEXT_SPACING,
+										 80,
+										 GUIDimensions.TEXT_SPACING,
+										 renderer.windowHeight / 2));
+		/*TextInputField f = new TextInputField(renderer.getFont("Noto-Light"),
 											  &addPlayer,
 											  &inputFieldDest,
 											  400, 30, 0, 0);
@@ -856,8 +870,22 @@ class OpenTaiko {
 		renderer.getScene(mainMenuIndex).addRenderable(extraMenuLayer, f);
 		inputHandler.setInputBinder(f.getBindings());
 		f.activate();
+		inputHandler.enableTextEditing();*/
+	}
+	
+	/// Show the box on screen and activate it
+	void popupTextInputField(InputBox box) {
+		inputFieldIndex = renderer.getScene(mainMenuIndex).addRenderable(extraMenuLayer, box);
+		inputHandler.setInputBinder(box.inputField.getBindings());
+		box.inputField.activate();
 		inputHandler.enableTextEditing();
 	}
+	
+	/// Hide the displayed text box. inputFieldIndex must be set before call!
+	void hideTextInputField() {
+		renderer.getScene(mainMenuIndex).removeRenderable(extraMenuLayer, 
+		                                                  inputFieldIndex);
+	}	
 	
 	void addPlayer() {
 		string player = inputFieldDest.dup;
@@ -873,7 +901,7 @@ class OpenTaiko {
 			shouldWritePlayerList = true;
 			writeValues();
 		}
-		inputHandler.stopTextEditing();
+		hideTextInputField();
 		navigateMenuBack();
 	}
 	
@@ -940,7 +968,7 @@ class OpenTaiko {
 	}
 	
 	void testEditing() {
-		testField.activate();
+		testField.inputField.activate();
 		inputHandler.enableTextEditing();
 	}
 

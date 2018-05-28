@@ -17,6 +17,7 @@ struct TextInputBinder {
 	void delegate() eraseCharacter; /// Called to erase a character
 	void delegate(bool) moveCursor; /// Called to move the cursor's position
 	void delegate() commit; /// Called on enter press
+	void delegate() cancel; /// Called on escape press (cancel)
 	SDL_Rect* inputField; /// Set to whereever the input field is located
 }
 
@@ -57,11 +58,11 @@ class InputHandler {
 						doAction(*binding);
 						return *binding;
 					}
-				} else {
+				} else { // TODO: non-hardcoded editing keys
 					if (event.key.keysym.sym == SDLK_BACKSPACE && !typing) {
 						inputBinder.eraseCharacter();
 					} else if (event.key.keysym.sym == SDLK_ESCAPE) {
-						stopTextEditing();
+						cancelTextEditing();
 					} else if (event.key.keysym.sym == SDLK_RETURN && !typing) {
 						if (!enterPressed) {
 							enterPressed = true; // need enter twice
@@ -161,10 +162,18 @@ class InputHandler {
 		isTextEditing = true;
 	}
 	
+	/// Calls the cancel delegate and stops editing
+	private void cancelTextEditing() {
+		if (inputBinder.cancel !is null) {
+			inputBinder.cancel();		
+		}
+		stopTextEditing();
+	}	
+	
 	/// Stops registering text input
 	public void stopTextEditing() {
 		SDL_StopTextInput();
-		isTextEditing = false;
+		isTextEditing = false;		
 	}
 
 }
