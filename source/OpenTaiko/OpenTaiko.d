@@ -167,7 +167,7 @@ class OpenTaiko {
 		loadAssets(engine);
 		gameplayBinderIndex = inputHandler.addActionBinder();
 		bindKeys(engine.iHandler);
-		songs = MapGen.readSongDatabase(MAP_DIR ~ "maps.json");
+		songs = MapGen.readSongDatabase();
 		loadPlayers();
 		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
@@ -202,7 +202,7 @@ class OpenTaiko {
 
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
-			Bashable[] map = MapGen.parseMapFromFile(song.title ~ "/" ~ diff.name ~ ".otfm");
+			Bashable[] map = MapGen.parseMapFromFile(song.directory ~ "/" ~ diff.name ~ ".otfm");
 			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0);
 			playerAreas[i].setPerformance(currentPerformances[i]);
 			//playerAreas[i].setPlayer(players[i], i);
@@ -463,7 +463,7 @@ class OpenTaiko {
 
 		BrowsableList testList = new BrowsableList(r.getFont("Noto-Light"),
 												   300, 30, 200, 100, 100);
-
+		
 		testField = new InputBox("TestBox",
 								 r.getFont("Noto-Bold"),
 								 {
@@ -498,7 +498,7 @@ class OpenTaiko {
 		//engine.iHandler.setInputBinder(testField.inputField.getBindings());
 		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
-		settingsMenu = new VerticalMenu("Play",
+		settingsMenu = new VerticalMenu("Settings",
 										r.getFont("Noto-Light"),
 										r.windowWidth / 3,
 										60,
@@ -507,10 +507,43 @@ class OpenTaiko {
 										guiColors.activeButtonColor,
 										guiColors.buttonTextColor);
 
+		VerticalMenu importMenu;
+										
+		importMenu =   new VerticalMenu("Import...",
+										r.getFont("Noto-Light"),
+										r.windowWidth / 3,
+										60,
+										10,
+										newMenu.getH + 20,
+										guiColors.activeButtonColor,
+										guiColors.buttonTextColor);
 
-
-		settingsMenu.addButton("Name entry", 0, null, null);
+		settingsMenu.addButton("Import map", 0, importMenu, null);
 		settingsMenu.addButton("Vsync", 1, null, null);
+
+		void delegate(int) importCallback = (int mode) {
+			try {
+				MapGen.extractOSZ(inputFieldDest);
+			} catch (Exception e) {
+				Engine.notify("Failed to import map: " ~ e.toString());
+				return;
+			}
+			Engine.notify("Map successfully imported.");
+		};
+		
+		InputBox pathField;
+		pathField = new InputBox("Enter path to file (or CTRL+V/SHIFT+INSERT)",
+								 r.getFont("Noto-Light"),
+								 {
+									inputHandler.stopTextEditing(); 
+									importCallback(0);
+								 },
+								 &hideTextInputField,
+								 &inputFieldDest,
+								 r.windowWidth - 20, 80,
+								 10, r.windowHeight / 2);
+								
+		importMenu.addButton("Import from .osz", 0, null, {popupTextInputField(pathField);});
 		
 		playerDisplay = new PlayerDisplay(activePlayers,
 										  r.getFont("Noto-Light"),
@@ -518,6 +551,7 @@ class OpenTaiko {
 										  GUIDimensions.TOP_BAR_HEIGHT,
 										  r.windowWidth, 0);
 										  
+		// TODO: easier menu creation...
 		
 		s.addRenderable(1, playerDisplay);
 		
@@ -606,14 +640,17 @@ class OpenTaiko {
 											renderer.getFont("Noto-Light"),
 											x, y, w, h);
 		foreach (Song song ; songs) {
-			try {
-				renderer.registerTexture("Thumb_" ~ song.title,
-										 MAP_DIR ~ song.title ~ "/thumb.png");
-
-				songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
-			} catch (Exception e) {
-				songSelectMenu.addItem(song, renderer.getTexture("Default-Thumb"));
+			string artPath = MapGen.findImage(song.directory);
+			if (artPath !is null) {		
+			    try {
+				    renderer.registerTexture("Thumb_" ~ song.title,
+										     artPath);
+    
+				    songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
+					continue;
+			    } catch (Exception e) {}			
 			}
+			songSelectMenu.addItem(song, renderer.getTexture("Default-Thumb"));			
 		}
 	}
 
@@ -954,10 +991,10 @@ class OpenTaiko {
 	
 	void playSong(Song song) {
 		audioMixer.pauseMusic();
-		if (song.title !in audioMixer.music) {
+		if (song.directory !in audioMixer.music) {
 			try {
 				audioMixer.registerMusic(song.title, 
-										 MAP_DIR ~ song.title ~ "/" ~ song.src);
+										 song.directory ~ "/" ~ song.src);
 			} catch (Exception e) {
 				//Engine.notify(e.msg);
 				return;
