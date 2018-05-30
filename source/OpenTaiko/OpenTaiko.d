@@ -30,13 +30,21 @@ import std.container.dlist : DList;
 import std.math : sin;
 
 void main(string[] args) {
+
+	Engine.initialise();
+
 	OpenTaiko game = new OpenTaiko();
 
 	try {
 		game.run();
 	} catch (Throwable e) {
 		Engine.notify(e.toString());
+		return;
 	}
+
+	game.destroy();
+
+	Engine.deInitialise();
 }
 
 /**
@@ -146,6 +154,10 @@ class OpenTaiko {
 	
 	static this() {
 		guiColors = standardPalette;
+	}
+
+	~this() {
+		engine.destroy();
 	}
 
 	public void run() {
@@ -614,11 +626,11 @@ class OpenTaiko {
 		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
 		
 		for (int ii; ii < playerKeybinds.length; ii++) {
-		    const int offset = ii * DRUM_ACTION_OFFSET;
-		    i.bind(Action.DRUM_RIGHT_CENTER + offset, 	playerKeybinds[ii].keyboard.drumKeys[2]);
-		    i.bind(Action.DRUM_RIGHT_RIM + offset,	 	playerKeybinds[ii].keyboard.drumKeys[3]);
-		    i.bind(Action.DRUM_LEFT_CENTER + offset,	playerKeybinds[ii].keyboard.drumKeys[1]);
-		    i.bind(Action.DRUM_LEFT_RIM + offset,		playerKeybinds[ii].keyboard.drumKeys[0]);
+			const int offset = ii * DRUM_ACTION_OFFSET;
+			i.bind(Action.DRUM_RIGHT_CENTER + offset, 	playerKeybinds[ii].keyboard.drumKeys[2]);
+			i.bind(Action.DRUM_RIGHT_RIM + offset,	 	playerKeybinds[ii].keyboard.drumKeys[3]);
+			i.bind(Action.DRUM_LEFT_CENTER + offset,	playerKeybinds[ii].keyboard.drumKeys[1]);
+			i.bind(Action.DRUM_LEFT_RIM + offset,		playerKeybinds[ii].keyboard.drumKeys[0]);
 			void delegate() hitCenter = makeHitClosure(ii, Drum.Type.RED);
 			void delegate() hitRim = makeHitClosure(ii, Drum.Type.BLUE);
 			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenter);
@@ -642,13 +654,13 @@ class OpenTaiko {
 		foreach (Song song ; songs) {
 			string artPath = MapGen.findImage(song.directory);
 			if (artPath !is null) {		
-			    try {
-				    renderer.registerTexture("Thumb_" ~ song.title,
-										     artPath);
+				try {
+					renderer.registerTexture("Thumb_" ~ song.title,
+											 artPath);
     
-				    songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
+					songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
 					continue;
-			    } catch (Exception e) {}			
+				} catch (Exception e) {}			
 			}
 			songSelectMenu.addItem(song, renderer.getTexture("Default-Thumb"));			
 		}
@@ -891,8 +903,8 @@ class OpenTaiko {
 	
 	void doNameEntry() {
 		popupTextInputField(new InputBox("Enter player name",
-		                                 renderer.getFont("Noto-Light"),
-		                                 &addPlayer,
+										 renderer.getFont("Noto-Light"),
+										 &addPlayer,
 										 &hideTextInputField,
 										 &inputFieldDest,
 										 renderer.windowWidth - 2 * GUIDimensions.TEXT_SPACING,
@@ -921,7 +933,7 @@ class OpenTaiko {
 	/// Hide the displayed text box. inputFieldIndex must be set before call!
 	void hideTextInputField() {
 		renderer.getScene(mainMenuIndex).removeRenderable(extraMenuLayer, 
-		                                                  inputFieldIndex);
+														  inputFieldIndex);
 	}	
 	
 	void addPlayer() {

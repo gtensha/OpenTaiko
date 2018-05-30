@@ -8,7 +8,11 @@ import std.conv : to;
 import derelict.sdl2.sdl : SDL_GetError;
 import derelict.sdl2.mixer;
 
+/// A class for playing music and SFX using SDL_Mixer.
+/// Must be initialised before using; see initialise()
 class AudioMixer {
+
+	private static bool isInit;
 
 	// The parent game engine of this AudioMixer
 	private Engine parent;
@@ -17,8 +21,9 @@ class AudioMixer {
 	Mix_Chunk*[256] sfx;
 	Mix_Music*[string] music;
 
-	this(Engine parent) {
-		this.parent = parent;
+	/// Attempt loading the SDL_Mixer library. Needed to successfully construct
+	/// an object of this class. Throws exceptions on load failure.
+	static void initialise(int frequency, ushort format, int channels) {
 
 		try {
 			DerelictSDL2Mixer.load();
@@ -26,9 +31,9 @@ class AudioMixer {
 			throw new Exception("Failed to load SDL_Mixer: " ~ e.msg);
 		}
 
-		if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,
-						  MIX_DEFAULT_FORMAT,
-						  MIX_DEFAULT_CHANNELS,
+		if (Mix_OpenAudio(frequency,
+						  format,
+						  channels,
 						  1024) < 0) {
 
 			throw new Exception(to!string("Failed to load SDL_Mixer: "
@@ -36,6 +41,36 @@ class AudioMixer {
 		}
 
 		Mix_AllocateChannels(sfx.length);
+
+		isInit = true;
+
+	}
+
+	/// Call initialise with default frequency, format and channel count
+	static void initialise() {
+		initialise(MIX_DEFAULT_FREQUENCY,
+				   MIX_DEFAULT_FORMAT,
+				   MIX_DEFAULT_CHANNELS);
+	}
+
+	/// Closes the audio library. Do this only after all resources made by
+	/// this class have been freed!
+	static void deInitialise() {
+		Mix_CloseAudio();
+	}
+
+	this(Engine parent) {
+
+		if (!isInit) {
+			throw new Exception("Library was not initialised");
+		}
+
+		if (parent is null) {
+			throw new Exception("Parent cannot be null");
+		} else {
+			this.parent = parent;
+		}
+
 	}
 
 	~this() {

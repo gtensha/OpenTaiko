@@ -9,7 +9,7 @@ import maware.util.timer;
 import maware.assets;
 import std.conv : to;
 
-// A class for handling rendering and audio playback
+/// A class for handling rendering and audio playback
 class Engine {
 
 	private string title;
@@ -22,8 +22,26 @@ class Engine {
 
 	private uint notifyBinderIndex;
 
+	/// Load libraries needed for Renderer and AudioMixer
+	static void initialise() {
+		Renderer.initialise();
+		AudioMixer.initialise();
+	}
+
+	/// Deinitialise libraries needed by Renderer and AudioMixer
+	static void deInitialise() {
+		Renderer.deInitialise();
+		AudioMixer.deInitialise();
+	}
+
 	this(string title) {
 		this.title = title;
+	}
+
+	~this() {
+		renderer.destroy();
+		audioMixer.destroy();
+		inputHandler.destroy();
 	}
 
 	// Starts the engine
