@@ -1,142 +1,43 @@
-module maware.audiomixer;
+module maware.audio.mixer;
 
-import maware.engine;
+/// An interface for a class implementing an AudioMixer; handling sound effect
+/// and music playback.
+interface AudioMixer {
 
-import std.string : fromStringz, toStringz;
-import std.conv : to;
+	/// Attempt loading the Mixer library
+	static void initialise();
 
-import derelict.sdl2.sdl : SDL_GetError;
-import derelict.sdl2.mixer;
+	/// Closes the audio library
+	static void deInitialise();
 
-/// A class for playing music and SFX using SDL_Mixer.
-/// Must be initialised before using; see initialise()
-class AudioMixer {
+	/// Register a sound effect into the system
+	public void registerSFX(int id, string src);
 
-	private static bool isInit;
+	/// Register a music track into the system
+	public void registerMusic(string title, string src);
 
-	// The parent game engine of this AudioMixer
-	private Engine parent;
+	public bool isRegistered(string track);
 
-	// AAs of all registered sound effects and music
-	Mix_Chunk*[256] sfx;
-	Mix_Music*[string] music;
+	/// Gets the position (in ms) of any playing or paused music, < 1 if not
+	/// playing
+	public int getMusicPosition();
 
-	/// Attempt loading the SDL_Mixer library. Needed to successfully construct
-	/// an object of this class. Throws exceptions on load failure.
-	static void initialise(int frequency, ushort format, int channels) {
+	/// Plays the already registered music track with the given title, looping
+	/// loop times (or loop < 1, infinite loop)
+	public void playTrack(string title, int loop);
 
-		try {
-			DerelictSDL2Mixer.load();
-		} catch (Exception e) {
-			throw new Exception("Failed to load SDL_Mixer: " ~ e.msg);
-		}
+	public void playTrackLooped(string);
 
-		if (Mix_OpenAudio(frequency,
-						  format,
-						  channels,
-						  1024) < 0) {
+	/// Pauses any currently playing music
+	public void pauseMusic();
 
-			throw new Exception(to!string("Failed to load SDL_Mixer: "
-										  ~ fromStringz(Mix_GetError())));
-		}
+	/// Stops any currently playing or paused music (rewinds it, unqueues it)
+	public void stopMusic();
 
-		Mix_AllocateChannels(sfx.length);
+	/// Resume playback of any paused music
+	public void resumeMusic();
 
-		isInit = true;
-
-	}
-
-	/// Call initialise with default frequency, format and channel count
-	static void initialise() {
-		initialise(MIX_DEFAULT_FREQUENCY,
-				   MIX_DEFAULT_FORMAT,
-				   MIX_DEFAULT_CHANNELS);
-	}
-
-	/// Closes the audio library. Do this only after all resources made by
-	/// this class have been freed!
-	static void deInitialise() {
-		Mix_CloseAudio();
-	}
-
-	this(Engine parent) {
-
-		if (!isInit) {
-			throw new Exception("Library was not initialised");
-		}
-
-		if (parent is null) {
-			throw new Exception("Parent cannot be null");
-		} else {
-			this.parent = parent;
-		}
-
-	}
-
-	~this() {
-		foreach (Mix_Chunk* effect ; sfx) {
-			if (effect !is null)
-				Mix_FreeChunk(effect);
-		}
-
-		foreach (Mix_Music* track ; music) {
-			Mix_FreeMusic(track);
-		}
-
-		Mix_CloseAudio();
-	}
-
-	// Register a sound effect into the system
-	public void registerSFX(int id, string src) {
-
-		Mix_Chunk* temp = Mix_LoadWAV(toStringz(src));
-		if (temp is null) {
-			throw new Exception(to!string(fromStringz(Mix_GetError())));
-		}
-		sfx[id] = temp;
-	}
-
-	// Register a music track into the system
-	public void registerMusic(string title, string src) {
-
-		Mix_Music* temp = Mix_LoadMUS(toStringz(src));
-		if (temp is null) {
-			throw new Exception(to!string(fromStringz(Mix_GetError())));
-		}
-		music[title] = temp;
-	}
-
-	// Plays the already registered music track with the given title
-	public void playTrack(string title) {
-		//Mix_PauseMusic();
-		if (Mix_PlayMusic(music[title], 1) < 0) {
-			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
-						  			~ fromStringz(Mix_GetError())));
-		}
-		resumeMusic();
-	}
-	
-	public void playTrackLooped(string title) {
-		if (Mix_PlayMusic(music[title], -1) < 0) {
-			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
-						  			~ fromStringz(Mix_GetError())));
-		}
-		resumeMusic();
-	}
-
-	// Pauses any currently playing music
-	public void pauseMusic() {
-		Mix_PauseMusic();
-	}
-
-	// Resume playback of any paused music
-	public void resumeMusic() {
-		Mix_ResumeMusic();
-	}
-
-	// Plays the sound effect with the registered ID
-	public void playSFX(int id) {
-		Mix_PlayChannel(id, sfx[id], 0);
-	}
+	/// Plays the sound effect with the registered ID
+	public void playSFX(int id);
 
 }

@@ -1003,7 +1003,7 @@ class OpenTaiko {
 	
 	void playSong(Song song) {
 		audioMixer.pauseMusic();
-		if (song.directory !in audioMixer.music) {
+		if (!audioMixer.isRegistered(song.directory)) {
 			try {
 				audioMixer.registerMusic(song.title, 
 										 song.directory ~ "/" ~ song.src);
@@ -1012,7 +1012,7 @@ class OpenTaiko {
 				return;
 			}
 		}
-		audioMixer.playTrack(song.title);
+		audioMixer.playTrack(song.title, 1);
 		audioMixer.resumeMusic();
 	}
 	

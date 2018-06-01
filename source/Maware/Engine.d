@@ -3,7 +3,8 @@ module maware.engine;
 import std.stdio;
 
 import maware.renderer;
-import maware.audiomixer;
+import maware.audio.mixer;
+import maware.audio.sdlmixer;
 import maware.inputhandler;
 import maware.util.timer;
 import maware.assets;
@@ -25,13 +26,13 @@ class Engine {
 	/// Load libraries needed for Renderer and AudioMixer
 	static void initialise() {
 		Renderer.initialise();
-		AudioMixer.initialise();
+		SDLMixer.initialise();
 	}
 
 	/// Deinitialise libraries needed by Renderer and AudioMixer
 	static void deInitialise() {
 		Renderer.deInitialise();
-		AudioMixer.deInitialise();
+		SDLMixer.deInitialise();
 	}
 
 	this(string title) {
@@ -51,7 +52,7 @@ class Engine {
 
 		try {
 			renderer = new Renderer(this);
-			audioMixer = new AudioMixer(this);
+			audioMixer = new SDLMixer(this);
 			inputHandler = new InputHandler(this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
