@@ -92,6 +92,7 @@ class SFMLMixer : AudioMixer {
 	void playTrack(string title, int loop) {
 		sfMusic** toPlay = title in tracks;
 		if (toPlay !is null) {
+			currentlyPlaying = *toPlay;
 			sfMusic_play(*toPlay);
 		} else {
 			throw new Exception("Unregistered track");
