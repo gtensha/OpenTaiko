@@ -9,6 +9,10 @@ dependency "derelict-sfml2" version="~>4.0.0-beta.2"
 targetName "OpenTaiko"
 targetType "executable"
 
+configuration "SDLMixer" {
+	versions "SDLMixer"
+}
+
 configuration "SFMLMixer" {
 	versions "SFMLMixer"
 }
