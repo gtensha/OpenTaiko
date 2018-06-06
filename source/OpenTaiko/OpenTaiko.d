@@ -209,7 +209,11 @@ class OpenTaiko {
 		}
 		
 		if (gameplayTimer is null) {
-			gameplayTimer = Timer.timers[Timer.addTimer()];
+			version (SFMLMixer) {
+				gameplayTimer = new PreciseTimer(&audioMixer.getMusicPosition, 1_000);
+			} else {
+				gameplayTimer = new Timer();
+			}
 		}
 
 		currentPerformances = null;
