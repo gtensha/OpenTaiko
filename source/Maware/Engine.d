@@ -5,10 +5,17 @@ import std.stdio;
 import maware.renderer;
 import maware.audio.mixer;
 import maware.audio.sdlmixer;
+import maware.audio.sfmlmixer;
 import maware.inputhandler;
 import maware.util.timer;
 import maware.assets;
 import std.conv : to;
+
+version (SFMLMixer) {
+	
+} else {
+	version = SDLMixer;
+}
 
 /// A class for handling rendering and audio playback
 class Engine {
@@ -26,13 +33,20 @@ class Engine {
 	/// Load libraries needed for Renderer and AudioMixer
 	static void initialise() {
 		Renderer.initialise();
-		SDLMixer.initialise();
+		version (SDLMixer) {
+			SDLMixer.initialise();
+		}
+		version (SFMLMixer) {
+			SFMLMixer.initialise();
+		}
 	}
 
 	/// Deinitialise libraries needed by Renderer and AudioMixer
 	static void deInitialise() {
 		Renderer.deInitialise();
-		SDLMixer.deInitialise();
+		version (SDLMixer) {
+			SDLMixer.deInitialise();
+		}
 	}
 
 	this(string title) {
@@ -52,7 +66,12 @@ class Engine {
 
 		try {
 			renderer = new Renderer(this);
-			audioMixer = new SDLMixer(this);
+			version (SDLMixer) {
+				audioMixer = new SDLMixer(this);
+			}
+			version (SFMLMixer) {
+				audioMixer = new SFMLMixer(this, 256);
+			}
 			inputHandler = new InputHandler(this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
