@@ -127,7 +127,7 @@ class Renderer {
 									   SDL_WINDOWPOS_UNDEFINED,
 									   x,
 									   y,
-									   0);
+									   cast(SDL_WindowFlags)0);
 
 		if (this.window is null) {
 			throw new Exception(to!string("Failed to create window: "
