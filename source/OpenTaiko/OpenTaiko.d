@@ -765,6 +765,7 @@ class OpenTaiko {
 		engine.iHandler.setActive(mainMenuBinderIndex);
 		engine.aMixer.playSFX(0);
 		if (menuMusicEnabled) {
+			audioMixer.stopMusic();
 			audioMixer.playTrackLooped("menu-loop");
 		}
 		switchToPlayMenu();
@@ -774,6 +775,7 @@ class OpenTaiko {
 		engine.gameRenderer.setScene(startMenuIndex);
 		engine.iHandler.setActive(startMenuBinderIndex);
 		if (titleMusicEnabled) {
+			audioMixer.stopMusic();
 			audioMixer.playTrackLooped("title-loop");
 		}
 	}

@@ -113,7 +113,9 @@ version (SFMLMixer) {
 
 		/// Stop music playback (reset playing position)
 		void stopMusic() {
-			sfMusic_stop(currentlyPlaying);
+			if (currentlyPlaying !is null) {
+				sfMusic_stop(currentlyPlaying);
+			}
 		}
 
 		/// Resume playing last played or paused track
