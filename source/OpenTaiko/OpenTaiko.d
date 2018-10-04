@@ -25,6 +25,7 @@ import std.algorithm.comparison : equal;
 //import std.algorithm.mutation : copy;
 import std.array : array;
 import std.stdio;
+import std.file : exists;
 import std.ascii : newline;
 import std.container.dlist : DList;
 import std.math : sin;
@@ -265,26 +266,21 @@ class OpenTaiko {
 		Drum.renderer = renderer.renderer;
 		RedDrum.texture = renderer.getTexture("DrumCoreRed");
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
-		try {
-			audioMixer.registerMusic("title-loop", assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE);
-			titleMusicEnabled = true;
-		} catch (Exception e) {
-			try {
-				audioMixer.registerMusic("title-loop", ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE);
-				titleMusicEnabled = true;
-			} catch (Exception e) {}
-		}
-		try {
-			audioMixer.registerMusic("menu-loop", assetDir ~ ASSETS_BGM ~ ASSETS_BGM_MENU);
-			menuMusicEnabled = true;
-		} catch (Exception e) {
-			try {
-				audioMixer.registerMusic("menu-loop", ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_MENU);
-				menuMusicEnabled = true;
-			} catch (Exception e) {}
-		}
-		
 
+		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE, 
+		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE]) {
+			if (exists(path)) {
+				audioMixer.registerMusic("title-loop", path);
+				titleMusicEnabled = true;
+			}
+		}
+		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_MENU, 
+		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_MENU]) {
+			if (exists(path)) {
+				audioMixer.registerMusic("menu-loop", path);
+				menuMusicEnabled = true;
+			}
+		}
 	}
 	
 	/// Loads options from settings.json into the options GameVars struct
