@@ -296,6 +296,26 @@ class OpenTaiko {
 							  guiColors.badNotifyColor.r,
 							  guiColors.badNotifyColor.g,
 		                      guiColors.badNotifyColor.b);
+							  
+		renderer.colorTexture("IndicatorLeftMid", 
+							guiColors.redDrumColor.r, 
+							guiColors.redDrumColor.g,
+							guiColors.redDrumColor.b);
+
+		renderer.colorTexture("IndicatorLeftRim", 
+		                      guiColors.blueDrumColor.r, 
+							  guiColors.blueDrumColor.g, 
+		                      guiColors.blueDrumColor.b);
+							  
+		renderer.colorTexture("IndicatorRightMid", 
+		                      guiColors.redDrumColor.r, 
+							  guiColors.redDrumColor.g,
+		                      guiColors.redDrumColor.b);
+							  
+		renderer.colorTexture("IndicatorRightRim", 
+		                      guiColors.blueDrumColor.r, 
+		                      guiColors.blueDrumColor.g, 
+		                      guiColors.blueDrumColor.b);
 
 		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE, 
 		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE]) {
@@ -649,8 +669,8 @@ class OpenTaiko {
 		i.bind(Action.MODESEL,	'\t');
 		i.bind(Action.PAUSE,	'\033');
 		
-		void delegate() makeHitClosure(int player, int variant) {
-			return {hitDrum(player, variant);};
+		void delegate() makeHitClosure(int player, int variant, int side) {
+			return {hitDrum(player, variant, side);};
 		}
 		
 		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
@@ -661,12 +681,14 @@ class OpenTaiko {
 			i.bind(Action.DRUM_RIGHT_RIM + offset,	 	playerKeybinds[ii].keyboard.drumKeys[3]);
 			i.bind(Action.DRUM_LEFT_CENTER + offset,	playerKeybinds[ii].keyboard.drumKeys[1]);
 			i.bind(Action.DRUM_LEFT_RIM + offset,		playerKeybinds[ii].keyboard.drumKeys[0]);
-			void delegate() hitCenter = makeHitClosure(ii, Drum.Type.RED);
-			void delegate() hitRim = makeHitClosure(ii, Drum.Type.BLUE);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenter);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenter);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRim);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRim);
+			void delegate() hitRimLeft = makeHitClosure(ii, Drum.Type.BLUE, Drum.Side.LEFT);
+			void delegate() hitCenterLeft = makeHitClosure(ii, Drum.Type.RED, Drum.Side.LEFT);
+			void delegate() hitCenterRight = makeHitClosure(ii, Drum.Type.RED, Drum.Side.RIGHT);
+			void delegate() hitRimRight = makeHitClosure(ii, Drum.Type.BLUE, Drum.Side.RIGHT);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenterRight);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenterLeft);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRimRight);
+			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRimLeft);
 		}
 	}
 
@@ -1003,14 +1025,14 @@ class OpenTaiko {
 	}
 
 	void hitCenterDrum() {
-		hitDrum(0, Drum.Type.RED);
+		hitDrum(0, Drum.Type.RED, Drum.Side.LEFT);
 	}
 
 	void hitRimDrum() {
-		hitDrum(0, Drum.Type.BLUE);
+		hitDrum(0, Drum.Type.BLUE, Drum.Side.LEFT);
 	}
 	
-	void hitDrum(int playerNum, int key) {
+	void hitDrum(int playerNum, int key, int side) {
 		audioMixer.playSFX(key);
 		if (playerNum > currentPerformances.length - 1) {
 			return;		
@@ -1027,6 +1049,13 @@ class OpenTaiko {
 			playBadSound();
 		}
 		playerAreas[playerNum].giveHitStatus(hitResult);
+		int hitKey;
+		if (side == Drum.Side.LEFT) {
+			hitKey = key == 0 ? 1 : 0;
+		} else {
+			hitKey = key + 2;
+		}
+		playerAreas[playerNum].giveDrumHit(hitKey);
 	}
 	
 	void playBadSound() {

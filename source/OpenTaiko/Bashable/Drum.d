@@ -13,6 +13,11 @@ abstract class Drum : Bashable {
 		BLUE = 1
 	}
 	
+	enum Side : int {
+		LEFT = 0,
+		RIGHT = 1
+	}
+	
 	immutable int keyType;
 
 	static SDL_Renderer* renderer;

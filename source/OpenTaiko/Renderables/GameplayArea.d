@@ -1,5 +1,6 @@
 module opentaiko.renderable.gameplayarea;
 
+import opentaiko.drumindicator;
 import opentaiko.performance;
 import opentaiko.renderable.hitstatus;
 import opentaiko.game : OpenTaiko;
@@ -41,6 +42,7 @@ class GameplayArea : Renderable {
 	protected Textured reception;
 	
 	protected HitStatus hitResultEffect;
+	protected DrumIndicator hitIndicator;
 
 	//protected Text player;
 	protected NameBox playerDisplay;
@@ -132,6 +134,17 @@ class GameplayArea : Renderable {
 											  new Textured(renderer.getTexture("BadHitAlpha"),
 											               0, 0)],
 											 this.reception);
+											 
+		Textured[4] hi = [
+			new Textured(renderer.getTexture("IndicatorLeftRim"), 0, 0),
+			new Textured(renderer.getTexture("IndicatorLeftMid"), 0, 0),
+			new Textured(renderer.getTexture("IndicatorRightMid"), 0, 0),
+			new Textured(renderer.getTexture("IndicatorRightRim"), 0, 0)
+		];
+											 
+		this.hitIndicator = new DrumIndicator(new Textured(renderer.getTexture("IndicatorBase"), 0, 0),
+											  hi,
+											  this.drumConveyor);
 
 	}
 
@@ -149,6 +162,7 @@ class GameplayArea : Renderable {
 		indicatorArea.render();
 		hitResultEffect.render();
 		reception.render();
+		hitIndicator.render();
 		currentPerformance.render();
 		score.render();
 		combo.render();
@@ -195,6 +209,12 @@ class GameplayArea : Renderable {
 		if (statusCode < 3 && statusCode > -1) {
 			hitResultEffect.setEffect(statusCode);
 		}
+	}
+	
+	/// Calls DrumIndicator hitIndicator's hit method with section.
+	/// section must be an integer in the range 0-3.
+	public void giveDrumHit(int section) {
+		hitIndicator.hit(section);
 	}
 	
 	private void drawResults() {

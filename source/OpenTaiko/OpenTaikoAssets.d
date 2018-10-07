@@ -9,33 +9,39 @@ enum ASSETS_BGM_MENU = "menu.ogg"; /// Filename for menu music loop
 enum ASSETS_DEFAULT = "default/"; /// Default asset folder
 
 static Assets openTaikoAssets() {
-	return immutable Assets(["RedDrum" 		 : "red.png",
-							 "BlueDrum"		 : "blue.png",
-							 "DrumBorder"	 : "drum_default_border.png",
-							 "DrumCoreRed"	 : "drum_default_core.png",
-							 "DrumCoreBlue"	 : "drum_default_core.png",
-							 "Reception"	 : "reception.png",
-							 "GoodHit" 		 : "good.png",
-							 "OkHit" 		 : "ok.png",
-							 "BadHit" 		 : "bad.png",
-							 "GoodHitKanji"  : "good_kanji_notify.png",
-							 "GoodHitAlpha"  : "good_alpha_notify.png",
-							 "OkHitKanji"    : "ok_kanji_notify.png",
-							 "OkHitAlpha"    : "ok_alpha_notify.png",
-							 "BadHitKanji"   : "bad_kanji_notify.png",
-							 "BadHitAlpha"   : "bad_alpha_notify.png",
-							 "BlueGrad" 	 : "blue_grad.png",
-							 "RedGrad" 		 : "red_grad.png",
-							 "Soul" 		 : "soul.png",
-							 "Default-Thumb" : "song-default.png"],
+	return immutable Assets(
+		["RedDrum" 		     : "red.png",
+		 "BlueDrum"		     : "blue.png",
+		 "DrumBorder"	     : "drum_default_border.png",
+		 "DrumCoreRed"	     : "drum_default_core.png",
+		 "DrumCoreBlue"	     : "drum_default_core.png",
+		 "Reception"	     : "reception.png",
+		 "GoodHit" 		     : "good.png",
+		 "OkHit" 		     : "ok.png",
+		 "BadHit" 		     : "bad.png",
+		 "GoodHitKanji"      : "good_kanji_notify.png",
+		 "GoodHitAlpha"      : "good_alpha_notify.png",
+		 "OkHitKanji"        : "ok_kanji_notify.png",
+		 "OkHitAlpha"        : "ok_alpha_notify.png",
+		 "BadHitKanji"       : "bad_kanji_notify.png",
+		 "BadHitAlpha"       : "bad_alpha_notify.png",
+		 "IndicatorBase"     : "drum_indicator_base.png",
+		 "IndicatorLeftRim"  : "drum_indicator_left_rim.png",
+		 "IndicatorLeftMid"  : "drum_indicator_left_center.png",
+		 "IndicatorRightMid" : "drum_indicator_right_center.png",
+		 "IndicatorRightRim" : "drum_indicator_right_rim.png",
+		 "BlueGrad" 	     : "blue_grad.png",
+		 "RedGrad" 		     : "red_grad.png",
+		 "Soul" 		     : "soul.png",
+		 "Default-Thumb"     : "song-default.png"],
 
-							["Roboto-Light"  : "Roboto-Light.ttf",
-							 "Roboto-Regular": "Roboto-Regular.ttf",
-							 "Noto-Bold"	 : "NotoSansCJK-Bold.ttc",
-							 "Noto-Regular"	 : "NotoSansCJK-Regular.ttc",
-							 "Noto-Light"	 : "NotoSansCJK-Light.ttc"],
+		["Roboto-Light"      : "Roboto-Light.ttf",
+		 "Roboto-Regular"    : "Roboto-Regular.ttf",
+		 "Noto-Bold"	     : "NotoSansCJK-Bold.ttc",
+		 "Noto-Regular"	     : "NotoSansCJK-Regular.ttc",
+		 "Noto-Light"	     : "NotoSansCJK-Light.ttc"],
 
-							["red.wav", //0
-							 "blue.wav", //1
-							 "miss.wav"]); //2
+		["red.wav", //0
+		 "blue.wav", //1
+		 "miss.wav"]); //2
 }
