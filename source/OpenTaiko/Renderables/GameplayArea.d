@@ -119,12 +119,18 @@ class GameplayArea : Renderable {
 
 		score.rect.x = (offsetX + maxWidth - score.rect.w - 20);
 		
-		this.hitResultEffect = new HitStatus([new Textured(renderer.getTexture("GoodHit"),
+		this.hitResultEffect = new HitStatus([new Textured(renderer.getTexture("GoodHitKanji"),
 														   0, 0),
-											  new Textured(renderer.getTexture("OkHit"),
+											  new Textured(renderer.getTexture("GoodHitAlpha"),
+											               0, 0),
+											  new Textured(renderer.getTexture("OkHitKanji"),
 														   0, 0),
-											  new Textured(renderer.getTexture("BadHit"),
-														   0, 0)],
+											  new Textured(renderer.getTexture("OkHitAlpha"),
+											               0, 0),
+											  new Textured(renderer.getTexture("BadHitKanji"),
+														   0, 0),
+											  new Textured(renderer.getTexture("BadHitAlpha"),
+											               0, 0)],
 											 this.reception);
 
 	}
@@ -141,11 +147,11 @@ class GameplayArea : Renderable {
 		header.render();
 		drumConveyor.render();
 		indicatorArea.render();
+		hitResultEffect.render();
 		reception.render();
 		currentPerformance.render();
 		score.render();
 		combo.render();
-		hitResultEffect.render();
 		playerDisplay.render();
 		
 		if (done) {

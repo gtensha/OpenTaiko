@@ -266,6 +266,36 @@ class OpenTaiko {
 		Drum.renderer = renderer.renderer;
 		RedDrum.texture = renderer.getTexture("DrumCoreRed");
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
+		
+		renderer.colorTexture("GoodHitKanji",
+		                      guiColors.goodNotifyColor.r,
+							  guiColors.goodNotifyColor.g,
+							  guiColors.goodNotifyColor.b);
+							  
+		renderer.colorTexture("GoodHitAlpha",
+		                      guiColors.goodNotifyColor.r,
+							  guiColors.goodNotifyColor.g,
+		                      guiColors.goodNotifyColor.b);
+							  
+		renderer.colorTexture("OkHitKanji",
+		                      guiColors.okNotifyColor.r,
+							  guiColors.okNotifyColor.g,
+		                      guiColors.okNotifyColor.b);
+		
+		renderer.colorTexture("OkHitAlpha",
+							  guiColors.okNotifyColor.r,
+							  guiColors.okNotifyColor.g,
+		                      guiColors.okNotifyColor.b);
+							  
+		renderer.colorTexture("BadHitKanji",
+							  guiColors.badNotifyColor.r,
+							  guiColors.badNotifyColor.g,
+							  guiColors.badNotifyColor.b);
+							  
+		renderer.colorTexture("BadHitAlpha",
+							  guiColors.badNotifyColor.r,
+							  guiColors.badNotifyColor.g,
+		                      guiColors.badNotifyColor.b);
 
 		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE, 
 		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE]) {
@@ -1004,7 +1034,7 @@ class OpenTaiko {
 	}
 	
 	void playSong(Song song) {
-		audioMixer.pauseMusic();
+		audioMixer.stopMusic();
 		if (!audioMixer.isRegistered(song.directory)) {
 			try {
 				audioMixer.registerMusic(song.title, 

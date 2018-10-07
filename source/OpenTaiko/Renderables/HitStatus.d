@@ -7,37 +7,65 @@ import maware.util.timer;
 /// A class for displaying hit status graphics
 class HitStatus : Renderable {
 	
-	enum FADE_LEN = 128; /// Effect fade length in ms
+	enum FADE_LEN = 320; /// Effect fade length in ms
 	
 	private Timer effectTimer;
-	private Solid[] hitStatusEffects;
+	private Solid[6] hitStatusEffects;
+	private int[6] idleY;
+	private int[6] expandedY;
+	private int[6] expandedHeight;
 	private int activeEffect;
 	
 	/// Create a new instance with these displayable textures,
 	/// aligning them with the Solid reference
-	this(Solid[] effects, Solid reference) {
+	this(Solid[6] effects, Solid reference) {
 		this.hitStatusEffects = effects;
-		foreach (Solid effect ; hitStatusEffects) {
-			effect.rect.y = reference.rect.y 
-							- (effect.rect.h - reference.rect.h) / 2;
-							
-			effect.rect.x = reference.rect.x
-							- (effect.rect.w - reference.rect.w) / 2;
+		foreach (int i, Solid effect ; hitStatusEffects) {
+			if (i % 2 == 0) { // top item
+				effect.rect.y = reference.rect.y + reference.rect.h / 2;
+				expandedY[i] = effect.rect.y - effect.rect.h;
+			} else { // bottom item
+				effect.rect.y = reference.rect.y + reference.rect.h / 2;
+				expandedY[i] = effect.rect.y;
+			}
+			effect.rect.x = reference.rect.x - (effect.rect.w - reference.rect.w) / 2;
+			idleY[i] = effect.rect.y;
+			expandedHeight[i] = effect.rect.h;
 		}
 		effectTimer = Timer.timers[Timer.addTimer()];
 	}
 	
 	void render() {
-		const int percentage = cast(int)effectTimer.getPercentagePassed();
+		double getEffectPercentage(double x) {
+			if (x <= 24.4949) {
+				return (x * x) / 6;
+			} else if (x < 80) {
+				return 100;
+			} else {
+				return (-0.3 * x * x) + 48 * x - 1820;
+			}
+		}
+		const double percentage = effectTimer.getPercentagePassed();
 		if (percentage < 100) {
-			hitStatusEffects[activeEffect].color.a = cast(ubyte)((0xff / 100) * percentage);
-			hitStatusEffects[activeEffect].render();
+			const int i = activeEffect;
+			double x = percentage;
+			int h = cast(int)((getEffectPercentage(percentage) / 100.0) * expandedHeight[i]);
+			hitStatusEffects[i].rect.h = h;
+			hitStatusEffects[i].rect.y = idleY[i] - h;
+			h = cast(int)((getEffectPercentage(percentage) / 100.0) * expandedHeight[i + 1]);
+			hitStatusEffects[i + 1].rect.h = h;
+			hitStatusEffects[i].render();
+			hitStatusEffects[i + 1].render();
 		}
 	}
 	
 	/// Sets the specified effect as active and resets timer
 	void setEffect(int effectIndex) {
-		activeEffect = effectIndex;
+		if (effectIndex == 0) {
+			activeEffect = 0;
+		} else {
+			activeEffect = effectIndex * 2;
+		}
 		effectTimer.set(Timer.libInitPassed, Timer.libInitPassed + FADE_LEN);
 	}
 	
