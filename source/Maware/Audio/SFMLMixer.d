@@ -91,10 +91,16 @@ class SFMLMixer : AudioMixer {
 	}
 
 	/// Plays the track with title (if registered) and sets it as active.
+	/// Loops it if loop < 1 (plays it once if this is not the case)
 	void playTrack(string title, int loop) {
 		sfMusic** toPlay = title in tracks;
 		if (toPlay !is null) {
 			currentlyPlaying = *toPlay;
+			if (loop < 1) {
+				sfMusic_setLoop(currentlyPlaying, true);
+			} else {
+				sfMusic_setLoop(currentlyPlaying, false);
+			}
 			sfMusic_play(*toPlay);
 		} else {
 			throw new Exception("Unregistered track");
