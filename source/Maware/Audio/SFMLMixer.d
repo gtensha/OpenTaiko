@@ -47,10 +47,14 @@ class SFMLMixer : AudioMixer {
 
 		foreach (sfSound* effect ; effects) {
 			if (effect !is null) {
-				sfSoundBuffer_destroy(cast(sfSoundBuffer*)sfSound_getBuffer(effect));
-				sfSound_destroy(effect);
+				destroyEffect(effect);
 			}
 		}
+	}
+	
+	private static void destroyEffect(sfSound* effect) {
+		sfSoundBuffer_destroy(cast(sfSoundBuffer*)sfSound_getBuffer(effect));
+		sfSound_destroy(effect);
 	}
 
 	// TODO: mp3 support
@@ -61,6 +65,9 @@ class SFMLMixer : AudioMixer {
 		sfSound* newSound = sfSound_create();
 		sfSound_setBuffer(newSound, newEffect);
 		if (newEffect !is null) {
+			if (effects[id] !is null) {
+				destroyEffect(effects[id]);
+			}
 			effects[id] = newSound;
 		} else {
 			throw new Exception("Failed to load " ~ src);
@@ -71,6 +78,9 @@ class SFMLMixer : AudioMixer {
 	void registerMusic(string title, string src) {
 		sfMusic* newTrack = sfMusic_createFromFile(toStringz(src));
 		if (newTrack !is null) {
+			if (isRegistered(title)) {
+				sfMusic_destroy(tracks[title]);
+			}
 			tracks[title] = newTrack;
 		} else {
 			// TODO: proper error handling, display reason
