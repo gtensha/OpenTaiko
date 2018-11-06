@@ -1064,7 +1064,7 @@ class OpenTaiko {
 	
 	void playSong(Song song) {
 		audioMixer.stopMusic();
-		if (!audioMixer.isRegistered(song.directory)) {
+		if (!audioMixer.isRegistered(song.title)) {
 			try {
 				audioMixer.registerMusic(song.title, 
 										 song.directory ~ "/" ~ song.src);
