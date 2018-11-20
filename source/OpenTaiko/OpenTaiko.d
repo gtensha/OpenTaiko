@@ -23,7 +23,7 @@ import derelict.sdl2.sdl : SDL_Keycode;
 import std.conv : to;
 import std.algorithm.comparison : equal;
 //import std.algorithm.mutation : copy;
-import std.array : array;
+import std.array : array, join;
 import std.stdio;
 import std.file : exists;
 import std.ascii : newline;
@@ -460,6 +460,7 @@ class OpenTaiko {
 		engine.iHandler.setActive(startMenuBinderIndex);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.PAUSE, &quitGame);
+		engine.iHandler.setAnyKeyAction(startMenuBinderIndex, (int code){if (code == '\033') {quit = true;} else {switchSceneToMainMenu();}});
 
 	}
 
@@ -493,35 +494,14 @@ class OpenTaiko {
 		newMenu.addButton("Players", 1, null, &switchToPlayersMenu);
 		newMenu.addButton("Settings", 2, null, &switchToSettingsMenu);								
 
-		playMenu = new VerticalMenu("Play",
-									r.getFont("Noto-Light"),
-									r.windowWidth / 3,
-									60,
-									10,
-									newMenu.getH + 20,
-									guiColors.activeButtonColor,
-									guiColors.buttonTextColor);
+		playMenu = makeStandardMenu("Play");
 
 		menuRenderableIndex = s.addRenderable(0, playMenu);
 		originMenuRenderableIndex = menuRenderableIndex;
 
-		playerSelectMenu = new VerticalMenu("Player select",
-											r.getFont("Noto-Light"),
-											r.windowWidth / 3,
-											60,
-											10,
-											newMenu.getH + 20,
-											guiColors.activeButtonColor,
-											guiColors.buttonTextColor);
-											
-		playersMenu = new VerticalMenu("Players",
-									   r.getFont("Noto-Light"),
-									   r.windowWidth / 3,
-									   60,
-									   10,
-									   GUIDimensions.TOP_BAR_HEIGHT + 20,
-									   guiColors.activeButtonColor,
-									   guiColors.buttonTextColor);
+		playerSelectMenu = makeStandardMenu("Player select");
+
+		playersMenu = makeStandardMenu("Players");
 
 		BrowsableList testList = new BrowsableList(r.getFont("Noto-Light"),
 												   300, 30, 200, 100, 100);
@@ -554,31 +534,15 @@ class OpenTaiko {
 		
 		playersMenu.addButton("Add player", 0, null, &popupPlayerSelection);
 		playersMenu.addButton("Remove player", 1, null, &popupPlayerRemoveSelection);
+		playersMenu.addButton("Change keybinds", 2, null, &popupPlayerKeybindSelection);
 												 
 		//s.addRenderable(0, testField);
 
 		//engine.iHandler.setInputBinder(testField.inputField.getBindings());
 		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
-		settingsMenu = new VerticalMenu("Settings",
-										r.getFont("Noto-Light"),
-										r.windowWidth / 3,
-										60,
-										10,
-										newMenu.getH + 20,
-										guiColors.activeButtonColor,
-										guiColors.buttonTextColor);
-
-		VerticalMenu importMenu;
-										
-		importMenu =   new VerticalMenu("Import...",
-										r.getFont("Noto-Light"),
-										r.windowWidth / 3,
-										60,
-										10,
-										newMenu.getH + 20,
-										guiColors.activeButtonColor,
-										guiColors.buttonTextColor);
+		settingsMenu = makeStandardMenu("Settings");
+		VerticalMenu importMenu = makeStandardMenu("Import...");
 
 		settingsMenu.addButton("Import map", 0, importMenu, null);
 		settingsMenu.addButton("Vsync", 1, null, null);
@@ -760,8 +724,7 @@ class OpenTaiko {
 
 	}
 	
-	/// Makes a selection list and puts it in the active menu stack
-	void makeSelectionList(string desc) {
+	BrowsableList createList() {
 		int w = GUIDimensions.PLAYER_PICKER_LIST_WIDTH;
 		int h = cast(int)(GUIScale.BROWSABLELIST_MAX_HEIGHT * renderer.windowHeight);
 		int x = (renderer.windowWidth - w) / 2;
@@ -772,38 +735,60 @@ class OpenTaiko {
 									   GUIDimensions.BROWSABLELIST_ELM_HEIGHT,
 									   h,
 									   x, y);
-									   
+
 		previousMenuStack.clear();
 		previousMenuStack = activeMenuStack.dup();
 		activeMenuStack.clear();
 		activeMenuStack.insertFront(playerList);
-		
+
 		menuRenderableLayer = originMenuRenderableLayer;
+
+		return playerList;
+	}
+	
+	/// Makes a selection list and puts it in the active menu stack
+	void makeSelectionList(string description) {
+		Text makeText(string desc, BrowsableList playerList) {
+			Text descriptionText;
+			descriptionText = new Text(desc,
+								       renderer.getFont("Noto-Light").get(GUIDimensions.BROWSABLELIST_DESC_TEXT_SIZE),
+								       true,
+								       playerList.getX, 0,
+								       guiColors.buttonTextColor);
+								   
+			descriptionText.rect.y = playerList.getY - descriptionText.rect.h;
+			return descriptionText;
+		}
 		
+		BrowsableList playerList = createList();
+		Text descriptionText = makeText(description, playerList);
 		
 		Solid shade = new Solid(renderer.windowWidth,
 								renderer.windowHeight,
 								0, 0,
 								guiColors.backgroundColor);
-
-		shade.color.a -= cast(int)(shade.color.a / 2);
 		
-		Text description;
-		description = new Text(desc,
-							   renderer.getFont("Noto-Light").get(GUIDimensions.BROWSABLELIST_DESC_TEXT_SIZE),
-							   true,
-							   playerList.getX, 0,
-							   guiColors.buttonTextColor);
-							   
-		description.rect.y = playerList.getY - description.rect.h;
+		shade.color.a -= cast(int)(shade.color.a / 2);
 		
 		Scene s = renderer.getScene(mainMenuIndex);
 		s.clearLayer(extraMenuLayer);
 		s.showLayer(extraMenuLayer);
 		s.addRenderable(extraMenuLayer, shade);
-		s.addRenderable(extraMenuLayer, description);
+		s.addRenderable(extraMenuLayer, descriptionText);
 		menuRenderableIndex = s.addRenderable(extraMenuLayer, playerList);
 		
+	}
+	
+	/// Returns a standard VerticalMenu suitable for the main menu
+	VerticalMenu makeStandardMenu(string title) {
+		return new VerticalMenu(title,
+		                        renderer.getFont("Noto-Light"),
+		                        renderer.windowWidth / 3,
+		                        60,
+		                        10,
+		                        GUIDimensions.TOP_BAR_HEIGHT + 20,
+		                        guiColors.activeButtonColor,
+		                        guiColors.buttonTextColor);
 	}
 
 	static int getCenterPos(int maxWidth, int width) {
@@ -815,6 +800,7 @@ class OpenTaiko {
 	void switchSceneToMainMenu() {
 		engine.gameRenderer.setScene(mainMenuIndex);
 		engine.iHandler.setActive(mainMenuBinderIndex);
+		engine.iHandler.enableBoundActionListen();
 		engine.aMixer.playSFX(0);
 		if (menuMusicEnabled) {
 			audioMixer.stopMusic();
@@ -826,6 +812,7 @@ class OpenTaiko {
 	void switchSceneToStartMenu() {
 		engine.gameRenderer.setScene(startMenuIndex);
 		engine.iHandler.setActive(startMenuBinderIndex);
+		engine.iHandler.enableAnyKeyListen();
 		if (titleMusicEnabled) {
 			audioMixer.stopMusic();
 			audioMixer.playTrackLooped("title-loop");
@@ -912,6 +899,53 @@ class OpenTaiko {
 		updateMainMenu();
 	}
 	
+	void popupPlayerKeybindSelection() {
+		//makeSelectionList("Select a player to change keybinds");
+		Menu list = makeStandardMenu("Player select");
+		activeMenuStack.insertFront(list);
+		updateMainMenu();
+		//Text keyDescription = makeSelectionList.makeText("Select key", keySelect);
+		int playerNum = 0;
+		int keyNum = 0;
+		void delegate() selectPlayer = (){
+			playerNum = list.getActiveButtonId();
+		};
+		string oldTitle;
+		Button lastUsed;
+		void delegate(int) selectKey = (int keyCode){
+			if (keyCode != '\033') {
+				inputHandler.bind(Action.DRUM_RIGHT_CENTER + keyNum + playerNum * DRUM_ACTION_OFFSET, keyCode);
+			}
+			lastUsed.setTitle(oldTitle);
+			inputHandler.enableBoundActionListen();
+		};
+		inputHandler.setAnyKeyAction(mainMenuBinderIndex, selectKey);
+		foreach (int i, Player* player ; activePlayers) {
+			Menu keySelect = makeStandardMenu("Key select");
+			foreach (int j, string title ; ["Right Center", "Right Rim", "Left Center", "Left Rim"]) {
+				int actionCode = Action.DRUM_RIGHT_CENTER + j + i * DRUM_ACTION_OFFSET;
+				int[] boundCodes = inputHandler.findAssociatedKeys(actionCode);
+				string[] keyNames = new string[boundCodes.length];
+				foreach (int ii, int val ; boundCodes) {
+					keyNames[ii] = InputHandler.getKeyName(val);
+				}
+				string extra = keyNames.length > 0 ? " [" ~ keyNames.join(", ") ~ "]" : "";
+				void delegate() makeKeyCallback(Button button, string altTitle, int keyNumber) {
+					return (){
+						oldTitle = button.getTitle();
+						lastUsed = button;
+						button.setTitle("Press a key for \"" ~ altTitle ~ "\" (ESC cancels)...");
+						keyNum = keyNumber;
+						inputHandler.enableAnyKeyListen();
+					};
+				}
+				Button button = keySelect.addButton(title ~ extra, j, null, null);
+				button.instruction = makeKeyCallback(button, title, j);
+			}
+			list.addButton("[P" ~ to!string(i + 1) ~ "] " ~ player.name, i, keySelect, selectPlayer);
+		}
+	}
+
 	void popupPlayerRemoveSelection() {
 		const string message = "Select player to remove";
 		bool proceed = activePlayers.length > 0;

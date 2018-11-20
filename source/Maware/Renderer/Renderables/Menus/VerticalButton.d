@@ -88,5 +88,10 @@ class VerticalButton : Button {
 
 		timer.set(Timer.libInitPassed, Timer.libInitPassed + animationDuration);
 	}
+	
+	override void setTitle(string title) {
+		super.setTitle(title);
+		invertedText.updateText(title);
+	}
 
 }

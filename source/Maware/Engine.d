@@ -99,7 +99,7 @@ class Engine {
 	public int renderFrame() {
 		Timer.refresh(renderer.getTicks());
 		renderer.renderFrame();
-		return inputHandler.listenKeyboard();
+		return inputHandler.listenHandleEvents();
 	}
 
 	public void loadAssets(Assets assets, string extraPath) {
