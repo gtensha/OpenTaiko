@@ -24,6 +24,9 @@ struct TextInputBinder {
 /// A class for capturing input events and handling them via delegates
 class InputHandler {
 
+	enum QUIT_EVENT_CODE = -1; /// Code for when a quit event occurs
+	enum NONE_EVENT_CODE = -2; /// Code for when no event occured
+
 	/// A simple structure that contains action codes and
 	/// their designated actions as delegates
 	struct ActionBinder {
@@ -48,17 +51,19 @@ class InputHandler {
 		activeEventHandler = &listenKeyAction;
 	}
 
-	/// Listen for events from the keyboard and handle them
+	/// Listens for events from the keyboard and handles them
+	/// Returns the code of the last handled event
 	public int listenHandleEvents() {
 		SDL_Event event;
-		while (SDL_PollEvent(&event) == 1) {
+		int retCode = NONE_EVENT_CODE;
+		while (SDL_PollEvent(&event) == 1 && retCode != QUIT_EVENT_CODE) {
 			if (event.type == SDL_QUIT) {
-				return -1;
+				retCode = QUIT_EVENT_CODE;
 			} else {
-				return activeEventHandler(event);
+				retCode = activeEventHandler(event);
 			}
 		}
-		return -2;
+		return retCode;
 	}
 	
 	/// Handle keypresses according to bound actions in currently active
@@ -71,7 +76,7 @@ class InputHandler {
 				return *binding;
 			}
 		}
-		return -2;
+		return NONE_EVENT_CODE;
 	}
 	
 	/// Listen for any keypresses, return their keycode and call the 
@@ -84,7 +89,7 @@ class InputHandler {
 			}
 			return event.key.keysym.sym;
 		} else {
-			return -2;
+			return NONE_EVENT_CODE;
 		}
 	}
 	
@@ -121,7 +126,7 @@ class InputHandler {
 		} else if (event.type == SDL_TEXTEDITING) {
 			typing = true;
 		}
-		return -2;
+		return NONE_EVENT_CODE;
 	}
 
 	/// Bind the key with the given SDL_Keycode to the given event number

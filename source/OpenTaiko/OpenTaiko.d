@@ -192,8 +192,8 @@ class OpenTaiko {
 		int eventCode;
 		while (!quit) {
 			eventCode = engine.renderFrame();
-			if (eventCode == -1) {
-				break;
+			if (eventCode == InputHandler.QUIT_EVENT_CODE) {
+				quit = true;
 			}
 		}
 		
