@@ -128,6 +128,7 @@ class OpenTaiko {
 	private PlayerDisplay playerDisplay;
 	private InputBox testField;
 	private BrowsableList playerSelectList;
+	private void delegate() previousMenuInstruction;
 
 	private Song[] songs;
 	private Song activeSong;
@@ -490,6 +491,7 @@ class OpenTaiko {
 		originMenuRenderableLayer = menuRenderableLayer;
 		s.addRenderable(0, newMenu);
 		topBarMenu = newMenu;
+		previousMenuInstruction = &switchToPlayMenu;
 		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
 		newMenu.addButton("Players", 1, null, &switchToPlayersMenu);
 		newMenu.addButton("Settings", 2, null, &switchToSettingsMenu);								
@@ -807,7 +809,7 @@ class OpenTaiko {
 			audioMixer.stopMusic();
 			audioMixer.playTrackLooped("menu-loop");
 		}
-		switchToPlayMenu();
+		previousMenuInstruction();
 	}
 
 	void switchSceneToStartMenu() {
@@ -883,18 +885,21 @@ class OpenTaiko {
 	}
 
 	void switchToPlayMenu() {
+		previousMenuInstruction = &switchToPlayMenu;
 		activeMenuStack.clear();
 		activeMenuStack.insertFront(playMenu);
 		updateMainMenu();
 	}
 
 	void switchToSettingsMenu() {
+		previousMenuInstruction = &switchToSettingsMenu;
 		activeMenuStack.clear();
 		activeMenuStack.insertFront(settingsMenu);
 		updateMainMenu();
 	}
 	
 	void switchToPlayersMenu() {
+		previousMenuInstruction = &switchToPlayersMenu;
 		activeMenuStack.clear();
 		activeMenuStack.insertFront(playersMenu);
 		updateMainMenu();
