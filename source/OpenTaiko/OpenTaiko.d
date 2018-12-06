@@ -588,18 +588,19 @@ class OpenTaiko {
 								 guiColors.buttonTextColor);
 		
 		greeting.rect.y = renderer.windowHeight - greeting.rect.h - 1;
+		greeting.rect.x = renderer.windowWidth;
 		
 		Timer dummyTimer = new Timer();
-		immutable int initX = 0 - greeting.rect.w;
-		immutable int maxX = renderer.windowWidth;
+		immutable int initX = renderer.windowWidth;
+		immutable int minX = 0 - greeting.rect.w;
 		void delegate(Timer, Solid) greetingRule = (Timer timer, Solid solid){
 			const int passed = timer.getTimerPassed();
 			if (passed < 12) {
 				return;
 			}
 
-			solid.rect.x += passed / 12;
-			if (solid.rect.x > maxX) {
+			solid.rect.x -= passed / 12;
+			if (solid.rect.x < minX) {
 				solid.rect.x = initX;
 			}
 			timer.set(Timer.libInitPassed);
