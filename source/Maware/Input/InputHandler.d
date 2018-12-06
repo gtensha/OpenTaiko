@@ -188,7 +188,12 @@ class InputHandler {
 	
 	/// Returns the keyCode as a string
 	static string getKeyName(int keyCode) {
-		return to!string(fromStringz(SDL_GetKeyName(keyCode)));
+		string possibleName = to!string(fromStringz(SDL_GetKeyName(keyCode)));
+		if (possibleName.length < 1) {
+			return "UnknownKey#" ~ to!string(keyCode);
+		} else {
+			return possibleName;
+		}
 	}
 
 	/// Sets the active ActionBinder with given index or throws Exception
