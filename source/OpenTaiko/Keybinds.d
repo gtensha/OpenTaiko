@@ -7,7 +7,7 @@ struct Keybinds {
 
 	/// Structure containing keyboard keybinds (SDL_Keycodes) for a player
 	struct Keyboard {
-		int[4] drumKeys; /// Array of LK->LD->RD->RK drum keybinds	    
+		int[][4] drumKeys; /// Array of LK->LD->RD->RK drum keybinds	    
 	} 
 	Keyboard keyboard; /// The keyboard
     

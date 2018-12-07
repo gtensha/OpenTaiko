@@ -531,7 +531,11 @@ class MapGen {
 			if (keyboard !is null) {
 				JSONValue keyboardz = *keyboard;
 				foreach (int i, JSONValue key ; keyboardz.array) {
-					bindings.keyboard.drumKeys[i] = cast(int)key.integer;
+					int[] keyBindings;
+					foreach (JSONValue keycode ; key.array) {
+						keyBindings ~= cast(int)keycode.integer;
+					}
+					bindings.keyboard.drumKeys[i] = keyBindings;
 				}
 			}
 			
@@ -547,6 +551,20 @@ class MapGen {
 		
 		return playerBinds;		
 		
-	}	
+	}
+	
+	/// Writes keybinds to fileLoc as a JSON struct
+	static void writeKeybindsFile(Keybinds[] keybinds, string fileLoc) {
+		JSONValue[] vars;
+		foreach (Keybinds binds ; keybinds) {
+			JSONValue[] arrayElms;
+			foreach (int[] keyCodes ; binds.keyboard.drumKeys) {
+				arrayElms ~= JSONValue(keyCodes);
+			}
+			vars ~= JSONValue(["keyboard": JSONValue(arrayElms)]);
+		}
+		JSONValue finalDoc = JSONValue(["bindings": vars]);
+		std.file.write(fileLoc, toJSON(finalDoc, true));
+	}
 	
 }

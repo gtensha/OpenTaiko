@@ -54,24 +54,23 @@ The possible inputs recognised by the game
 128-131 + [player amount * 4] are drum inputs for gameplay
 */
 enum Action : int {
-		// Arrow keys
-		UP = 0,
-		DOWN = 1,
-		LEFT = 2,
-		RIGHT = 3,
-		// Selectors
-		SELECT = 4,
-		BACK = 5,
-		PAUSE = 6,
-		QUIT = 7,
-		MODESEL = 8,
+	// Arrow keys
+	UP = 0,
+	DOWN = 1,
+	LEFT = 2,
+	RIGHT = 3,
+	// Selectors
+	SELECT = 4,
+	BACK = 5,
+	PAUSE = 6,
+	QUIT = 7,
+	MODESEL = 8,
 
-		// Drum actions
-		DRUM_RIGHT_CENTER = 128,
-		DRUM_RIGHT_RIM = 129,
-		DRUM_LEFT_CENTER = 130,
-		DRUM_LEFT_RIM = 131
-
+	// Drum actions
+	DRUM_LEFT_RIM = 128,
+	DRUM_LEFT_CENTER = 129,
+	DRUM_RIGHT_CENTER = 130,
+	DRUM_RIGHT_RIM = 131
 }
 
 /// How much the next player's drum action codes are offset from the previous'
@@ -153,6 +152,8 @@ class OpenTaiko {
 	private bool quit;
 	private bool shouldWritePlayerList;
 	private bool disablePlayerListWrite;
+	private bool shouldWriteKeybindsList;
+	private bool disableKeybindsListWrite;
 	
 	static this() {
 		guiColors = standardPalette;
@@ -247,6 +248,10 @@ class OpenTaiko {
 			shouldWritePlayerList = false;
 			MapGen.writePlayerList(players, activePlayers, PLAYER_DATA_FILE);
 		}
+		if (shouldWriteKeybindsList && !disableKeybindsListWrite) {
+			shouldWriteKeybindsList = false;
+			MapGen.writeKeybindsFile(playerKeybinds, KEYBINDS_FILE_PATH);
+		}
 	}
 
 	void loadAssets(Engine e) {
@@ -336,7 +341,7 @@ class OpenTaiko {
 	
 	/// Loads options from settings.json into the options GameVars struct
 	void loadSettings() {
-		const int[4] fallbackKeys = [100, 102, 106, 107]; // dfjk
+		static int[][4] fallbackKeys = [[100], [102], [106], [107]]; // dfjk
 		try {
 			options = MapGen.readConfFile(CONFIG_FILE_PATH);
 		} catch (Exception e) {
@@ -344,7 +349,7 @@ class OpenTaiko {
 						  ~ newline ~ e.msg
 						  ~ newline ~ "Using fallback settings");
 						  
-			options.defaultKeys = fallbackKeys;
+			//options.defaultKeys = fallbackKeys;
 			options.resolution = [1280, 1024];
 			options.vsync = true;
 		}
@@ -358,6 +363,7 @@ class OpenTaiko {
 			Keybinds bindings;
 			bindings.keyboard.drumKeys = fallbackKeys;
 			playerKeybinds ~= bindings;
+			disableKeybindsListWrite = true;
 		}
 	}
 	
@@ -642,20 +648,25 @@ class OpenTaiko {
 		
 		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
 		
-		for (int ii; ii < playerKeybinds.length; ii++) {
-			const int offset = ii * DRUM_ACTION_OFFSET;
-			i.bind(Action.DRUM_RIGHT_CENTER + offset, 	playerKeybinds[ii].keyboard.drumKeys[2]);
-			i.bind(Action.DRUM_RIGHT_RIM + offset,	 	playerKeybinds[ii].keyboard.drumKeys[3]);
-			i.bind(Action.DRUM_LEFT_CENTER + offset,	playerKeybinds[ii].keyboard.drumKeys[1]);
-			i.bind(Action.DRUM_LEFT_RIM + offset,		playerKeybinds[ii].keyboard.drumKeys[0]);
-			void delegate() hitRimLeft = makeHitClosure(ii, Drum.Type.BLUE, Drum.Side.LEFT);
-			void delegate() hitCenterLeft = makeHitClosure(ii, Drum.Type.RED, Drum.Side.LEFT);
-			void delegate() hitCenterRight = makeHitClosure(ii, Drum.Type.RED, Drum.Side.RIGHT);
-			void delegate() hitRimRight = makeHitClosure(ii, Drum.Type.BLUE, Drum.Side.RIGHT);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenterRight);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenterLeft);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRimRight);
-			inputHandler.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRimLeft);
+		for (int playerNum; playerNum < playerKeybinds.length; playerNum++) {
+			const int offset = playerNum * DRUM_ACTION_OFFSET;
+			int[] actionCodes = [Action.DRUM_LEFT_RIM,
+			                     Action.DRUM_LEFT_CENTER,
+								 Action.DRUM_RIGHT_CENTER,
+								 Action.DRUM_RIGHT_RIM];
+			foreach (int drumNum, int actionCode ; actionCodes) {
+				foreach (int keyCode ; playerKeybinds[playerNum].keyboard.drumKeys[drumNum]) {
+					i.bind(actionCode + offset, keyCode);
+				}
+			}
+			void delegate() hitRimLeft = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.LEFT);
+			void delegate() hitCenterLeft = makeHitClosure(playerNum, Drum.Type.RED, Drum.Side.LEFT);
+			void delegate() hitCenterRight = makeHitClosure(playerNum, Drum.Type.RED, Drum.Side.RIGHT);
+			void delegate() hitRimRight = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.RIGHT);
+			i.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenterRight);
+			i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenterLeft);
+			i.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRimRight);
+			i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRimLeft);
 		}
 	}
 
@@ -920,7 +931,9 @@ class OpenTaiko {
 		Button lastUsed;
 		void delegate(int) selectKey = (int keyCode){
 			if (keyCode != '\033') {
-				inputHandler.bind(Action.DRUM_RIGHT_CENTER + keyNum + playerNum * DRUM_ACTION_OFFSET, keyCode);
+				playerKeybinds[playerNum].keyboard.drumKeys[keyNum] ~= keyCode;
+				inputHandler.bind(Action.DRUM_LEFT_RIM + keyNum + playerNum * DRUM_ACTION_OFFSET, keyCode);
+				shouldWriteKeybindsList = true;
 			}
 			lastUsed.setTitle(oldTitle);
 			inputHandler.enableBoundActionListen();
@@ -928,9 +941,9 @@ class OpenTaiko {
 		inputHandler.setAnyKeyAction(mainMenuBinderIndex, selectKey);
 		foreach (int i, Player* player ; activePlayers) {
 			Menu keySelect = makeStandardMenu("Key select");
-			foreach (int j, string title ; ["Right Center", "Right Rim", "Left Center", "Left Rim"]) {
-				int actionCode = Action.DRUM_RIGHT_CENTER + j + i * DRUM_ACTION_OFFSET;
-				int[] boundCodes = inputHandler.findAssociatedKeys(actionCode);
+			foreach (int j, string title ; ["Left Rim", "Left Center", "Right Center", "Right Rim"]) {
+				int actionCode = Action.DRUM_LEFT_RIM + j + i * DRUM_ACTION_OFFSET;
+				int[] boundCodes = playerKeybinds[i].keyboard.drumKeys[j];
 				string[] keyNames = new string[boundCodes.length];
 				foreach (int ii, int val ; boundCodes) {
 					keyNames[ii] = InputHandler.getKeyName(val);
