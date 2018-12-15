@@ -2,6 +2,7 @@ module opentaiko.renderable.menus.songselectmenu;
 
 import maware.renderer;
 import maware.renderable;
+import maware.renderable.ellipsedtext;
 import maware.renderable.menus.menu : Menu;
 import maware.renderable.menus.verticalmenu : VerticalMenu;
 import maware.renderable.solid;
@@ -155,27 +156,32 @@ class SongSelectMenuItem : Renderable {
 		this.directory = directory;
 		
 		this.song = song;
+		
+		static const int edge = 10;
+		const int maxWidth = w - edge * 2;
 
 		block = new Solid(w, h, x, y, OpenTaiko.guiColors.cardColor.r, 
 									  OpenTaiko.guiColors.cardColor.g, 
 									  OpenTaiko.guiColors.cardColor.b, 
 									  OpenTaiko.guiColors.cardColor.a);
-		this.thumbnail = new Textured(thumbnail, w - 20, w - 20, x + 10, y + 10);
-		this.title = new Text(song.title, 
+		this.thumbnail = new Textured(thumbnail, w - edge * 2, w - edge * 2, x + edge, y + edge);
+		this.title = new EllipsedText(song.title, 
 							  titleFont.get(20), 
-							  true, 
-							  x + 10, 
-							  y + this.thumbnail.rect.h + 10, 
+							  true,
+							  maxWidth,
+							  x + edge, 
+							  y + this.thumbnail.rect.h + edge, 
 							  OpenTaiko.guiColors.cardTextColor.r, 
 							  OpenTaiko.guiColors.cardTextColor.g, 
 							  OpenTaiko.guiColors.cardTextColor.b, 
 							  OpenTaiko.guiColors.cardTextColor.a);
 							  
-		this.artist = new Text(song.artist,
+		this.artist = new EllipsedText(song.artist,
 							   artistFont.get(18), 
-							   true, 
-							   x + 10, 
-							   y + this.title.rect.h + this.thumbnail.rect.h + 10,
+							   true,
+							   maxWidth,
+							   x + edge, 
+							   y + this.title.rect.h + this.thumbnail.rect.h + edge,
 							   OpenTaiko.guiColors.cardTextColor.r, 
 							   OpenTaiko.guiColors.cardTextColor.g, 
 							   OpenTaiko.guiColors.cardTextColor.b, 
