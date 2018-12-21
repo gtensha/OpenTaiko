@@ -11,6 +11,7 @@ import std.string;
 import std.ascii;
 import std.json;
 import std.zip;
+import std.process : execute;
 
 import opentaiko.drum;
 import opentaiko.bashable;
@@ -23,12 +24,19 @@ import opentaiko.keybinds;
 
 enum {
 	string MAP_DIR = "maps/",
+	string OGG_EXTENSION = ".ogg",
 	int WIDTH = 0,
 	int HEIGHT = 1,
 	int RED1 = 0,
 	int RED2 = 1,
 	int BLUE1 = 2,
 	int BLUE2 = 3,
+}
+
+enum FFMPEG : string {
+	COMMAND = "ffmpeg",
+	INPUT_FLAG = "-i",
+	VERSION_FLAG = "-version"
 }
 
 /// Struct for internal use holding map data and conventional Difficulty struct
@@ -49,7 +57,10 @@ class MapGen {
 	see default map.conf file for template and attribute
 	specification
 	*/
-
+	
+	private static ffmpegStatusChecked = false;
+	private static ffmpegAvailability = false;
+	
 	/// Returns array of drum objects with desired properties
 	static Bashable[] parseMapFromFile(string file) {
 		int bpm = 140;
@@ -203,7 +214,7 @@ class MapGen {
 		songTitle = songTitle[0 .. songTitle.length - 4];
 		ZipArchive archive = new ZipArchive(read(path));
 		
-		const string directory = "maps/" ~ songTitle;
+		const string directory = MAP_DIR ~ songTitle;
 		if (!exists(directory)) {
 			mkdir(directory);
 		}
@@ -239,6 +250,19 @@ class MapGen {
 		
 		//newSong.title = songTitle;
 
+		if (ffmpegAvailable()) {
+			string[] splitAudioPath = newSong.src.split(".");
+			string newAudioPath;
+			if (splitAudioPath.length > 1) {
+				splitAudioPath[splitAudioPath.length - 1] = OGG_EXTENSION;
+				newAudioPath = splitAudioPath.join("");
+			} else {
+				newAudioPath = newSong.src ~ OGG_EXTENSION;
+			}
+			convertToOgg(directory ~ "/" ~ newSong.src, directory ~ "/" ~ newAudioPath, false);
+			newSong.src = newAudioPath;
+		}
+		
 		JSONValue metadata;
 		string metaPath = directory ~ "/" ~ "meta.json";
 		metadata = songToJSON(newSong);		
@@ -356,6 +380,31 @@ class MapGen {
 	}
 
 	abstract string fromTJAFile(string file);
+	
+	/// Returns true if the FFMPEG command can be used
+	static bool ffmpegAvailable() {
+		if (!ffmpegStatusChecked) {
+			auto result = execute([FFMPEG.COMMAND, FFMPEG.VERSION_FLAG]);
+			ffmpegAvailability = result.status == 0;
+			ffmpegStatusChecked = true;
+		}
+		return ffmpegAvailability;
+	}
+	
+	/// Convert the file at path infile to a .ogg file using ffmpeg, where
+	/// outfile is the desired path to the converted file.
+	/// Delete infile if shouldDelete is true and file was converted
+	/// successfully
+	static void convertToOgg(string infile, string outfile, bool shouldDelete) {
+		isFile(infile);
+		auto result = execute([FFMPEG.COMMAND, FFMPEG.INPUT_FLAG, infile, outfile]);
+		if (result.status != 0) {
+			throw new Exception("Conversion failed: " ~ result.output);
+		}
+		if (shouldDelete) {
+			remove(infile);
+		}
+	}
 
 	/// Reads the maps/ directory and returns an array of Song structs
 	static Song[] readSongDatabase() {
