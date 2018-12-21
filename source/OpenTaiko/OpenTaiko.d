@@ -127,6 +127,7 @@ class OpenTaiko {
 	private PlayerDisplay playerDisplay;
 	private InputBox testField;
 	private BrowsableList playerSelectList;
+	private Button playButton;
 	private void delegate() previousMenuInstruction;
 
 	private Song[] songs;
@@ -182,12 +183,11 @@ class OpenTaiko {
 		loadAssets(engine);
 		gameplayBinderIndex = inputHandler.addActionBinder();
 		bindKeys(engine.iHandler);
-		songs = MapGen.readSongDatabase();
 		loadPlayers();
-		createSongSelectMenu();
 		createStartMenu(&startMenuIndex);
 		createMainMenu(&mainMenuIndex);
 		createGameplayScene();
+		loadSongs();
 		switchSceneToStartMenu();
 		//engine.gameRenderer.setScene(startMenuIndex);
 
@@ -530,12 +530,8 @@ class OpenTaiko {
 		testList.addButton("List option 3", 2, null, null);
 		testList.addButton("List option 4", 3, null, null);
 		testList.addButton("List option 5", 4, null, null);
-									   
-		playerSelectMenu.addButton("Single play", 0, songSelectMenu, &audioMixer.pauseMusic);
-		playerSelectMenu.addButton("Multi play", 1, null, null);
-		playerSelectMenu.addButton("Back", 2, null, &navigateMenuBack);
 
-		playMenu.addButton("Arcade mode", 0, playerSelectMenu, null);
+		playButton = playMenu.addButton("Arcade mode", 0, null, &audioMixer.pauseMusic);
 		playMenu.addButton("High scores", 1, null, null);
 		playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
 		playMenu.addButton("Test BrowseableList", 4, testList, null);
@@ -553,11 +549,13 @@ class OpenTaiko {
 		VerticalMenu importMenu = makeStandardMenu("Import...");
 
 		settingsMenu.addButton("Import map", 0, importMenu, null);
-		settingsMenu.addButton("Vsync", 1, null, null);
+		settingsMenu.addButton("Reload song list", 1, null, &loadSongs);
+		settingsMenu.addButton("Vsync", 2, null, null);
 
 		void delegate(int) importCallback = (int mode) {
 			try {
 				MapGen.extractOSZ(inputFieldDest);
+				loadSongs();
 			} catch (Exception e) {
 				Engine.notify("Failed to import map: " ~ e.toString());
 				return;
@@ -669,18 +667,26 @@ class OpenTaiko {
 			i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRimLeft);
 		}
 	}
+	
+	/// Load songs and update song select menu
+	void loadSongs() {
+		songs = MapGen.readSongDatabase();
+		songSelectMenu = createSongSelectMenu();
+		playButton.subMenu = songSelectMenu;
+	}
 
-	void createSongSelectMenu() {
+	SongSelectMenu createSongSelectMenu() {
 		int w = 250;
 		int h = 325;
 		int x = (renderer.windowWidth / 2) - (w / 2);
 		int y = renderer.windowHeight - (h + 50);
-		songSelectMenu = new SongSelectMenu(renderer,
-											&playSong,
-											&playSelectedSong,
-											renderer.getFont("Noto-Bold"),
-											renderer.getFont("Noto-Light"),
-											x, y, w, h);
+		SongSelectMenu newMenu;
+		newMenu = new SongSelectMenu(renderer,
+									 &playSong,
+									 &playSelectedSong,
+									 renderer.getFont("Noto-Bold"),
+									 renderer.getFont("Noto-Light"),
+									 x, y, w, h);
 		foreach (Song song ; songs) {
 			string artPath = MapGen.findImage(song.directory);
 			if (artPath !is null) {		
@@ -688,12 +694,13 @@ class OpenTaiko {
 					renderer.registerTexture("Thumb_" ~ song.title,
 											 artPath);
     
-					songSelectMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
+					newMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
 					continue;
 				} catch (Exception e) {}			
 			}
-			songSelectMenu.addItem(song, renderer.getTexture("Default-Thumb"));			
+			newMenu.addItem(song, renderer.getTexture("Default-Thumb"));			
 		}
+		return newMenu;
 	}
 
 	void createGameplayScene() {
