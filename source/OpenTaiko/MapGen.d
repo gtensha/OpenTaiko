@@ -67,7 +67,7 @@ class MapGen {
 		int zoom = 4;
 		double scroll = 1;
 		string map = cast(string)(std.file.read(file));
-		string[] lines = split(map, std.ascii.newline);
+		string[] lines = split(map, "\n");
 		Bashable[] drumArray;
 
 		int i;
@@ -169,6 +169,8 @@ class MapGen {
 										  0,
 										  calculatePosition(index, offset, bpm),
 										  scroll);
+			} else if (type == '\r') { // ignore Windows' carriage return
+				continue;
 			}
 			index++;
 		}
@@ -449,6 +451,10 @@ class MapGen {
 	/// if none could be found. Include '/' in directory name string
 	static string findImage(string directory) { // TODO: make this efficient
 	
+		version(Windows) {
+			directory = directory.split("/").join("\\");
+		}
+
 		static immutable supportedExts = ["jpg", "jpeg", "png", "gif"];
 		static immutable priorityFiles = ["thumb.png", "thumb.jpg", "bg.jpg"];
 		
