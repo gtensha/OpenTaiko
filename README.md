@@ -1,6 +1,11 @@
 # OpenTaiko
 Cross-platform drum rhythm game written in the D programming language using SDL2 ([DerelictSDL2][3]) for graphics and SFML2 ([DerelictSFML2][4]) for audio, available under the GNU GPLv3.
 
+## Other languages
+* [日本語 (Japanese)](README.jp.md)
+
+## Screenshots
+
 ![Song select](screenshot0.png)
 
 ![Gameplay](screenshot1.png)
