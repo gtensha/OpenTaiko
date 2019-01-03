@@ -1124,12 +1124,19 @@ class OpenTaiko {
 	
 	void playSong(Song song) {
 		audioMixer.stopMusic();
+		string songPath = song.directory ~ "/" ~ song.src;
+		if (song.src.length < 1) {
+			return;
+		}
 		if (!audioMixer.isRegistered(song.title)) {
+			if (!exists(songPath)) {
+				return;
+			}
 			try {
 				audioMixer.registerMusic(song.title, 
-										 song.directory ~ "/" ~ song.src);
+										 songPath);
 			} catch (Exception e) {
-				//Engine.notify(e.msg);
+				Engine.notify(e.msg);
 				return;
 			}
 		}
