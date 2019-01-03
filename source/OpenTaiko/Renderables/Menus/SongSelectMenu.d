@@ -195,18 +195,25 @@ class SongSelectMenuItem : Renderable {
 											  titleFont,
 											  artistFont,
 											  song,
+											  this,
 											  songSelectCallback,
 											  renderer.windowHeight - block.rect.y);
 
 	}
 
 	public void render() {
+		if (active) {
+			diffListMenu.render();
+		} else {
+			renderCard();
+		}
+	}
+
+	public void renderCard() {
 		block.render();
 		thumbnail.render();
 		title.render();
 		artist.render();
-		if (active)
-			diffListMenu.render();
 	}
 	
 	public DifficultyListMenu getMenu() {
@@ -239,6 +246,7 @@ class DifficultyListMenu : Traversable {
 	enum DIFF_LIST_BUTTON_HEIGHT = 50;
 	
 	protected Song song;
+	protected SongSelectMenuItem parentItem;
 	
 	protected Menu difficultyList;
 	protected Solid menuPadding;
@@ -261,10 +269,12 @@ class DifficultyListMenu : Traversable {
 		 Font boldFont,
 		 Font textFont,
 		 Song song,
+		 SongSelectMenuItem parentItem,
 		 void delegate() songSelectCallback,
 		 int lowerSectionReserved) {
 		
 		this.song = song;
+		this.parentItem = parentItem;
 		
 		const int paddingWidth = (renderer.windowWidth / 2) - BORDER_SPACING;
 		int paddingHeight = renderer.windowHeight 
@@ -425,6 +435,7 @@ class DifficultyListMenu : Traversable {
 	}
 	
 	void render() {
+		parentItem.renderCard();
 		difficultyInfoPadding.render();
 		menuPadding.render();
 		difficultyList.render();
