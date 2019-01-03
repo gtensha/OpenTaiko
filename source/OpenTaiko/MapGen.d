@@ -261,7 +261,7 @@ class MapGen {
 			} else {
 				newAudioPath = newSong.src ~ OGG_EXTENSION;
 			}
-			convertToOgg(directory ~ "/" ~ newSong.src, directory ~ "/" ~ newAudioPath, false);
+			convertToOgg(directory ~ "/" ~ newSong.src, directory ~ "/" ~ newAudioPath, true);
 			newSong.src = newAudioPath;
 		}
 		
