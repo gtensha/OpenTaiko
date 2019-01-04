@@ -17,6 +17,7 @@ import opentaiko.textinputfield;
 import opentaiko.browsablelist : BrowsableList;
 import opentaiko.keybinds;
 import opentaiko.renderable.inputbox;
+import opentaiko.languagehandler : Message, phrase;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -26,6 +27,7 @@ import std.algorithm.comparison : equal;
 import std.array : array, join;
 import std.stdio;
 import std.file : exists;
+import std.format : format;
 import std.ascii : newline;
 import std.container.dlist : DList;
 import std.math : sin;
@@ -155,6 +157,8 @@ class OpenTaiko {
 	private bool disablePlayerListWrite;
 	private bool shouldWriteKeybindsList;
 	private bool disableKeybindsListWrite;
+	private bool shouldWriteSettings;
+	private bool disableSettingsWrite;
 	
 	static this() {
 		guiColors = standardPalette;
@@ -251,6 +255,10 @@ class OpenTaiko {
 		if (shouldWriteKeybindsList && !disableKeybindsListWrite) {
 			shouldWriteKeybindsList = false;
 			MapGen.writeKeybindsFile(playerKeybinds, KEYBINDS_FILE_PATH);
+		}
+		if (shouldWriteSettings && !disableSettingsWrite) {
+			shouldWriteSettings = false;
+			MapGen.writeConfFile(options, CONFIG_FILE_PATH);
 		}
 	}
 
@@ -352,6 +360,8 @@ class OpenTaiko {
 			//options.defaultKeys = fallbackKeys;
 			options.resolution = [1280, 1024];
 			options.vsync = true;
+			options.language = Message.DEFAULT_LANGUAGE;
+			disableSettingsWrite = true;
 		}
 		
 		try {
@@ -364,6 +374,11 @@ class OpenTaiko {
 			bindings.keyboard.drumKeys = fallbackKeys;
 			playerKeybinds ~= bindings;
 			disableKeybindsListWrite = true;
+		}
+		try {
+			Message.setLanguage(options.language);
+		} catch (Exception e) {
+			Engine.notify("Failed loading set language: " ~ e.msg);
 		}
 	}
 	
@@ -400,7 +415,7 @@ class OpenTaiko {
 		
 		r.getScene(*menuIndex).backgroundColor = guiColors.backgroundColor;
 
-		Text titleHeader = new Text("OpenTaiko",
+		Text titleHeader = new Text(phrase(Message.Title.GAME),
 									r.getFont("Noto-Regular").get(36),
 									true,
 					 				0, 100,
@@ -421,7 +436,7 @@ class OpenTaiko {
 		lineCenter.rect.y = (getCenterPos(r.windowHeight, lineCenter.rect.h));
 		r.getScene(*menuIndex).addRenderable(0, lineCenter);
 
-		Text centerInfo = new Text("Press any key",
+		Text centerInfo = new Text(phrase(Message.Title.GAME_GREETING),
 								   r.getFont("Noto-Light").get(24),
 								   true,
 								   0, 0,
@@ -498,9 +513,9 @@ class OpenTaiko {
 		s.addRenderable(0, newMenu);
 		topBarMenu = newMenu;
 		previousMenuInstruction = &switchToPlayMenu;
-		newMenu.addButton("Play", 0, null, &switchToPlayMenu);
-		newMenu.addButton("Players", 1, null, &switchToPlayersMenu);
-		newMenu.addButton("Settings", 2, null, &switchToSettingsMenu);								
+		newMenu.addButton(phrase(Message.Menus.TOPBAR_PLAY), 0, null, &switchToPlayMenu);
+		newMenu.addButton(phrase(Message.Menus.TOPBAR_PLAYERS), 1, null, &switchToPlayersMenu);
+		newMenu.addButton(phrase(Message.Menus.TOPBAR_SETTINGS), 2, null, &switchToSettingsMenu);								
 
 		playMenu = makeStandardMenu("Play");
 
@@ -531,14 +546,14 @@ class OpenTaiko {
 		testList.addButton("List option 4", 3, null, null);
 		testList.addButton("List option 5", 4, null, null);
 
-		playButton = playMenu.addButton("Arcade mode", 0, null, &audioMixer.pauseMusic);
-		playMenu.addButton("High scores", 1, null, null);
+		playButton = playMenu.addButton(phrase(Message.Menus.PLAY_ARCADEMODE), 0, null, &audioMixer.pauseMusic);
+		playMenu.addButton(phrase(Message.Menus.PLAY_HIGHSCORES), 1, null, null);
 		playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
 		playMenu.addButton("Test BrowseableList", 4, testList, null);
 		
-		playersMenu.addButton("Add player", 0, null, &popupPlayerSelection);
-		playersMenu.addButton("Remove player", 1, null, &popupPlayerRemoveSelection);
-		playersMenu.addButton("Change keybinds", 2, null, &popupPlayerKeybindSelection);
+		playersMenu.addButton(phrase(Message.Menus.PLAYERS_ADDPLAYER), 0, null, &popupPlayerSelection);
+		playersMenu.addButton(phrase(Message.Menus.PLAYERS_REMOVEPLAYER), 1, null, &popupPlayerRemoveSelection);
+		playersMenu.addButton(phrase(Message.Menus.PLAYERS_KEYBINDS_CHANGE), 2, null, &popupPlayerKeybindSelection);
 												 
 		//s.addRenderable(0, testField);
 
@@ -547,10 +562,24 @@ class OpenTaiko {
 
 		settingsMenu = makeStandardMenu("Settings");
 		VerticalMenu importMenu = makeStandardMenu("Import...");
+		
+		VerticalMenu languageMenu = makeStandardMenu("Language select");
+		
+		void delegate() makeLangChangeCallback(string id) {
+			return (){changeLanguage(id);};
+		}
+		
+		foreach (int i, string languageOption ; Message.getAvailableLanguages()) {
+			languageMenu.addButton(Message.getLanguageName(languageOption), 
+			                       i,
+			                       languageMenu,
+			                       makeLangChangeCallback(languageOption));
+		}
 
-		settingsMenu.addButton("Import map", 0, importMenu, null);
-		settingsMenu.addButton("Reload song list", 1, null, &loadSongs);
-		settingsMenu.addButton("Vsync", 2, null, null);
+		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_IMPORTMAP), 0, importMenu, null);
+		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_SONGLIST_RELOAD), 1, null, &loadSongs);
+		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_VSYNC), 2, null, null);
+		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_LANGUAGE), 3, languageMenu, null);
 
 		void delegate(int) importCallback = (int mode) {
 			try {
@@ -575,7 +604,7 @@ class OpenTaiko {
 								 r.windowWidth - 20, 80,
 								 10, r.windowHeight / 2);
 								
-		importMenu.addButton("Import from .osz", 0, null, {popupTextInputField(pathField);});
+		importMenu.addButton(phrase(Message.Menus.SETTINGS_IMPORTMAP_OSZ), 0, null, {popupTextInputField(pathField);});
 		
 		playerDisplay = new PlayerDisplay(activePlayers,
 										  r.getFont("Noto-Light"),
@@ -587,7 +616,7 @@ class OpenTaiko {
 		
 		s.addRenderable(1, playerDisplay);
 		
-		Text greeting = new Text("Welcome to OpenTaiko!",
+		Text greeting = new Text(phrase(Message.Menus.WELCOMETEXT),
 								 renderer.getFont("Noto-Light").get(24),
 								 true,
 								 0, 0,
@@ -811,6 +840,12 @@ class OpenTaiko {
 		                        guiColors.activeButtonColor,
 		                        guiColors.buttonTextColor);
 	}
+	
+	void changeLanguage(string id) {
+		options.language = id;
+		Message.setLanguage(id);
+		shouldWriteSettings = true;
+	}
 
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
@@ -892,10 +927,10 @@ class OpenTaiko {
 
 	void pressMenuButton() {
 		Traversable subMenu = activeMenuStack.front().press();
-		if (subMenu !is null) {
-			activeMenuStack.insertFront(subMenu);
-		} else if (subMenu == activeMenuStack.front()) {
+		if (subMenu == activeMenuStack.front()) {
 			activeMenuStack.removeFront();
+		} else if (subMenu !is null) {
+			activeMenuStack.insertFront(subMenu);
 		} else {
 			return;
 		}
@@ -948,7 +983,10 @@ class OpenTaiko {
 		inputHandler.setAnyKeyAction(mainMenuBinderIndex, selectKey);
 		foreach (int i, Player* player ; activePlayers) {
 			Menu keySelect = makeStandardMenu("Key select");
-			foreach (int j, string title ; ["Left Rim", "Left Center", "Right Center", "Right Rim"]) {
+			foreach (int j, string title ; [phrase(Message.Keys.DRUM_RIM_LEFT),
+			                                phrase(Message.Keys.DRUM_CENTER_LEFT),
+			                                phrase(Message.Keys.DRUM_CENTER_RIGHT),
+			                                phrase(Message.Keys.DRUM_RIM_RIGHT)]) {
 				int actionCode = Action.DRUM_LEFT_RIM + j + i * DRUM_ACTION_OFFSET;
 				int[] boundCodes = playerKeybinds[i].keyboard.drumKeys[j];
 				string[] keyNames = new string[boundCodes.length];
@@ -960,7 +998,7 @@ class OpenTaiko {
 					return (){
 						oldTitle = button.getTitle();
 						lastUsed = button;
-						button.setTitle("Press a key for \"" ~ altTitle ~ "\" (ESC cancels)...");
+						button.setTitle(format(phrase(Message.Menus.PLAYERS_KEYBINDS_PRESSKEY), altTitle));
 						keyNum = keyNumber;
 						inputHandler.enableAnyKeyListen();
 					};

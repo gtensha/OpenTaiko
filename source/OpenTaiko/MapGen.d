@@ -12,6 +12,7 @@ import std.ascii;
 import std.json;
 import std.zip;
 import std.process : execute;
+import std.typecons : tuple, Tuple;
 
 import opentaiko.drum;
 import opentaiko.bashable;
@@ -21,9 +22,11 @@ import opentaiko.difficulty;
 import opentaiko.performance;
 import opentaiko.player;
 import opentaiko.keybinds;
+import opentaiko.languagehandler : Message;
 
 enum {
 	string MAP_DIR = "maps/",
+	string LOCALE_DIR = "locale/",
 	string OGG_EXTENSION = ".ogg",
 	int WIDTH = 0,
 	int HEIGHT = 1,
@@ -483,37 +486,31 @@ class MapGen {
 	static GameVars readConfFile(string fileLoc) {
 
 		GameVars gameVars;
-		string input = to!string(std.file.read(fileLoc));
+		string input = cast(string)read(fileLoc);
 
 		JSONValue vars = parseJSON(input);
 
-		if (!(vars["defaultKeys"].array.length == 4
-			  &&
-			  vars["resolution"].array.length == 2
-			  &&
-			  (vars["vsync"].type == JSON_TYPE.TRUE || vars["vsync"].type == JSON_TYPE.FALSE))) {
-
-			throw new Exception("Incorrect parameters in config file");
-		}
-
-		int i;
-		foreach (JSONValue key ; vars["defaultKeys"].array) {
-			gameVars.defaultKeys[i] = to!int(key.integer);
-			i++;
-		} i = 0;
-
-		foreach (JSONValue dimension ; vars["resolution"].array) {
+		foreach (int i, JSONValue dimension ; vars["resolution"].array) {
 			gameVars.resolution[i] = to!int(dimension.integer);
-			i++;
-		} i = 0;
+		}
 
 		if (vars["vsync"].type == JSON_TYPE.TRUE) {
 			gameVars.vsync = true;
 		} else {
 			gameVars.vsync = false;
 		}
+		
+		gameVars.language = vars["language"].str;
 
 		return gameVars;
+	}
+	
+	static void writeConfFile(GameVars options, string dest) {
+		JSONValue vars = JSONValue(["resolution": options.resolution]);
+		//vars.object["resolution"] = JSONValue(options.resolution);
+		vars.object["vsync"] = JSONValue(options.vsync);
+		vars.object["language"] = JSONValue(options.language);
+		std.file.write(dest, toJSON(vars, true));
 	}
 	
 	/// Reads the JSON file from given path and returns an AA of pointers to
@@ -622,4 +619,40 @@ class MapGen {
 		std.file.write(fileLoc, toJSON(finalDoc, true));
 	}
 	
+	static Tuple!(string, string[Message.MESSAGE_AMOUNT]) readLocaleFile(string[Message.MESSAGE_AMOUNT] messageList, string path) {
+		string[Message.MESSAGE_AMOUNT] ret;
+		JSONValue root = parseJSON(cast(string)read(path));
+		string languageName = root["language"].str;
+		JSONValue messages = root["message"];
+		foreach (int i, string message ; messageList) {
+			const(JSONValue*) match = message in messages;
+			if (match !is null) {
+				JSONValue deref = *match;
+				ret[i] = deref.str;
+			}
+		}
+		return tuple(languageName, ret);
+	}
+	
+	static Tuple!(string[string], string[Message.MESSAGE_AMOUNT][string]) readLocaleDir(immutable string[Message.MESSAGE_AMOUNT] messageIDs) {
+		string[Message.MESSAGE_AMOUNT][string] languageBindings;
+		string[string] languageNameAssoc;
+		foreach (DirEntry filepath ; dirEntries(LOCALE_DIR, SpanMode.shallow)) {
+			string[] splitPath = filepath.name.split("/");
+			const string filename = splitPath[splitPath.length - 1];
+			string[] splitName = filename.split(".");
+			if (splitName.length > 1 
+			    && 
+			    filepath.isFile() 
+			    && 
+			    splitName[splitName.length - 1].equal("json")) {
+
+				string languageAbbrev = splitName[0 .. splitName.length - 1].join();
+				auto returned = readLocaleFile(messageIDs, filepath.name);
+				languageBindings[languageAbbrev] = returned[1];
+				languageNameAssoc[languageAbbrev] = returned[0];
+			}
+		}
+		return tuple(languageNameAssoc, languageBindings);
+	}
 }

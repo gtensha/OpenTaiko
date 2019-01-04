@@ -8,3 +8,4 @@ public import opentaiko.song;
 public import opentaiko.drum;
 public import opentaiko.gamevars;
 public import opentaiko.mapgen;
+public import opentaiko.languagehandler;

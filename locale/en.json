@@ -1,0 +1,43 @@
+{
+	"language": "English",
+	"message": {
+		"title_game": "OpenTaiko",
+		"title_game_greeting": "Press any key",
+
+		"menus_topbar_play": "Play",
+		"menus_topbar_players": "Players",
+		"menus_topbar_settings": "Settings",
+
+		"menus_play_arcademode": "Arcade mode",
+		"menus_play_highscores": "High scores",
+
+		"menus_players_addplayer": "Add player",
+		"menus_players_removeplayer": "Remove player",
+		"menus_players_keybinds_change": "Change keybinds",
+		"menus_players_keybinds_presskey": "Press a key for \"%s\" (ESC cancels)",
+
+		"menus_settings_importmap": "Import map",
+		"menus_settings_importmap_osz": "Import from .osz",
+		"menus_settings_songlist_reload": "Reload song list",
+		"menus_settings_vsync": "Toggle vsync",
+		"menus_settings_language": "Language",
+
+		"menus_song_title": "Song title",
+		"menus_song_mapper": "Mapper",
+		"menus_song_difficultylevel": "Difficulty level",
+		"menus_song_highscores": "High scores",
+
+		"menus_welcometext": "Welcome to OpenTaiko!",
+
+		"score_good": "Good",
+		"score_ok": "Ok",
+		"score_bad": "Bad",
+		"score_combo": "Max combo",
+
+		"keys_drum_rim_left": "Left rim",
+		"keys_drum_center_left": "Left center",
+		"keys_drum_center_right": "Right center",
+		"keys_drum_rim_right": "Right rim"
+	}
+}
+	

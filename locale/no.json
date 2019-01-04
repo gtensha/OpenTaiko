@@ -1,0 +1,43 @@
+{
+	"language": "Norsk bokmål",
+	"message": {
+		"title_game": "OpenTaiko",
+		"title_game_greeting": "Trykk en tast",
+
+		"menus_topbar_play": "Spill",
+		"menus_topbar_players": "Spillere",
+		"menus_topbar_settings": "Innstillinger",
+
+		"menus_play_arcademode": "Arkademodus",
+		"menus_play_highscores": "Poengtavle",
+
+		"menus_players_addplayer": "Legg til spiller",
+		"menus_players_removeplayer": "Fjern spiller",
+		"menus_players_keybinds_change": "Endre tastekombinasjoner",
+		"menus_players_keybinds_presskey": "Trykk en ny knapp for \"%s\" (ESC for å avbryte)",
+
+		"menus_settings_importmap": "Importer sangtekst",
+		"menus_settings_importmap_osz": "Importer fra .osz",
+		"menus_settings_songlist_reload": "Last inn sanger på nytt",
+		"menus_settings_vsync": "Sett vsync",
+		"menus_settings_language": "Språk/Language",
+
+		"menus_song_title": "Tittel",
+		"menus_song_mapper": "Mapforfatter",
+		"menus_song_difficultylevel": "Vanskelighetsgrad",
+		"menus_song_highscores": "Poengtavle",
+
+		"menus_welcometext": "Velkommen til OpenTaiko!",
+
+		"score_good": "Bra",
+		"score_ok": "Tålelig",
+		"score_bad": "Dårlig",
+		"score_combo": "Høyeste combo",
+
+		"keys_drum_rim_left": "Venstre kant",
+		"keys_drum_center_left": "Venstre midt",
+		"keys_drum_center_right": "Høyre midt",
+		"keys_drum_rim_right": "Høyre kant"
+	}
+}
+	
