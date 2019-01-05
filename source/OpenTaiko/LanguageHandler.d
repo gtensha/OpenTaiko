@@ -148,7 +148,8 @@ static class Message {
 		"error_set_language_load",
 		"error_loading_playerlist",
 		"error_importing_map",
-		"error_loading_difficulty"
+		"error_loading_difficulty",
+		"error_no_maps_registered"
 	];
 	
 	private static immutable string[][] allMessageIDArrays = [

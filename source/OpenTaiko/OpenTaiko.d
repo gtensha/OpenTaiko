@@ -542,7 +542,15 @@ class OpenTaiko {
 		testList.addButton("List option 4", 3, null, null);
 		testList.addButton("List option 5", 4, null, null);
 
-		playButton = playMenu.addButton(phrase(Message.Menus.PLAY_ARCADEMODE), 0, null, &audioMixer.pauseMusic);
+		const void delegate() songSelectPreCheck = (){
+			if (songSelectMenu is null) {
+				Engine.notify(phrase(Message.Error.NO_MAPS_REGISTERED));
+			} else {
+				audioMixer.pauseMusic();
+			}
+		};
+		
+		playButton = playMenu.addButton(phrase(Message.Menus.PLAY_ARCADEMODE), 0, null, songSelectPreCheck);
 		playMenu.addButton(phrase(Message.Menus.PLAY_HIGHSCORES), 1, null, null);
 		playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
 		playMenu.addButton("Test BrowseableList", 4, testList, null);
@@ -714,6 +722,9 @@ class OpenTaiko {
 									 renderer.getFont("Noto-Bold"),
 									 renderer.getFont("Noto-Light"),
 									 x, y, w, h);
+		if (songs.length < 1) {
+			return null;
+		}
 		foreach (Song song ; songs) {
 			string artPath = MapGen.findImage(song.directory);
 			if (artPath !is null) {		

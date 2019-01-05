@@ -54,7 +54,8 @@
 		"error_set_language_load": "言語のセット失敗: %s",
 		"error_loading_playerlist": "プレイヤーリストのロード失敗: %sプレイヤーリストは書き換えしない。手で直してください。",
 		"error_importing_map": "マップのインポート失敗: %s",
-		"error_loading_difficulty": "譜面のロード失敗: %s"
+		"error_loading_difficulty": "譜面のロード失敗: %s",
+		"error_no_maps_registered": "遊べる前にマップを登録しよう!"
 	}
 }
 	

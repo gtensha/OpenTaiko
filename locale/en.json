@@ -54,7 +54,8 @@
 		"error_set_language_load": "Failed to load set language: %s",
 		"error_loading_playerlist": "Error loading player list: %sPlayer list write has been disabled. Please correct the file's formatting.",
 		"error_importing_map": "Failed to import map: %s",
-		"error_loading_difficulty": "Difficulty load failed: %s"
+		"error_loading_difficulty": "Difficulty load failed: %s",
+		"error_no_maps_registered": "You need to add some maps before you can play!"
 	}
 }
 	

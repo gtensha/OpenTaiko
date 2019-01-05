@@ -54,7 +54,8 @@
 		"error_set_language_load": "Kunne ikke velge satt språk: %s",
 		"error_loading_playerlist": "Feil under lasting av spillertavle: %sSpillertavlen vil ikke bli endret. Vennligst korriger tavlen manuelt.",
 		"error_importing_map": "Kunne ikke importere map: %s",
-		"error_loading_difficulty": "Kunne ikke laste inn vanskelighetsgrad: %s"
+		"error_loading_difficulty": "Kunne ikke laste inn vanskelighetsgrad: %s",
+		"error_no_maps_registered": "Du må legge til minst ett map før du kan spille!"
 	}
 }
 	
