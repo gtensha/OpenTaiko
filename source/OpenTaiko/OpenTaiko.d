@@ -552,12 +552,19 @@ class OpenTaiko {
 		
 		playButton = playMenu.addButton(phrase(Message.Menus.PLAY_ARCADEMODE), 0, null, songSelectPreCheck);
 		playMenu.addButton(phrase(Message.Menus.PLAY_HIGHSCORES), 1, null, null);
-		playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
-		playMenu.addButton("Test BrowseableList", 4, testList, null);
+		//playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
+		//playMenu.addButton("Test BrowseableList", 4, testList, null);
+		const void delegate() playerKeybindPreCheck = (){
+			if (activePlayers.length < 1) {
+				Engine.notify(phrase(Message.Menus.PLAYERS_REMOVEPLAYER_ADDPLAYERFIRST));
+			} else {
+				popupPlayerKeybindSelection();
+			}
+		};
 		
 		playersMenu.addButton(phrase(Message.Menus.PLAYERS_ADDPLAYER), 0, null, &popupPlayerSelection);
 		playersMenu.addButton(phrase(Message.Menus.PLAYERS_REMOVEPLAYER), 1, null, &popupPlayerRemoveSelection);
-		playersMenu.addButton(phrase(Message.Menus.PLAYERS_KEYBINDS_CHANGE), 2, null, &popupPlayerKeybindSelection);
+		playersMenu.addButton(phrase(Message.Menus.PLAYERS_KEYBINDS_CHANGE), 2, null, playerKeybindPreCheck);
 												 
 		//s.addRenderable(0, testField);
 
