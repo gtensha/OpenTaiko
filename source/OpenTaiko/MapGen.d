@@ -648,9 +648,17 @@ class MapGen {
 			    splitName[splitName.length - 1].equal("json")) {
 
 				string languageAbbrev = splitName[0 .. splitName.length - 1].join();
-				auto returned = readLocaleFile(messageIDs, filepath.name);
-				languageBindings[languageAbbrev] = returned[1];
-				languageNameAssoc[languageAbbrev] = returned[0];
+				try {
+					auto returned = readLocaleFile(messageIDs, filepath.name);
+					languageBindings[languageAbbrev] = returned[1];
+					languageNameAssoc[languageAbbrev] = returned[0];
+				} catch (JSONException e) {
+					writeln("Warning: Language "
+					        ~ filename
+					        ~ " failed to load: "
+					        ~ e.toString());
+					continue;
+				}
 			}
 		}
 		return tuple(languageNameAssoc, languageBindings);

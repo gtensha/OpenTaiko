@@ -6,6 +6,7 @@ import opentaiko.renderable.hitstatus;
 import opentaiko.game : OpenTaiko;
 import opentaiko.playerdisplay;
 import opentaiko.player;
+import opentaiko.languagehandler : Message, phrase;
 import maware.renderer;
 import maware.renderable;
 import maware.font;
@@ -218,7 +219,7 @@ class GameplayArea : Renderable {
 	}
 	
 	private void drawResults() {
-		Text good = new Text("Good: " ~ to!string(currentPerformance.score.good),
+		Text good = new Text(phrase(Message.Score.GOOD) ~ ": " ~ to!string(currentPerformance.score.good),
 							 score.getFont(),
 							 true,
 							 drumConveyor.rect.x + 10, drumConveyor.rect.y,
@@ -226,7 +227,7 @@ class GameplayArea : Renderable {
 		good.rect.y -= good.rect.h;
 		resultDisplay ~= good;
 		
-		Text ok = new Text("Ok: " ~ to!string(currentPerformance.score.ok),
+		Text ok = new Text(phrase(Message.Score.OK) ~ ": " ~ to!string(currentPerformance.score.ok),
 						   score.getFont(),
 						   true,
 						   good.rect.x + good.rect.w + 20, drumConveyor.rect.y,
@@ -234,7 +235,7 @@ class GameplayArea : Renderable {
 		ok.rect.y -= ok.rect.h;
 		resultDisplay ~= ok;
 		
-		Text bad = new Text("Bad: " ~ to!string(currentPerformance.score.bad),
+		Text bad = new Text(phrase(Message.Score.BAD) ~ ": " ~ to!string(currentPerformance.score.bad),
 						    score.getFont(),
 						    true,
 						    ok.rect.x + ok.rect.w + 20, drumConveyor.rect.y,
@@ -242,7 +243,7 @@ class GameplayArea : Renderable {
 		bad.rect.y -= bad.rect.h;
 		resultDisplay ~= bad;
 		
-		Text combo = new Text("Max combo: " ~ to!string(currentPerformance.score.highestCombo),
+		Text combo = new Text(phrase(Message.Score.COMBO) ~ ": " ~ to!string(currentPerformance.score.highestCombo),
 						   score.getFont(),
 						   true,
 						   bad.rect.x + bad.rect.w + 20, drumConveyor.rect.y,

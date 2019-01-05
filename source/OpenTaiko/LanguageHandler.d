@@ -100,12 +100,21 @@ static class Message {
 		"menus_play_highscores",
 		
 		"menus_players_addplayer",
+		"menus_players_addplayer_select",
+		"menus_players_addplayer_selectname",
+		"menus_players_addplayer_nameentry",
+		"menus_players_addplayer_entername",
 		"menus_players_removeplayer",
+		"menus_players_removeplayer_choose",
+		"menus_players_removeplayer_addplayerfirst",
+		"menus_players_removeplayer_return",
 		"menus_players_keybinds_change",
 		"menus_players_keybinds_presskey",
 		
 		"menus_settings_importmap",
 		"menus_settings_importmap_osz",
+		"menus_settings_importmap_enter_path",
+		"menus_settings_importmap_success",
 		"menus_settings_songlist_reload",
 		"menus_settings_vsync",
 		"menus_settings_language",
@@ -133,7 +142,13 @@ static class Message {
 	];
 	
 	static immutable string[] error = [
-		
+		"error_no_player_registered",
+		"error_loading_settings",
+		"error_loading_keymaps",
+		"error_set_language_load",
+		"error_loading_playerlist",
+		"error_importing_map",
+		"error_loading_difficulty"
 	];
 	
 	private static immutable string[][] allMessageIDArrays = [

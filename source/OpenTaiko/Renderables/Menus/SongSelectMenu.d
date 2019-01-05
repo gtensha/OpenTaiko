@@ -12,6 +12,7 @@ import maware.font;
 import opentaiko.song;
 import opentaiko.difficulty;
 import opentaiko.game : GUIDimensions, OpenTaiko;
+import opentaiko.languagehandler : Message, phrase;
 
 import std.conv : to;
 
@@ -320,7 +321,7 @@ class DifficultyListMenu : Traversable {
 									  OpenTaiko.guiColors.cardTextColor.b, 
 									  OpenTaiko.guiColors.cardTextColor.a);
 									  
-		mapperText = new Text("Mapper",
+		mapperText = new Text(phrase(Message.Menus.SONG_MAPPER),
 							  boldFont.get(textSize),
 							  true,
 							  difficultyInfoPadding.rect.x + BORDER_SPACING,
@@ -343,7 +344,7 @@ class DifficultyListMenu : Traversable {
 								 OpenTaiko.guiColors.cardTextColor.b, 
 								 OpenTaiko.guiColors.cardTextColor.a);
 								 
-		difficultyText = new Text("Difficulty level",
+		difficultyText = new Text(phrase(Message.Menus.SONG_DIFFICULTYLEVEL),
 								  boldFont.get(textSize),
 								  true,
 								  difficultyInfoPadding.rect.x + BORDER_SPACING,
@@ -366,7 +367,7 @@ class DifficultyListMenu : Traversable {
 									  OpenTaiko.guiColors.cardTextColor.b, 
 									  OpenTaiko.guiColors.cardTextColor.a);
 									  
-		highScoreText = new Text("High Scores",
+		highScoreText = new Text(phrase(Message.Menus.PLAY_HIGHSCORES),
 								 boldFont.get(textSize),
 								 true,
 								 difficultyInfoPadding.rect.x + BORDER_SPACING,

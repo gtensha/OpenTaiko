@@ -12,12 +12,21 @@
 		"menus_play_highscores": "ハイスコア",
 
 		"menus_players_addplayer": "相手を登録する",
+		"menus_players_addplayer_select": "プレイヤーを選んで",
+		"menus_players_addplayer_nameentry": "[入力]",
+		"menus_players_addplayer_selectname": "",
+		"menus_players_addplayer_entername": "プレイヤー名を入力して",
 		"menus_players_removeplayer": "相手を抜かす",
+		"menus_players_removeplayer_choose": "抜かされるプレイヤーを選んで",
+		"menus_players_removeplayer_addplayerfirst": "その前にプレイヤーを追加しなきゃ",
+		"menus_players_removeplayer_return": "[戻る]",
 		"menus_players_keybinds_change": "叩くキーを変化する",
 		"menus_players_keybinds_presskey": "「%s」の新しいキーをたたいて (ESCだと戻れる)",
 
 		"menus_settings_importmap": "マップをインポートする",
 		"menus_settings_importmap_osz": ".oszからインポートする",
+		"menus_settings_importmap_enter_path": "ファイルのパスを入力して (またはCTRL+V/SHIFT+INSERT)",
+		"menus_settings_importmap_success": "インポート完了",
 		"menus_settings_songlist_reload": "曲リストを再ロードする",
 		"menus_settings_vsync": "vsyncモード変化する",
 		"menus_settings_language": "言語/Language",
@@ -37,7 +46,15 @@
 		"keys_drum_rim_left": "左カツ",
 		"keys_drum_center_left": "左ドン",
 		"keys_drum_center_right": "右ドン",
-		"keys_drum_rim_right": "右カツ"
+		"keys_drum_rim_right": "右カツ",
+		
+		"error_no_player_registered": "演奏を始まる失敗: プレイヤーが登録していない",
+		"error_loading_settings": "%sから設定をロード失敗した、ディフォールト設定を利用している",
+		"error_loading_keymaps": "%sからキー設定をロード失敗した、ディフォールトキーを利用している(%s)",
+		"error_set_language_load": "言語のセット失敗: %s",
+		"error_loading_playerlist": "プレイヤーリストのロード失敗: %sプレイヤーリストは書き換えしない。手で直してください。",
+		"error_importing_map": "マップのインポート失敗: %s",
+		"error_loading_difficulty": "譜面のロード失敗: %s"
 	}
 }
 	

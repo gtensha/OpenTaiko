@@ -212,7 +212,7 @@ class OpenTaiko {
 	void gameplay(Song song, Difficulty diff) {
 
 		if (activePlayers.length < 1) { // TODO: in the future, we can autoplay map instead
-			throw new Exception("No players registered");
+			throw new Exception(phrase(Message.Error.NO_PLAYER_REGISTERED));
 		}
 		
 		if (gameplayTimer is null) {
@@ -353,9 +353,8 @@ class OpenTaiko {
 		try {
 			options = MapGen.readConfFile(CONFIG_FILE_PATH);
 		} catch (Exception e) {
-			Engine.notify("Failed to load settings from " ~ CONFIG_FILE_PATH
-						  ~ newline ~ e.msg
-						  ~ newline ~ "Using fallback settings");
+			Engine.notify(format(phrase(Message.Error.LOADING_SETTINGS), 
+			                     CONFIG_FILE_PATH ~ newline ~ e.msg ~ newline));
 						  
 			//options.defaultKeys = fallbackKeys;
 			options.resolution = [1280, 1024];
@@ -367,9 +366,9 @@ class OpenTaiko {
 		try {
 			playerKeybinds = MapGen.readKeybindsFile(KEYBINDS_FILE_PATH);
 		} catch (Exception e) {
-			Engine.notify("Failed to load key mappings from " ~ KEYBINDS_FILE_PATH
-						  ~ newline ~ e.msg
-						  ~ newline ~ "Using fallback keys (d f j k)");
+			Engine.notify(format(phrase(Message.Error.LOADING_KEYMAPS),
+			                     KEYBINDS_FILE_PATH ~ newline ~ e.msg ~ newline,
+			                     "d f j k"));
 			Keybinds bindings;
 			bindings.keyboard.drumKeys = fallbackKeys;
 			playerKeybinds ~= bindings;
@@ -378,7 +377,7 @@ class OpenTaiko {
 		try {
 			Message.setLanguage(options.language);
 		} catch (Exception e) {
-			Engine.notify("Failed loading set language: " ~ e.msg);
+			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD), e.msg));
 		}
 	}
 	
@@ -386,11 +385,8 @@ class OpenTaiko {
 		try {
 			players = MapGen.readPlayerList(PLAYER_DATA_FILE);
 		} catch (Exception e) {
-			Engine.notify("Error loading player list: " 
-						  ~ e.msg
-						  ~ newline
-						  ~ "Player list write has been disabled. "
-						  ~ "Please correct the file's formatting.");
+			Engine.notify(format(phrase(Message.Error.LOADING_PLAYERLIST)
+			                     ~ e.msg ~ newline));
 			disablePlayerListWrite = true;
 		}
 		if (players is null) {
@@ -586,14 +582,14 @@ class OpenTaiko {
 				MapGen.extractOSZ(inputFieldDest);
 				loadSongs();
 			} catch (Exception e) {
-				Engine.notify("Failed to import map: " ~ e.toString());
+				Engine.notify(format(phrase(Message.Error.IMPORTING_MAP), e.toString()));
 				return;
 			}
-			Engine.notify("Map successfully imported.");
+			Engine.notify(phrase(Message.Menus.SETTINGS_IMPORTMAP_SUCCESS));
 		};
 		
 		InputBox pathField;
-		pathField = new InputBox("Enter path to file (or CTRL+V/SHIFT+INSERT)",
+		pathField = new InputBox(phrase(Message.Menus.SETTINGS_IMPORTMAP_ENTER_PATH),
 								 r.getFont("Noto-Light"),
 								 {
 									inputHandler.stopTextEditing(); 
@@ -1011,13 +1007,13 @@ class OpenTaiko {
 	}
 
 	void popupPlayerRemoveSelection() {
-		const string message = "Select player to remove";
+		const string message = Message.Menus.PLAYERS_REMOVEPLAYER_CHOOSE.phrase;
 		bool proceed = activePlayers.length > 0;
-		makeSelectionList(proceed ? message : "Add a player first!");
+		makeSelectionList(proceed ? message : phrase(Message.Menus.PLAYERS_REMOVEPLAYER_ADDPLAYERFIRST));
 		BrowsableList list = cast(BrowsableList)activeMenuStack.front();
 		playerSelectList = list;
 		if (!proceed) {
-			list.addButton("[Return]", 0, null, &navigateMenuBack);
+			list.addButton(phrase(Message.Menus.PLAYERS_REMOVEPLAYER_RETURN), 0, null, &navigateMenuBack);
 			return;
 		}
 		foreach (int i, Player* player ; activePlayers) {
@@ -1026,10 +1022,10 @@ class OpenTaiko {
 	}
 	
 	void popupPlayerSelection() {
-		makeSelectionList("Select a player...");
+		makeSelectionList(phrase(Message.Menus.PLAYERS_ADDPLAYER_SELECT));
 		BrowsableList list = cast(BrowsableList)activeMenuStack.front();
 		playerSelectList = list;
-		list.addButton("[Name entry]", -1, null, &doNameEntry);
+		list.addButton(phrase(Message.Menus.PLAYERS_ADDPLAYER_NAMEENTRY), -1, null, &doNameEntry);
 		foreach (Player* player ; players) {
 			list.addButton(player.name, player.id, null, &selectActiveName);
 		}
@@ -1054,7 +1050,7 @@ class OpenTaiko {
 	}
 	
 	void doNameEntry() {
-		popupTextInputField(new InputBox("Enter player name",
+		popupTextInputField(new InputBox(phrase(Message.Menus.PLAYERS_ADDPLAYER_ENTERNAME),
 										 renderer.getFont("Noto-Light"),
 										 &addPlayer,
 										 &hideTextInputField,
@@ -1112,7 +1108,7 @@ class OpenTaiko {
 		try {
 			gameplay(activeSong, activeDifficulty);
 		} catch (Exception e) {
-			Engine.notify("Difficulty load failed: " ~ newline ~ e.msg);
+			Engine.notify(format(phrase(Message.Error.LOADING_DIFFICULTY), newline ~ e.msg));
 		}
 	}
 
