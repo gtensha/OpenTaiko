@@ -141,6 +141,11 @@ static class Message {
 		"keys_drum_rim_right"
 	];
 	
+	static immutable string[] values = [
+		"values_on",
+		"values_off"
+	];
+	
 	static immutable string[] error = [
 		"error_no_player_registered",
 		"error_loading_settings",
@@ -157,12 +162,13 @@ static class Message {
 		menus,
 		score,
 		keys,
+		values,
 		error
 	];
 	
 	mixin(makeEnums(allMessageIDArrays));
 	
-	static immutable string[MESSAGE_AMOUNT] allMessageIDs = title ~ menus ~ score ~ keys ~ error;
+	static immutable string[MESSAGE_AMOUNT] allMessageIDs = title ~ menus ~ score ~ keys ~ values ~ error;
 	
 	private static string[MESSAGE_AMOUNT][string] availableLanguages;
 	private static string[MESSAGE_AMOUNT] activeLanguage;

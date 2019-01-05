@@ -28,7 +28,7 @@
 		"menus_settings_importmap_enter_path": "Enter path to file (or CTRL+V/SHIFT+INSERT)",
 		"menus_settings_importmap_success": "Map successfully imported.",
 		"menus_settings_songlist_reload": "Reload song list",
-		"menus_settings_vsync": "Toggle vsync",
+		"menus_settings_vsync": "vsync mode: %s",
 		"menus_settings_language": "Language",
 
 		"menus_song_title": "Song title",
@@ -47,6 +47,9 @@
 		"keys_drum_center_left": "Left center",
 		"keys_drum_center_right": "Right center",
 		"keys_drum_rim_right": "Right rim",
+		
+		"values_on": "On",
+		"values_off": "Off",
 		
 		"error_no_player_registered": "Failed to play song: No players registered",
 		"error_loading_settings": "Failed to load settings from %s Using fallback settings",

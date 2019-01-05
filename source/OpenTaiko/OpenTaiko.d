@@ -589,7 +589,8 @@ class OpenTaiko {
 
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_IMPORTMAP), 0, importMenu, null);
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_SONGLIST_RELOAD), 1, null, &loadSongs);
-		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_VSYNC), 2, null, null);
+		Button vsyncButton = settingsMenu.addButton(makeVsyncButtonTitle(options.vsync), 2, null, null);
+		vsyncButton.instruction = (){toggleVsync(vsyncButton);};
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_LANGUAGE), 3, languageMenu, null);
 
 		void delegate(int) importCallback = (int mode) {
@@ -861,6 +862,14 @@ class OpenTaiko {
 		options.language = id;
 		Message.setLanguage(id);
 		shouldWriteSettings = true;
+	}
+	
+	string makeVsyncButtonTitle(bool value) {
+		return format(phrase(Message.Menus.SETTINGS_VSYNC), getLocalisedOnOff(value));
+	}
+	
+	string getLocalisedOnOff(bool value) {
+		return value ? phrase(Message.Values.ON) : phrase(Message.Values.OFF);
 	}
 
 	static int getCenterPos(int maxWidth, int width) {
@@ -1201,6 +1210,13 @@ class OpenTaiko {
 	void testEditing() {
 		testField.inputField.activate();
 		inputHandler.enableTextEditing();
+	}
+	
+	void toggleVsync(Button toAlter) {
+		options.vsync = !options.vsync;
+		shouldWriteSettings = true;
+		const string newLabel = makeVsyncButtonTitle(options.vsync);
+		toAlter.setTitle(newLabel);
 	}
 
 }

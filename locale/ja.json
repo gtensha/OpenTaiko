@@ -28,7 +28,7 @@
 		"menus_settings_importmap_enter_path": "ファイルのパスを入力して (またはCTRL+V/SHIFT+INSERT)",
 		"menus_settings_importmap_success": "インポート完了",
 		"menus_settings_songlist_reload": "曲リストを再ロードする",
-		"menus_settings_vsync": "vsyncモード変化する",
+		"menus_settings_vsync": "vsyncモード：%s",
 		"menus_settings_language": "言語/Language",
 
 		"menus_song_title": "Song title",
@@ -47,6 +47,9 @@
 		"keys_drum_center_left": "左ドン",
 		"keys_drum_center_right": "右ドン",
 		"keys_drum_rim_right": "右カツ",
+		
+		"values_on": "オン",
+		"values_off": "オフ",
 		
 		"error_no_player_registered": "演奏を始まる失敗: プレイヤーが登録していない",
 		"error_loading_settings": "%sから設定をロード失敗した、ディフォールト設定を利用している",

@@ -28,7 +28,7 @@
 		"menus_settings_importmap_enter_path": "Skriv inn sti til fil (eller CTRL+V/SHIFT+INSERT)",
 		"menus_settings_importmap_success": "Map ble vellykket importert.",
 		"menus_settings_songlist_reload": "Last inn sanger på nytt",
-		"menus_settings_vsync": "Sett vsync",
+		"menus_settings_vsync": "vsync modus: %s",
 		"menus_settings_language": "Språk/Language",
 
 		"menus_song_title": "Tittel",
@@ -47,6 +47,9 @@
 		"keys_drum_center_left": "Venstre midt",
 		"keys_drum_center_right": "Høyre midt",
 		"keys_drum_rim_right": "Høyre kant",
+		
+		"values_on": "På",
+		"values_off": "Av",
 		
 		"error_no_player_registered": "Kunne ikke spille sang: Ingen spillere er registrert",
 		"error_loading_settings": "Kunne ikke laste inn instillinger fra %sBruker trygge instillinger.",
