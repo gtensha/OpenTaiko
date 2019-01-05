@@ -28,6 +28,7 @@ enum {
 	string MAP_DIR = "maps/",
 	string LOCALE_DIR = "locale/",
 	string OGG_EXTENSION = ".ogg",
+	string OLD_SUFFIX = ".old",
 	int WIDTH = 0,
 	int HEIGHT = 1,
 	int RED1 = 0,
@@ -402,9 +403,15 @@ class MapGen {
 	/// successfully
 	static void convertToOgg(string infile, string outfile, bool shouldDelete) {
 		isFile(infile);
+		if (exists(outfile)) {
+			rename(outfile, outfile ~ OLD_SUFFIX);
+		}
 		auto result = execute([FFMPEG.COMMAND, FFMPEG.INPUT_FLAG, infile, outfile]);
 		if (result.status != 0) {
+			rename(outfile ~ OLD_SUFFIX, outfile);
 			throw new Exception("Conversion failed: " ~ result.output);
+		} else {
+			remove(outfile ~ OLD_SUFFIX);
 		}
 		if (shouldDelete) {
 			remove(infile);
