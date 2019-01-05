@@ -584,6 +584,8 @@ class OpenTaiko {
 			} catch (Exception e) {
 				Engine.notify(format(phrase(Message.Error.IMPORTING_MAP), e.toString()));
 				return;
+			} finally {
+				hideTextInputField();
 			}
 			Engine.notify(phrase(Message.Menus.SETTINGS_IMPORTMAP_SUCCESS));
 		};
