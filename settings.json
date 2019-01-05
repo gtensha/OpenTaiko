@@ -1,6 +1,8 @@
 {
-    "defaultKeys": [100, 102, 106, 107],
-    
-    "resolution": [1600, 900],
+    "language": "en",
+    "resolution": [
+        1600,
+        900
+    ],
     "vsync": false
 }
