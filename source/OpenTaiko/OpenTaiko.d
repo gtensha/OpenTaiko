@@ -685,6 +685,31 @@ class OpenTaiko {
 		inputHandler.bindAction(mainMenuBinderIndex, Action.MODESEL, &navigateTopBarRight);
 
 	}
+	
+	/// Create and register playerNum's hit delegates
+	void bindPlayerKeys(int playerNum, InputHandler i) {
+		void delegate() makeHitClosure(int player, int variant, int side) {
+			return {hitDrum(player, variant, side);};
+		}
+		const int offset = playerNum * DRUM_ACTION_OFFSET;
+		int[] actionCodes = [Action.DRUM_LEFT_RIM,
+		                     Action.DRUM_LEFT_CENTER,
+		                     Action.DRUM_RIGHT_CENTER,
+		                     Action.DRUM_RIGHT_RIM];
+		foreach (int drumNum, int actionCode ; actionCodes) {
+			foreach (int keyCode ; playerKeybinds[playerNum].keyboard.drumKeys[drumNum]) {
+				i.bind(actionCode + offset, keyCode);
+			}
+		}
+		void delegate() hitRimLeft = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.LEFT);
+		void delegate() hitCenterLeft = makeHitClosure(playerNum, Drum.Type.RED, Drum.Side.LEFT);
+		void delegate() hitCenterRight = makeHitClosure(playerNum, Drum.Type.RED, Drum.Side.RIGHT);
+		void delegate() hitRimRight = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.RIGHT);
+		i.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenterRight);
+		i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenterLeft);
+		i.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRimRight);
+		i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRimLeft);
+	}
 
 	/// Bind input actions and player keybindings from the playerKeybinds array
 	void bindKeys(InputHandler i) {
@@ -698,31 +723,10 @@ class OpenTaiko {
 		i.bind(Action.MODESEL,	'\t');
 		i.bind(Action.PAUSE,	'\033');
 		
-		void delegate() makeHitClosure(int player, int variant, int side) {
-			return {hitDrum(player, variant, side);};
-		}
-		
 		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
 		
 		for (int playerNum; playerNum < playerKeybinds.length; playerNum++) {
-			const int offset = playerNum * DRUM_ACTION_OFFSET;
-			int[] actionCodes = [Action.DRUM_LEFT_RIM,
-			                     Action.DRUM_LEFT_CENTER,
-								 Action.DRUM_RIGHT_CENTER,
-								 Action.DRUM_RIGHT_RIM];
-			foreach (int drumNum, int actionCode ; actionCodes) {
-				foreach (int keyCode ; playerKeybinds[playerNum].keyboard.drumKeys[drumNum]) {
-					i.bind(actionCode + offset, keyCode);
-				}
-			}
-			void delegate() hitRimLeft = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.LEFT);
-			void delegate() hitCenterLeft = makeHitClosure(playerNum, Drum.Type.RED, Drum.Side.LEFT);
-			void delegate() hitCenterRight = makeHitClosure(playerNum, Drum.Type.RED, Drum.Side.RIGHT);
-			void delegate() hitRimRight = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.RIGHT);
-			i.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_CENTER + offset, hitCenterRight);
-			i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_CENTER + offset, hitCenterLeft);
-			i.bindAction(gameplayBinderIndex, Action.DRUM_RIGHT_RIM + offset, hitRimRight);
-			i.bindAction(gameplayBinderIndex, Action.DRUM_LEFT_RIM + offset, hitRimLeft);
+			bindPlayerKeys(playerNum, i);
 		}
 	}
 	
@@ -1033,6 +1037,7 @@ class OpenTaiko {
 			if (keyCode != '\033') {
 				playerKeybinds[playerNum].keyboard.drumKeys[keyNum] ~= keyCode;
 				inputHandler.bind(Action.DRUM_LEFT_RIM + keyNum + playerNum * DRUM_ACTION_OFFSET, keyCode);
+				bindPlayerKeys(playerNum, inputHandler);
 				shouldWriteKeybindsList = true;
 			}
 			lastUsed.setTitle(oldTitle);
@@ -1041,6 +1046,10 @@ class OpenTaiko {
 		inputHandler.setAnyKeyAction(mainMenuBinderIndex, selectKey);
 		foreach (int i, Player* player ; activePlayers) {
 			Menu keySelect = makeStandardMenu("Key select");
+			if (playerKeybinds.length <= i) {
+				Keybinds b;
+				playerKeybinds ~= b;
+			}
 			foreach (int j, string title ; [phrase(Message.Keys.DRUM_RIM_LEFT),
 			                                phrase(Message.Keys.DRUM_CENTER_LEFT),
 			                                phrase(Message.Keys.DRUM_CENTER_RIGHT),
