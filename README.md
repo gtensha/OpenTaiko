@@ -139,6 +139,51 @@ dub build --config=SFMLMixer --arch=x86
 
 An internet connection is required when building for the first time, as dub dependencies must be downloaded. After that you may work offline as you please. It is also possible to download the code manually, see the links at the top of this document and the dub documentation for more details.
 
+## Playing the game
+OpenTaiko is currently played with a keyboard. Game controller support is planned. You can play alone or with several other players, using the same keyboard (or different ones connected to the same computer.)
+
+### Controls
+Use a keyboard to navigate menus and play the game. Using a mouse is not supported.
+
+Use the arrow keys to select menu options. Use the ENTER key to select a menu option, and ESCAPE will take you back to the previous menu or quit the game if pressed at the start screen. Use the TAB key when in the main menu to cycle the different menu sections.
+
+By default, gameplay keys for player 1 are bound to the [D F J K] keys, where D is the left rim, F is the left center, and so on. Player 2 may use [End PageDown Numpad8 Numpad9].
+
+#### Binding controls
+Navigate to the _Players_ menu and select _Change keybinds_. Now you may select any registered player and change their keybinds, by pressing a key option followed by the desired key to bind. Press ESCAPE at any time to cancel.
+
+Keybinds are stored as arrays in _keybinds.json_, which you may edit by hand if you please. Keybinds are player number specific, and not associated with a single player.
+
+If you wish to clear the keybinds for a specified player number, use the designated option in the _Players_ menu.
+
+### Adding players
+By default you'll have one player, _Player_. You can add more players by navigating to the _Players_ menu and selecting _Add player_. Now you may select from the list of previously registered players, or register a new one. When you add a player, they will get their own player area when you select a map and will be able to play together with you. The currently selected players can be seen in the top right corner.
+
+Using the _Remove player_ option, you may remove players from the current game session. Removing players does not delete them from the list of registered players.
+
+Registered players are stored in the _players.json_ file. You may edit this by hand if you please.
+
+### Adding maps
+To add maps, you can either map some yourself, get a map someone else has mapped already, or import a map from a different game.
+
+#### Creating your own map
+This is a work in progress, as you must currently do everything manually. Look in the maps directory and inspect the included maps for details on how to create a map.
+
+To use a map someone has created already, copy its directory to the maps directory, as seen with the included examples.
+
+#### Importing maps
+You can import a map from a .osz archive if you have one. It will convert the beatmap to the OpenTaiko fumen format, and convert the mp3 within to a ogg file with ffmpeg. If you don't have ffmpeg you may not be able to play the song in game afterwards. Unlike the game this type of beatmap originates from, the archive will not be deleted after import.
+
+To import a map, navigate to the _Settings_ menu, and select _Import map_.
+
+### Configuring the game
+In the _Settings_ menu you may change the language and set the vsync mode. To change resolution, edit the value in _settings.json_ to match your preferred value. Changing any option currently requires you to restart the game for them to take effect.
+
+### Gameplay
+Hit the drum circles as they approach the reception area. Hit the red circles with your left or right middle keys, and likewise, the green circles with your rim keys. The better the timing, the better the score. Following the music is the key!
+
+More gameplay elements will be added as development progresses.
+
 # Goals
 OpenTaiko is to be a platform agnostic drum rhythm game that works well on most hardware, including old and/or weak hardware, as well as cutting-edge systems.
 
