@@ -22,6 +22,8 @@
 		"menus_players_removeplayer_return": "[Tilbake]",
 		"menus_players_keybinds_change": "Endre tastekombinasjoner",
 		"menus_players_keybinds_presskey": "Trykk en ny knapp for \"%s\" (ESC for å avbryte)",
+		"menus_players_keybinds_clear": "Fjern en spillers tastekombinasjoner",
+		"menus_players_keybinds_unbound": "(ikke bunnet)",
 
 		"menus_settings_importmap": "Importer map",
 		"menus_settings_importmap_osz": "Importer fra .osz",
@@ -50,6 +52,8 @@
 		
 		"values_on": "På",
 		"values_off": "Av",
+		
+		"terminology_player": "Spiller",
 		
 		"error_no_player_registered": "Kunne ikke spille sang: Ingen spillere er registrert",
 		"error_loading_settings": "Kunne ikke laste inn instillinger fra %sBruker trygge instillinger.",

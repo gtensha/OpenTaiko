@@ -110,6 +110,8 @@ static class Message {
 		"menus_players_removeplayer_return",
 		"menus_players_keybinds_change",
 		"menus_players_keybinds_presskey",
+		"menus_players_keybinds_clear",
+		"menus_players_keybinds_unbound",
 		
 		"menus_settings_importmap",
 		"menus_settings_importmap_osz",
@@ -146,6 +148,10 @@ static class Message {
 		"values_off"
 	];
 	
+	static immutable string[] terminology = [
+		"terminology_player"
+	];
+	
 	static immutable string[] error = [
 		"error_no_player_registered",
 		"error_loading_settings",
@@ -163,17 +169,22 @@ static class Message {
 		score,
 		keys,
 		values,
+		terminology,
 		error
 	];
 	
 	mixin(makeEnums(allMessageIDArrays));
 	
-	static immutable string[MESSAGE_AMOUNT] allMessageIDs = title ~ menus ~ score ~ keys ~ values ~ error;
+	static immutable string[MESSAGE_AMOUNT] allMessageIDs = title ~ menus ~ score ~ keys ~ values ~ terminology ~ error;
 	
 	private static string[MESSAGE_AMOUNT][string] availableLanguages;
 	private static string[MESSAGE_AMOUNT] activeLanguage;
 	
 	private static string[string] languageNames;
+	
+	unittest {
+		assert(equal(allMessageIDArrays.join(), allMessageIDs));
+	}
 	
 	static this() {
 		Tuple!(string[string], string[MESSAGE_AMOUNT][string]) retTuple = MapGen.readLocaleDir(allMessageIDs);

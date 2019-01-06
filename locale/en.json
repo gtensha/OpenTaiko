@@ -22,6 +22,8 @@
 		"menus_players_removeplayer_return": "[Return]",
 		"menus_players_keybinds_change": "Change keybinds",
 		"menus_players_keybinds_presskey": "Press a key for \"%s\" (ESC cancels)",
+		"menus_players_keybinds_clear": "Clear keybinds for player",
+		"menus_players_keybinds_unbound": "(not bound)",
 
 		"menus_settings_importmap": "Import map",
 		"menus_settings_importmap_osz": "Import from .osz",
@@ -50,6 +52,8 @@
 		
 		"values_on": "On",
 		"values_off": "Off",
+		
+		"terminology_player": "Player",
 		
 		"error_no_player_registered": "Failed to play song: No players registered",
 		"error_loading_settings": "Failed to load settings from %s Using fallback settings",

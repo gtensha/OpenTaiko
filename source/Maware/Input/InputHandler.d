@@ -142,6 +142,11 @@ class InputHandler {
 		}
 		bindings = bindings.rehash();
 	}
+	
+	/// Removes the binding of key to its event number
+	public void unbind(int key) {
+		bindings.remove(key);
+	}
 
 	/// Adds an ActionBinder to the system and returns its index
 	public int addActionBinder() {

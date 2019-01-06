@@ -565,7 +565,22 @@ class OpenTaiko {
 		playersMenu.addButton(phrase(Message.Menus.PLAYERS_ADDPLAYER), 0, null, &popupPlayerSelection);
 		playersMenu.addButton(phrase(Message.Menus.PLAYERS_REMOVEPLAYER), 1, null, &popupPlayerRemoveSelection);
 		playersMenu.addButton(phrase(Message.Menus.PLAYERS_KEYBINDS_CHANGE), 2, null, playerKeybindPreCheck);
-												 
+		Button keybindWipeButton = playersMenu.addButton(phrase(Message.Menus.PLAYERS_KEYBINDS_CLEAR), 3, null, null);
+		
+		void delegate() makeWipeCallback(int playerNum) {
+			return (){clearBindings(playerNum);};
+		}
+		
+		const void delegate() makeKeybindWipeMenu = (){
+			Menu wipeMenu = makeStandardMenu("Keybind wipe");
+			foreach (int i, Keybinds binds ; playerKeybinds) {
+				const string t = phrase(Message.Terminology.PLAYER) ~ " ";
+				wipeMenu.addButton(t ~ to!string(i + 1), i, wipeMenu, makeWipeCallback(i));
+			}
+			keybindWipeButton.subMenu = wipeMenu;
+		};
+		keybindWipeButton.instruction = makeKeybindWipeMenu;
+		
 		//s.addRenderable(0, testField);
 
 		//engine.iHandler.setInputBinder(testField.inputField.getBindings());
@@ -871,6 +886,24 @@ class OpenTaiko {
 	string getLocalisedOnOff(bool value) {
 		return value ? phrase(Message.Values.ON) : phrase(Message.Values.OFF);
 	}
+	
+	/// Clears the bindings of player number playerNum.
+	/// Removes the bindings in playerKeybinds, and unbinds all bound actions
+	/// in inputHandler.
+	void clearBindings(int playerNum) {
+		for (int i = 0; i < 4; i++) {
+			playerKeybinds[playerNum].keyboard.drumKeys[i] = null;
+		}
+		const int baseActionCode = Action.DRUM_LEFT_RIM + DRUM_ACTION_OFFSET * playerNum;
+		for (int actionCode = baseActionCode;
+		     actionCode < baseActionCode + 4;
+		     actionCode++) {
+
+			foreach (int code ; inputHandler.findAssociatedKeys(actionCode)) {
+				inputHandler.unbind(code);
+			}
+		}
+	}
 
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
@@ -1018,7 +1051,12 @@ class OpenTaiko {
 				foreach (int ii, int val ; boundCodes) {
 					keyNames[ii] = InputHandler.getKeyName(val);
 				}
-				string extra = keyNames.length > 0 ? " [" ~ keyNames.join(", ") ~ "]" : "";
+				string extra;
+				if (keyNames.length > 0) {
+					extra = " [" ~ keyNames.join(", ") ~ "]";
+				} else {
+					extra = " " ~ phrase(Message.Menus.PLAYERS_KEYBINDS_UNBOUND);
+				}
 				void delegate() makeKeyCallback(Button button, string altTitle, int keyNumber) {
 					return (){
 						oldTitle = button.getTitle();

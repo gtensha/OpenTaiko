@@ -20,8 +20,10 @@
 		"menus_players_removeplayer_choose": "抜かされるプレイヤーを選んで",
 		"menus_players_removeplayer_addplayerfirst": "その前にプレイヤーを追加しなきゃ",
 		"menus_players_removeplayer_return": "[戻る]",
-		"menus_players_keybinds_change": "叩くキーを変化する",
+		"menus_players_keybinds_change": "叩けれるキーを変化する",
 		"menus_players_keybinds_presskey": "「%s」の新しいキーをたたいて (ESCだと戻れる)",
+		"menus_players_keybinds_clear": "プレイヤー特定の叩けれるキーを取り消す",
+		"menus_players_keybinds_unbound": "(設定されてない)",
 
 		"menus_settings_importmap": "マップをインポートする",
 		"menus_settings_importmap_osz": ".oszからインポートする",
@@ -50,6 +52,8 @@
 		
 		"values_on": "オン",
 		"values_off": "オフ",
+		
+		"terminology_player": "プレイヤー",
 		
 		"error_no_player_registered": "演奏を始まる失敗: プレイヤーが登録していない",
 		"error_loading_settings": "%sから設定をロード失敗した、ディフォールト設定を利用している",
