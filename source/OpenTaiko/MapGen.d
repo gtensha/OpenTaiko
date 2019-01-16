@@ -161,20 +161,58 @@ class MapGen {
 									 int* i,
 									 int offset) {
 		int index = *i;
+		bool processingDrumRoll = false;
+		int drumRollLength = 0;
 		Bashable[] drumArray;
 		foreach (char type ; section) {
-			if (type == 'D' || type == 'd') {
-				drumArray ~= new RedDrum(0,
-										 0,
-										 calculatePosition(index, offset, bpm),
-										 scroll);
-			} else if (type == 'K' || type == 'k') {
-				drumArray ~= new BlueDrum(0,
-										  0,
-										  calculatePosition(index, offset, bpm),
-										  scroll);
-			} else if (type == '\r') { // ignore Windows' carriage return
-				continue;
+			if (type == 'O' || type == 'o') {
+				drumRollLength++;
+			} else {
+				if (drumRollLength > 0) {
+					int startTime = calculatePosition(index - drumRollLength,
+													  offset,
+													  bpm);
+					int length = calculatePosition(index,
+												   offset,
+												   bpm) - startTime;
+					drumArray ~= new DrumRoll(0,
+											  0,
+											  startTime,
+											  scroll,
+											  length);
+				}
+				drumRollLength = 0;
+				if (type == 'd') {
+					drumArray ~= new RedDrum(0,
+											 0,
+											 calculatePosition(index,
+															   offset,
+															   bpm),
+											 scroll);
+				} else if (type == 'D') {
+					drumArray ~= new LargeRedDrum(0,
+												  0,
+												  calculatePosition(index,
+																	offset,
+																	bpm),
+												  scroll);
+				} else if (type == 'k') {
+					drumArray ~= new BlueDrum(0,
+											  0,
+											  calculatePosition(index,
+																offset,
+																bpm),
+											  scroll);
+				} else if (type == 'K') {
+					drumArray ~= new LargeBlueDrum(0,
+												   0,
+												   calculatePosition(index,
+																	 offset,
+																	 bpm),
+												   scroll);
+				} else if (type == '\r') { // ignore Windows' carriage return
+					continue;
+				}
 			}
 			index++;
 		}

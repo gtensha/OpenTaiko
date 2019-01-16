@@ -11,11 +11,22 @@ abstract class Bashable : Renderable {
 	static const int goodHit = 50; /// ditto
 
 	/// Success codes for the hitting of an object
-	enum Success : int {
-		GOOD = 0,
-		OK = 1,
-		BAD = 2,
-		IGNORE = 3
+	enum Success : ubyte {
+		GOOD = 0x00,
+		OK = 0x01,
+		BAD = 0x02,
+		IGNORE = 0x03,
+		AWAIT = 0x04,
+		MASK = 0xff
+	}
+	
+	/// Values for the hitting of an object
+	enum Value : ushort {
+		NORMAL = 0x0100,
+		LARGE = 0x0200,
+		ROLL = 0x0300,
+		NONE = 0x0400,
+		MASK = 0xff00
 	}
 
 	public static int currentOffset; /// The current time offset in ms
@@ -35,7 +46,6 @@ abstract class Bashable : Renderable {
 		foreach (Solid renderable ; renderables) {
 			renderable.renderOffset(0 - cast(int)(currentOffset * scroll), 0);
 		}
-		//renderable.render();
 	}
 
 	public void adjustX(int xOffset) {
@@ -56,6 +66,12 @@ abstract class Bashable : Renderable {
 
 	/// Attempt to hit this object and return success code
 	public abstract int hit(int key);
+	
+	/// Return true if this object has been hit before but cannot be hit again
+	public abstract bool expired();
+
+	/// Return the value of this object, from which we can infer type
+	public int value();
 
 	/// Return this object's actual (relative) position on the timeline
 	public int actualPosition() {
@@ -75,6 +91,35 @@ abstract class Bashable : Renderable {
 			}
 		}
 		return max;
+	}
+
+	/// Align all Solid objects in objects by changing their relative coordinates
+	/// so that they are centered inside the largest.
+	/// Centers on both X and Y axis if centerX is true, else only Y.
+	static void centerObjects(Solid[] objects, bool centerX, bool centerY) {
+		if (objects.length < 2) {
+			return;
+		}
+		Solid largestY = objects[0];
+		Solid largestX = objects[0];
+		foreach (Solid obj ; objects[1 .. objects.length]) {
+			if (centerY && obj.rect.h > largestY.rect.h) {
+				largestY = obj;
+			}
+			if (centerX && obj.rect.w > largestX.rect.w) {
+				largestX = obj;
+			}
+		}
+		foreach (Solid obj ; objects) {
+			if (centerY && obj != largestY) {
+				obj.rect.y = largestY.rect.y;
+				obj.rect.y += (largestY.rect.h - obj.rect.h) / 2;
+			}
+			if (centerX && obj != largestX) {
+				obj.rect.x = largestX.rect.x;
+				obj.rect.x += (largestX.rect.w - obj.rect.w) / 2;
+			}
+		}
 	}
 
 }

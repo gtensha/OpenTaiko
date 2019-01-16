@@ -8,17 +8,31 @@ import opentaiko.mapgen : MapGen;
 
 class Performance : Renderable {
 
+	enum ScoreValue : int {
+		GOOD = 300,
+		OK = 100,
+		ROLL = 50
+	}
+
+	enum ScoreMultiplier : float {
+		NORMAL
+	}
+
+	private static immutable int[2] scoreValIndex = [ScoreValue.GOOD, ScoreValue.OK];
+
 	string mapTitle;
 	Bashable[] drums;
 	Timer timer;
 	Score score;
 	int i;
+	int hitResult;
 	bool finished;
 
 	struct Score {
 		int good;
 		int ok;
 		int bad;
+		int rollHits;
 		int currentCombo;
 		int highestCombo;
 	}
@@ -40,42 +54,74 @@ class Performance : Renderable {
 
 	/// Attempt to hit current drum circle and return result
 	int hit(int key) {
-		int hitResult;
+		hit_next:
 		if (i < drums.length) {
 			hitResult = drums[i].hit(key);
 		} else {
 			finished = true;
 			return Bashable.Success.IGNORE;
 		}
-		if (hitResult == Bashable.Success.GOOD) {
+		const int hitSuccessType = hitResult & Bashable.Success.MASK;
+		const int hitValue = hitResult & Bashable.Value.MASK;
+		if (hitValue == Bashable.Value.ROLL) {
+			if (!drums[i].expired()) {
+				score.rollHits++;
+				return Bashable.Success.IGNORE;
+			} else {
+				i++;
+				goto hit_next;
+			}
+		}
+		switch (hitSuccessType) {
+		case Bashable.Success.GOOD:
 			score.good++;
-			score.currentCombo++;
-		} else if (hitResult == Bashable.Success.OK) {
+			goto acceptable;
+
+		case Bashable.Success.OK:
 			score.ok++;
-			score.currentCombo++;
-		} else if (hitResult == Bashable.Success.IGNORE) {
-			return Bashable.Success.IGNORE;
-		} else {
+			goto acceptable;
+
+		case Bashable.Success.BAD:
 			score.bad++;
 			score.currentCombo = 0;
+			goto any_hit;
+
+		acceptable:
+			score.currentCombo++;
+			goto any_hit;
+
+		any_hit:
+			i++;
+			break;
+
+		default:
+			break;
 		}
 		if (score.currentCombo > score.highestCombo) {
 			score.highestCombo = score.currentCombo;
 		}
-		i++;
-		return hitResult;
+		return hitSuccessType;
 	}
 
-	// Return true if this circle should've
-	// been hit but wasn't
+	/// Return true if this circle should've been hit but wasn't
 	bool checkTardiness() {
 		if (i >= drums.length) {
 			finished = true;
 			return false;
 		}
-		if (drums[i].actualPosition() + 200 < timer.getTimerPassed()) {
-			i++;
+		if (drums[i].value() == Bashable.Value.ROLL) {
+			if (drums[i].expired()) {
+				i++;
+				checkTardiness();
+			} else {
+				return false;
+			}
+		}
+		if (drums[i].actualPosition() + Bashable.latestHit
+			<
+			timer.getTimerPassed()) {
 
+			i++;
 			score.bad++;
 			score.currentCombo = 0;
 			return true;
@@ -91,13 +137,15 @@ class Performance : Renderable {
 
 	// Return the player's score in the current game state
 	int calculateScore() {
-		int result = (score.good * 300) + (score.ok * 100);
+		int result = score.good * ScoreValue.GOOD;
+		result += score.ok * ScoreValue.OK;
+		result += score.rollHits * ScoreValue.ROLL;
 		return result;
 	}
 
 	public void render() {
 		Bashable.currentOffset = timer.getTimerPassed();
-		for (int it = this.i; it < drums.length/* && drums[it].currentPosition  time*/; it++) {
+		for (int it = this.i; it < drums.length; it++) {
 			drums[it].render();
 		}
 	}

@@ -266,20 +266,43 @@ class OpenTaiko {
 
 		e.loadAssets(openTaikoAssets(), assetDir);
 
-		renderer.colorTexture("DrumCoreRed", 
-							  guiColors.redDrumColor.r, 
+		renderer.colorTexture("DrumCoreRed",
+							  guiColors.redDrumColor.r,
+							  guiColors.redDrumColor.g,
+							  guiColors.redDrumColor.b);
+
+		renderer.colorTexture("LargeDrumCoreRed",
+							  guiColors.redDrumColor.r,
 							  guiColors.redDrumColor.g,
 							  guiColors.redDrumColor.b);
 							  
-		renderer.colorTexture("DrumCoreBlue", 
-							  guiColors.blueDrumColor.r, 
-							  guiColors.blueDrumColor.g, 
+		renderer.colorTexture("DrumCoreBlue",
+							  guiColors.blueDrumColor.r,
+							  guiColors.blueDrumColor.g,
 							  guiColors.blueDrumColor.b);
 
-		BlueDrum.texture = renderer.getTexture("DrumCoreBlue");
+		renderer.colorTexture("LargeDrumCoreBlue",
+							  guiColors.blueDrumColor.r,
+							  guiColors.blueDrumColor.g,
+							  guiColors.blueDrumColor.b);
+
 		Drum.renderer = renderer.renderer;
+		DrumRoll.centerColor = guiColors.redDrumColor;
+		DrumRoll.rimColor = guiColors.blueDrumColor;
+		DrumRoll.noColor = guiColors.cardColor;
+		BlueDrum.texture = renderer.getTexture("DrumCoreBlue");
+		LargeBlueDrum.texture = renderer.getTexture("LargeDrumCoreBlue");
 		RedDrum.texture = renderer.getTexture("DrumCoreRed");
+		LargeRedDrum.texture = renderer.getTexture("LargeDrumCoreRed");
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
+		LargeDrum.rimTexture = renderer.getTexture("LargeDrumBorder");
+
+		DrumRoll.startTextureBorder = renderer.getTexture("DrumRollStartBorder");
+		DrumRoll.startTextureCore = renderer.getTexture("DrumRollStartCore");
+		DrumRoll.bodyTextureBorder = renderer.getTexture("DrumRollBodyBorder");
+		DrumRoll.bodyTextureCore = renderer.getTexture("DrumRollBodyCore");
+		DrumRoll.endTextureBorder = renderer.getTexture("DrumRollEndBorder");
+		DrumRoll.endTextureCore = renderer.getTexture("DrumRollEndCore");
 		
 		renderer.colorTexture("GoodHitKanji",
 		                      guiColors.goodNotifyColor.r,
