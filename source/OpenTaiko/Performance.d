@@ -132,7 +132,7 @@ class Performance : Renderable {
 		if (currentDrum.value() == Bashable.Value.ROLL) {
 			if (currentDrum.expired()) {
 				i++;
-				checkTardiness();
+				return checkTardiness();
 			} else {
 				return TardyValue.TIMELY;
 			}
@@ -148,7 +148,7 @@ class Performance : Renderable {
 				return TardyValue.BONUS_EXPIRED;
 			}
 		}
-		if (tardy(drums[i])) {
+		if (tardy(currentDrum)) {
 			return TardyValue.TARDY;
 		} else {
 			return TardyValue.TIMELY;
