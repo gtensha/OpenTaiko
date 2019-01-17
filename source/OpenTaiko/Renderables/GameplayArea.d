@@ -1,5 +1,6 @@
 module opentaiko.renderable.gameplayarea;
 
+import opentaiko.bashable.bashable;
 import opentaiko.drumindicator;
 import opentaiko.performance;
 import opentaiko.renderable.hitstatus;
@@ -175,10 +176,14 @@ class GameplayArea : Renderable {
 			}
 			return;
 		}
-		
-		if (currentPerformance.checkTardiness()) {
+
+		int tardyValue = currentPerformance.checkTardiness();
+		if (tardyValue == Performance.TardyValue.TARDY) {
 			this.giveHitStatus(StatusType.BAD);
 			missEventCallback();
+		} else if (tardyValue == Performance.TardyValue.BONUS_EXPIRED) {
+			int hitValue = currentPerformance.hitResult & Bashable.Success.MASK;
+			this.giveHitStatus(hitValue);
 		} else if (currentPerformance.finished) {
 			drawResults();
 		}
@@ -219,7 +224,7 @@ class GameplayArea : Renderable {
 	}
 	
 	private void drawResults() {
-		Text good = new Text(phrase(Message.Score.GOOD) ~ ": " ~ to!string(currentPerformance.score.good),
+		Text good = new Text(phrase(Message.Score.GOOD) ~ ": " ~ to!string(currentPerformance.hits(Bashable.Success.GOOD)),
 							 score.getFont(),
 							 true,
 							 drumConveyor.rect.x + 10, drumConveyor.rect.y,
@@ -227,7 +232,7 @@ class GameplayArea : Renderable {
 		good.rect.y -= good.rect.h;
 		resultDisplay ~= good;
 		
-		Text ok = new Text(phrase(Message.Score.OK) ~ ": " ~ to!string(currentPerformance.score.ok),
+		Text ok = new Text(phrase(Message.Score.OK) ~ ": " ~ to!string(currentPerformance.hits(Bashable.Success.OK)),
 						   score.getFont(),
 						   true,
 						   good.rect.x + good.rect.w + 20, drumConveyor.rect.y,

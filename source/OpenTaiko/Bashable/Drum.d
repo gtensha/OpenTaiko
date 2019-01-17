@@ -116,7 +116,12 @@ class BlueDrum : NormalDrum {
 
 abstract class LargeDrum : Drum {
 
+	enum HIT_WINDOW = 24; /// Max interval between the two keypresses in ms
+
 	static SDL_Texture* rimTexture;
+
+	private int initialHitResult;
+	private int firstHit = -1;
 
 	this(SDL_Texture* texture,
 		 int xOffset, int yOffset, uint position, double scroll, int keyType) {
@@ -140,7 +145,21 @@ abstract class LargeDrum : Drum {
 	}
 
 	override int hit(int keyType) {
-		return super.hit(keyType) | Value.LARGE;
+		if (firstHit >= 0) {
+			if (currentOffset - firstHit <= HIT_WINDOW) {
+				return initialHitResult | Value.LARGE;
+			} else {
+				return Success.SKIP | Value.LARGE;
+			}
+		} else {
+			firstHit = currentOffset;
+			initialHitResult = super.hit(keyType);
+			return initialHitResult | Value.LARGE_FIRST;
+		}
+	}
+
+	override bool expired() {
+		return firstHit >= 0 ? currentOffset > firstHit + HIT_WINDOW : false;
 	}
 
 	override int value() {

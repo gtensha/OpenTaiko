@@ -17,6 +17,7 @@ abstract class Bashable : Renderable {
 		BAD = 0x02,
 		IGNORE = 0x03,
 		AWAIT = 0x04,
+		SKIP = 0x05,
 		MASK = 0xff
 	}
 	
@@ -26,6 +27,7 @@ abstract class Bashable : Renderable {
 		LARGE = 0x0200,
 		ROLL = 0x0300,
 		NONE = 0x0400,
+		LARGE_FIRST = 0x0500,
 		MASK = 0xff00
 	}
 
