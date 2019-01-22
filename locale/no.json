@@ -37,6 +37,7 @@
 		"menus_song_mapper": "Mapforfatter",
 		"menus_song_difficultylevel": "Vanskelighetsgrad",
 		"menus_song_highscores": "Poengtavle",
+		"menus_song_no_scores": "Ikke spilt ennå",
 
 		"menus_welcometext": "Velkommen til OpenTaiko!",
 
@@ -62,7 +63,8 @@
 		"error_loading_playerlist": "Feil under lasting av spillertavle: %sSpillertavlen vil ikke bli endret. Vennligst korriger tavlen manuelt.",
 		"error_importing_map": "Kunne ikke importere map: %s",
 		"error_loading_difficulty": "Kunne ikke laste inn vanskelighetsgrad: %s",
-		"error_no_maps_registered": "Du må legge til minst ett map før du kan spille!"
+		"error_no_maps_registered": "Du må legge til minst ett map før du kan spille!",
+		"error_loading_scores": "Feil ved innlasting av poengtavle for %s: %s"
 	}
 }
 	

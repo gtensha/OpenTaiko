@@ -1,28 +1,20 @@
 module opentaiko.performance;
 
 import std.array : array;
+import std.datetime.date : DateTime;
+import std.datetime.systime : Clock;
 import opentaiko.bashable;
 import maware.renderable.renderable;
 import maware.util.timer;
 import opentaiko.mapgen : MapGen;
+import opentaiko.score;
 
 class Performance : Renderable {
-
-	enum ScoreValue : int {
-		GOOD = 300,
-		OK = 100,
-		ROLL = 50
-	}
 
 	enum TardyValue : int {
 		TIMELY, /// Object has not exceeded hit window
 		TARDY, /// Object has expired (exceeded hit window)
 		BONUS_EXPIRED /// Object was hit in time, but cannot be hit again
-	}
-	
-	enum ScoreMultiplier : float {
-		NORMAL = 1.0,
-		LARGE = 1.5
 	}
 
 	enum VAL_AMOUNT = 2;
@@ -32,7 +24,7 @@ class Performance : Renderable {
 	enum NORMAL_INDEX = 0;
 	enum LARGE_INDEX = 1;
 	
-	private static immutable int[2] scoreValIndex = [ScoreValue.GOOD, ScoreValue.OK];
+	private static immutable int[2] scoreValIndex = [Score.Value.GOOD, Score.Value.OK];
 
 	unittest {
 		assert(((Bashable.Value.NORMAL >> 8) - 1) == NORMAL_INDEX);
@@ -46,16 +38,14 @@ class Performance : Renderable {
 	string mapTitle;
 	Bashable[] drums;
 	Timer timer;
-	Score score;
+	InternalScore score;
 	int i;
 	int hitResult;
 	int pendingResult; /// Result from a partially hit object (like big drum)
 	bool finished;
 	
-	struct Score {
+	struct InternalScore {
 		int[SCORE_AMOUNT][VAL_AMOUNT] hits;
-		//int good;
-		//int ok;
 		int bad;
 		int rollHits;
 		int currentCombo;
@@ -177,16 +167,16 @@ class Performance : Renderable {
 	/// Return the player's score in the current game state
 	int calculateScore() {
 		int result;
-		foreach (size_t i, float scoreMult ; [ScoreMultiplier.NORMAL,
-											  ScoreMultiplier.LARGE]) {
+		foreach (size_t i, real scoreMult ; [Score.Multiplier.NORMAL,
+											 Score.Multiplier.LARGE]) {
 			result += cast(int)(score.hits[i][GOOD_INDEX]
-								* ScoreValue.GOOD
+								* Score.Value.GOOD
 								* scoreMult);
 			result += cast(int)(score.hits[i][OK_INDEX]
-								* ScoreValue.OK
+								* Score.Value.OK
 								* scoreMult);
 		}
-		result += score.rollHits * ScoreValue.ROLL;
+		result += score.rollHits * Score.Value.ROLL;
 		return result;
 	}
 
@@ -210,6 +200,25 @@ class Performance : Renderable {
 			bashable.adjustX(xOffset);
 			bashable.adjustY(yOffset + (maxHeight - bashable.getObjectMaxHeight) / 2);
 		}
+	}
+
+	/// Return a Score representation of this Performance given the player id
+	public Score getScore(int playerId) {
+		DateTime currentTime = cast(DateTime)Clock.currTime();
+		int goodCount;
+		int okCount;
+		foreach (size_t i, real r ; [Score.Multiplier.NORMAL,
+									 Score.Multiplier.LARGE]) {
+			goodCount += score.hits[i][GOOD_INDEX];
+			okCount += score.hits[i][OK_INDEX];
+		}
+		return new Score(playerId,
+						 calculateScore(),
+						 goodCount,
+						 okCount,
+						 score.bad,
+						 score.highestCombo,
+						 currentTime);
 	}
 
 }

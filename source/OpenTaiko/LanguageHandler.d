@@ -2,6 +2,7 @@ module opentaiko.languagehandler;
 
 import opentaiko.mapgen;
 
+import std.algorithm.comparison : equal;
 import std.ascii : toUpper;
 import std.array : split, join;
 import std.conv : to;
@@ -125,6 +126,7 @@ static class Message {
 		"menus_song_mapper",
 		"menus_song_difficultylevel",
 		"menus_song_highscores",
+		"menus_song_no_scores",
 		
 		"menus_welcometext"
 	];
@@ -160,7 +162,8 @@ static class Message {
 		"error_loading_playerlist",
 		"error_importing_map",
 		"error_loading_difficulty",
-		"error_no_maps_registered"
+		"error_no_maps_registered",
+		"error_loading_scores"
 	];
 	
 	private static immutable string[][] allMessageIDArrays = [

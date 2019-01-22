@@ -16,6 +16,7 @@ import std.typecons : tuple, Tuple;
 
 import opentaiko.drum;
 import opentaiko.bashable;
+import opentaiko.score;
 import opentaiko.song;
 import opentaiko.gamevars;
 import opentaiko.difficulty;
@@ -708,4 +709,26 @@ class MapGen {
 		}
 		return tuple(languageNameAssoc, languageBindings);
 	}
+
+	/// Reads scores line by line from file and returns them as an array
+	/// ordered by read sequence
+	static Score[] readScores(string file) {
+		if (!exists(file)) {
+			return null;
+		}
+		string[] lines = split(cast(string)read(file), "\n");
+		Score[] scores;
+		foreach (string line ; lines) {
+			if (line.length > 0) {
+				scores ~= Score.fromString(line);
+			}
+		}
+		return scores;
+	}
+
+	/// Appends string representation of score to the file at fileDest
+	static void writeScore(Score score, string fileDest) {
+		append(fileDest, score.toString() ~ "\n");
+	}
+	
 }

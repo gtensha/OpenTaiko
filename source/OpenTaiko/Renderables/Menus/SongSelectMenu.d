@@ -9,12 +9,17 @@ import maware.renderable.solid;
 import maware.renderable.textured;
 import maware.renderable.text;
 import maware.font;
+import opentaiko.score;
 import opentaiko.song;
 import opentaiko.difficulty;
 import opentaiko.game : GUIDimensions, OpenTaiko;
+import opentaiko.player;
 import opentaiko.languagehandler : Message, phrase;
 
+import std.algorithm.sorting : sort;
 import std.conv : to;
+import std.format : format;
+import std.string : rightJustify;
 
 import derelict.sdl2.sdl : SDL_Color, SDL_Renderer, SDL_Texture;
 import derelict.sdl2.ttf : TTF_Font;
@@ -73,7 +78,7 @@ class SongSelectMenu : Traversable {
 		delims[1].render();
 	}
 
-	void addItem(Song song, SDL_Texture* thumbnail) {
+	void addItem(Song song, Score[][Difficulty] scores, SDL_Texture* thumbnail) {
 
 	
 		items ~= new SongSelectMenuItem(parent,
@@ -81,6 +86,7 @@ class SongSelectMenu : Traversable {
 										artistFont,
 										thumbnail,
 										song,
+										scores,
 										songSelectCallback,
 										spacing,
 										cast(int)items.length,
@@ -147,6 +153,7 @@ class SongSelectMenuItem : Renderable {
 		 Font artistFont,
 		 SDL_Texture* thumbnail,
 		 Song song,
+		 Score[][Difficulty] scores,
 		 void delegate() songSelectCallback,
 		 int spacing,
 		 int offset,
@@ -196,6 +203,7 @@ class SongSelectMenuItem : Renderable {
 											  titleFont,
 											  artistFont,
 											  song,
+											  scores,
 											  this,
 											  songSelectCallback,
 											  renderer.windowHeight - block.rect.y);
@@ -259,7 +267,7 @@ class DifficultyListMenu : Traversable {
 	protected Text difficultyText;
 	protected Text[] difficultyLevel;
 	protected Text highScoreText;
-	protected Solid highScoreDisplay;
+	protected Text[][] highScoreDisplay;
 	
 	protected int activeDiffIndex;
 	
@@ -270,6 +278,7 @@ class DifficultyListMenu : Traversable {
 		 Font boldFont,
 		 Font textFont,
 		 Song song,
+		 Score[][Difficulty] scores,
 		 SongSelectMenuItem parentItem,
 		 void delegate() songSelectCallback,
 		 int lowerSectionReserved) {
@@ -418,7 +427,65 @@ class DifficultyListMenu : Traversable {
 										  OpenTaiko.guiColors.cardTextColor.g, 
 										  OpenTaiko.guiColors.cardTextColor.b, 
 										  OpenTaiko.guiColors.cardTextColor.a);
-			
+			Score[]* scoreArrPtr = diff in scores;
+			Score[] scoreArr = scoreArrPtr !is null ? *scoreArrPtr : null;
+			int currentY = highScoreText.rect.y + highScoreText.rect.h;
+			int originalY = currentY;
+			Text[] scoreTexts;
+			int scoreRank = 1;
+			foreach (Score score ; scoreArr.sort!("a > b")) {
+				Player* p = OpenTaiko.getPlayerById(score.playerId);
+				string playerName;
+				if (p is null) {
+					playerName = "UnknownPlayer#%d".format(score.playerId);
+				} else {
+					playerName = p.name;
+				}
+				string playerTimeText = format("#%d %s %s",
+											   scoreRank,
+											   playerName,
+											   score.time.toSimpleString());
+				string scoreText = format("%s (%sx) %d/%d/%d",
+										  to!string(score.score).rightJustify(7, '0'),
+										  to!string(score.maxCombo).rightJustify(4, '0'),
+										  score.good,
+										  score.ok,
+										  score.bad);
+				Text upperCandidate = new Text(playerTimeText,
+											   boldFont.get(textSize),
+											   true,
+											   difficultyInfoPadding.rect.x + BORDER_SPACING,
+											   currentY,
+											   OpenTaiko.guiColors.cardTextColor);
+				currentY += upperCandidate.rect.h;
+				Text candidate = new Text(scoreText,
+										  textFont.get(textSize),
+										  true,
+										  difficultyInfoPadding.rect.x + BORDER_SPACING,
+										  currentY,
+										  OpenTaiko.guiColors.cardTextColor);
+				if (currentY + candidate.rect.h + BORDER_SPACING
+					<=
+					difficultyInfoPadding.rect.h + difficultyInfoPadding.rect.y) {
+
+					scoreTexts ~= upperCandidate;
+					scoreTexts ~= candidate;
+					currentY += candidate.rect.h;
+					scoreRank++;
+				} else {
+					break;
+				}
+			}
+			if (scoreTexts.length > 0) {
+				highScoreDisplay ~= scoreTexts;
+			} else {
+				highScoreDisplay ~= [new Text(phrase(Message.Menus.SONG_NO_SCORES),
+											  textFont.get(textSize),
+											  true,
+											  difficultyInfoPadding.rect.x + BORDER_SPACING,
+											  originalY,
+											  OpenTaiko.guiColors.cardTextColor)];
+			}
 		}
 	}
 	
@@ -446,6 +513,9 @@ class DifficultyListMenu : Traversable {
 		difficultyText.render();
 		difficultyLevel[activeDiffIndex].render();
 		highScoreText.render();
+		foreach (Text t ; highScoreDisplay[activeDiffIndex]) {
+			t.render();
+		}
 	}
 	
 	int getActiveButtonId() {

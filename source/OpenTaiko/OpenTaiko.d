@@ -3,6 +3,7 @@ module opentaiko.game;
 import maware;
 import opentaiko.assets;
 import opentaiko.renderable.menus.songselectmenu;
+import opentaiko.score;
 import opentaiko.song;
 import opentaiko.difficulty;
 import opentaiko.mapgen;
@@ -31,6 +32,7 @@ import std.format : format;
 import std.ascii : newline;
 import std.container.dlist : DList;
 import std.math : sin;
+import std.typecons : tuple, Tuple;
 
 void main(string[] args) {
 
@@ -93,6 +95,8 @@ enum GUIScale : double {
 	BROWSABLELIST_MAX_HEIGHT = 0.75, // of screen height
 }
 
+enum SCORE_EXTENSION = ".scores";
+
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
 enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
@@ -136,8 +140,9 @@ class OpenTaiko {
 	private Song activeSong;
 	private Difficulty activeDifficulty;
 	private string[] playerNames;
-	private Player*[int] players;
+	private static Player*[int] players;
 	private Player*[] activePlayers;
+	private Score[][Tuple!(Song, Difficulty)] scores;
 	private Keybinds[] playerKeybinds;
 	private Performance[] currentPerformances;
 	private GameplayArea[] playerAreas;
@@ -746,7 +751,9 @@ class OpenTaiko {
 		i.bind(Action.MODESEL,	'\t');
 		i.bind(Action.PAUSE,	'\033');
 		
-		inputHandler.bindAction(gameplayBinderIndex, Action.PAUSE, &switchSceneToMainMenu);
+		inputHandler.bindAction(gameplayBinderIndex,
+								Action.PAUSE,
+								(){postGameWriteScores(); switchSceneToMainMenu();});
 		
 		for (int playerNum; playerNum < playerKeybinds.length; playerNum++) {
 			bindPlayerKeys(playerNum, i);
@@ -756,6 +763,7 @@ class OpenTaiko {
 	/// Load songs and update song select menu
 	void loadSongs() {
 		songs = MapGen.readSongDatabase();
+		scores = getScores(songs);
 		songSelectMenu = createSongSelectMenu();
 		playButton.subMenu = songSelectMenu;
 	}
@@ -782,13 +790,55 @@ class OpenTaiko {
 					renderer.registerTexture("Thumb_" ~ song.title,
 											 artPath);
     
-					newMenu.addItem(song, renderer.getTexture("Thumb_" ~ song.title));
+					newMenu.addItem(song,
+									getSongSpecificScoreList(scores, song),
+									renderer.getTexture("Thumb_" ~ song.title));
 					continue;
 				} catch (Exception e) {}			
 			}
-			newMenu.addItem(song, renderer.getTexture("Default-Thumb"));			
+			newMenu.addItem(song,
+							getSongSpecificScoreList(scores, song),
+							renderer.getTexture("Default-Thumb"));			
 		}
 		return newMenu;
+	}
+
+	static Score[][Tuple!(Song, Difficulty)] getScores(Song[] songList) {
+		Score[][Tuple!(Song, Difficulty)] scores;
+		foreach (Song song ; songList) {
+			foreach (Difficulty diff ; song.difficulties) {
+				const string filePath = song.directory ~ "/" ~ diff.name ~ SCORE_EXTENSION;
+				try {
+					scores[tuple(song, diff)] = MapGen.readScores(filePath);
+				} catch (Exception e) {
+					Engine.notify(format(phrase(Message.Error.LOADING_SCORES),
+										 song.title,
+										 e.msg));
+				}
+			}
+		}
+		return scores;
+	}
+
+	static Score[][Difficulty] getSongSpecificScoreList(Score[][Tuple!(Song, Difficulty)] list, Song song) {
+		Score[][Difficulty] scoreList;
+		foreach (Difficulty diff ; song.difficulties) {
+			Score[]* arr = tuple(song, diff) in list;
+			if (arr !is null) {
+				scoreList[diff] = *arr;
+			}
+		}
+		return scoreList;
+	}
+
+	void postGameWriteScores() {
+		string scoreFilePath = activeSong.directory ~ "/" ~ activeDifficulty.name ~ SCORE_EXTENSION;
+		foreach (size_t i, Performance p ; currentPerformances) {
+			if (p.finished) {
+				Score s = p.getScore(activePlayers[i].id);
+				MapGen.writeScore(s, scoreFilePath);
+			}
+		}
 	}
 
 	void createGameplayScene() {
@@ -929,6 +979,17 @@ class OpenTaiko {
 			foreach (int code ; inputHandler.findAssociatedKeys(actionCode)) {
 				inputHandler.unbind(code);
 			}
+		}
+	}
+
+	/// Returns a Player struct pointer if a player with id exists, else returns
+	/// null.
+	static Player* getPlayerById(int id) {
+		Player** p = id in players;
+		if (p !is null) {
+			return *p;
+		} else {
+			return null;
 		}
 	}
 
