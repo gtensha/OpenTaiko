@@ -1,7 +1,7 @@
 module opentaiko.mapgen;
 
 import std.conv;
-import std.stdio;
+import std.stdio : writeln;
 import std.file;
 import std.algorithm.searching;
 import std.algorithm.comparison;
@@ -729,6 +729,16 @@ class MapGen {
 	/// Appends string representation of score to the file at fileDest
 	static void writeScore(Score score, string fileDest) {
 		append(fileDest, score.toString() ~ "\n");
+	}
+
+	/// Returns an int stored as a string in file at path file
+	static int getPlayerId(string file) {
+		return to!int(cast(char[])read(file));
+	}
+
+	/// Write id to file fileDest as a string
+	static void writePlayerId(int id, string fileDest) {
+		write(fileDest, to!string(id));
 	}
 	
 }

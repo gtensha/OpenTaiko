@@ -22,12 +22,12 @@ import opentaiko.languagehandler : Message, phrase;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
-import std.conv : to;
+import std.conv : to, ConvException;
 import std.algorithm.comparison : equal;
 //import std.algorithm.mutation : copy;
 import std.array : array, join;
 import std.stdio;
-import std.file : exists;
+import std.file : exists, FileException;
 import std.format : format;
 import std.ascii : newline;
 import std.container.dlist : DList;
@@ -95,11 +95,14 @@ enum GUIScale : double {
 	BROWSABLELIST_MAX_HEIGHT = 0.75, // of screen height
 }
 
+enum DEFAULT_PLAYER_ID = 0; /// Id of "Player", should be guaranteed to exist
+
 enum SCORE_EXTENSION = ".scores";
 
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
 enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
+enum LASTPLAYER_FILE_PATH = "last.player"; /// File path storing last used player
 
 class OpenTaiko {
 
@@ -265,6 +268,9 @@ class OpenTaiko {
 			shouldWriteSettings = false;
 			MapGen.writeConfFile(options, CONFIG_FILE_PATH);
 		}
+		if (activePlayers.length > 0) {
+			MapGen.writePlayerId(activePlayers[0].id, LASTPLAYER_FILE_PATH);
+		}
 	}
 
 	void loadAssets(Engine e) {
@@ -417,20 +423,24 @@ class OpenTaiko {
 			                     ~ e.msg ~ newline));
 			disablePlayerListWrite = true;
 		}
-		if (players is null) {
-			Player* player = new Player("Player", 0, null);
+		if (players is null || DEFAULT_PLAYER_ID !in players) {
+			Player* player = new Player("Player", DEFAULT_PLAYER_ID, null);
 			players[player.id] = player;
 		}
-		activePlayers ~= players[0]; // temporarily do this
-		/*Player* player = new Player();
-		player.name = "gtensha";
-		player.id = 0;
-		player.keybinds = null;
-		players ~= player;
-		player = new Player();
-		player.name = "栄子";
-		player.id = 1;
-		players ~= player;*/
+		int recentPlayerId;
+		try {
+			recentPlayerId = MapGen.getPlayerId(LASTPLAYER_FILE_PATH);
+		} catch (FileException e) {
+			recentPlayerId = DEFAULT_PLAYER_ID;
+		} catch (ConvException e) {
+			throw e; // Maybe we should handle this scenario? It's too unlikely
+		}
+		Player** recentPlayer = recentPlayerId in players;
+		if (recentPlayer !is null) {
+			activePlayers ~= *recentPlayer;
+		} else {
+			activePlayers ~= players[DEFAULT_PLAYER_ID];
+		}
 	}
 
 	void createStartMenu(int* menuIndex) {
