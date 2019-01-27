@@ -187,6 +187,7 @@ class Renderer {
 			throw new Exception(to!string(fromStringz(SDL_GetError())));
 		}
 		registerTexture(key, tempSurface);
+		SDL_FreeSurface(tempSurface);
 	}
 
 	/// Register a new texture into the system with the given key
@@ -197,7 +198,10 @@ class Renderer {
 		if (tempTexture is null) {
 			throw new Exception(to!string(fromStringz(SDL_GetError())));
 		}
-		SDL_FreeSurface(surface);
+		SDL_Texture** possibleTexture = key in textures;
+		if (possibleTexture !is null) {
+			SDL_DestroyTexture(*possibleTexture);
+		}
 		textures[key] = tempTexture;
 	}
 
