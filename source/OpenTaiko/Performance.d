@@ -79,7 +79,9 @@ class Performance : Renderable {
 		const int hitValue = hitResult & Bashable.Value.MASK;
 		if (hitValue == Bashable.Value.ROLL) {
 			if (!drums[i].expired()) {
-				score.rollHits++;
+				if (hitSuccessType != Bashable.Success.IGNORE) {
+					score.rollHits++;
+				}
 				return Bashable.Success.IGNORE;
 			} else {
 				i++;
