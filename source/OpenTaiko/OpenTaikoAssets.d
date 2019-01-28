@@ -10,9 +10,7 @@ enum ASSETS_DEFAULT = "default/"; /// Default asset folder
 
 static Assets openTaikoAssets() {
 	return immutable Assets(
-		["RedDrum" 		     : "red.png",
-		 "BlueDrum"		     : "blue.png",
-		 "DrumBorder"	     : "drum_default_border.png",
+		["DrumBorder"	     : "drum_default_border.png",
 		 "DrumCoreRed"	     : "drum_default_core.png",
 		 "DrumCoreBlue"	     : "drum_default_core.png",
 		 "LargeDrumBorder"   : "drum_large_border.png",
@@ -26,9 +24,6 @@ static Assets openTaikoAssets() {
 		 "DrumRollEndBorder" : "drumroll_end_border.png",
 		 "DrumRollEndCore"   : "drumroll_end_core.png",
 		 "Reception"	     : "reception.png",
-		 "GoodHit" 		     : "good.png",
-		 "OkHit" 		     : "ok.png",
-		 "BadHit" 		     : "bad.png",
 		 "GoodHitKanji"      : "good_kanji_notify.png",
 		 "GoodHitAlpha"      : "good_alpha_notify.png",
 		 "OkHitKanji"        : "ok_kanji_notify.png",
@@ -40,14 +35,10 @@ static Assets openTaikoAssets() {
 		 "IndicatorLeftMid"  : "drum_indicator_left_center.png",
 		 "IndicatorRightMid" : "drum_indicator_right_center.png",
 		 "IndicatorRightRim" : "drum_indicator_right_rim.png",
-		 "BlueGrad" 	     : "blue_grad.png",
-		 "RedGrad" 		     : "red_grad.png",
 		 "Soul" 		     : "soul.png",
 		 "Default-Thumb"     : "song-default.png"],
 
-		["Roboto-Light"      : "Roboto-Light.ttf",
-		 "Roboto-Regular"    : "Roboto-Regular.ttf",
-		 "Noto-Bold"	     : "NotoSansCJK-Bold.ttc",
+		["Noto-Bold"	     : "NotoSansCJK-Bold.ttc",
 		 "Noto-Regular"	     : "NotoSansCJK-Regular.ttc",
 		 "Noto-Light"	     : "NotoSansCJK-Light.ttc"],
 

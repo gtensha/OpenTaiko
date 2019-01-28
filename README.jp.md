@@ -192,5 +192,23 @@ OpenTaikoはキーボードで遊べます。コントローラーのサポー�
 
 OpenTaikoはGNU GPLv3のフリーソフトため、すべてをフリーソフトままで配信できるようにフリーな共有ライブラリを使いのみのこと。
 
+# コピーライト知らせ
+こちらのレポジトリーに付いているファイルは作者よりコピーライトされたものです。
+
+## Noto fonts
+**© 2010-2015, Google Corporation**
+
+### ファイル
+
+* assets/default/NotoSansCJK-Bold.ttc
+* assets/default/NotoSansCJK-Light.ttc
+* assets/default/NotoSansCJK-Regular.ttc
+
+### ライセンス
+[SIL Open Font License](assets/default/LICENSE.NotoSansCJK.txt)
+
+### ホームページ
+[GitHubレポジトリー](https://github.com/googlei18n/noto-cjk)
+
 [3]: https://github.com/DerelictOrg/DerelictSDL2
 [4]: https://github.com/DerelictOrg/DerelictSFML2

@@ -194,5 +194,23 @@ The code should eventually be robust and easy to understand, so that anyone can 
 
 OpenTaiko is free software licensed under the GNU GPLv3. Therefore the components used to make the game must be free as well, so the game could be distributed in both binary and code form entirely as free software.
 
+# Copyright notice
+These files are included in the repository and subject to copyright by their respective owners:
+
+## Noto fonts
+**Copyright © 2010-2015, Google Corporation**
+
+### Files
+
+* assets/default/NotoSansCJK-Bold.ttc
+* assets/default/NotoSansCJK-Light.ttc
+* assets/default/NotoSansCJK-Regular.ttc
+
+### License
+[SIL Open Font License](assets/default/LICENSE.NotoSansCJK.txt)
+
+### Project link
+[GitHub repository](https://github.com/googlei18n/noto-cjk)
+
 [3]: https://github.com/DerelictOrg/DerelictSDL2
 [4]: https://github.com/DerelictOrg/DerelictSFML2
