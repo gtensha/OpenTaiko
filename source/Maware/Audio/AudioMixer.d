@@ -1,98 +1,43 @@
-module maware.audiomixer;
+module maware.audio.mixer;
 
-import maware.engine;
+/// An interface for a class implementing an AudioMixer; handling sound effect
+/// and music playback.
+interface AudioMixer {
 
-import std.string : fromStringz, toStringz;
-import std.conv : to;
+	/// Attempt loading the Mixer library
+	static void initialise();
 
-import derelict.sdl2.sdl : SDL_GetError;
-import derelict.sdl2.mixer;
+	/// Closes the audio library
+	static void deInitialise();
 
-class AudioMixer {
+	/// Register a sound effect into the system
+	public void registerSFX(int id, string src);
 
-	// The parent game engine of this AudioMixer
-	private Engine parent;
+	/// Register a music track into the system
+	public void registerMusic(string title, string src);
 
-	// AAs of all registered sound effects and music
-	Mix_Chunk*[256] sfx;
-	Mix_Music*[string] music;
+	public bool isRegistered(string track);
 
-	this(Engine parent) {
-		this.parent = parent;
+	/// Gets the position (in ms) of any playing or paused music, < 1 if not
+	/// playing
+	public int getMusicPosition();
 
-		try {
-			DerelictSDL2Mixer.load();
-		} catch (Exception e) {
-			throw new Exception("Failed to load SDL_Mixer: " ~ e.msg);
-		}
+	/// Plays the already registered music track with the given title, looping
+	/// loop times (or loop < 1, infinite loop)
+	public void playTrack(string title, int loop);
 
-		if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,
-						  MIX_DEFAULT_FORMAT,
-						  MIX_DEFAULT_CHANNELS,
-						  1024) < 0) {
+	public void playTrackLooped(string);
 
-			throw new Exception(to!string("Failed to load SDL_Mixer: "
-										  ~ fromStringz(Mix_GetError())));
-		}
+	/// Pauses any currently playing music
+	public void pauseMusic();
 
-		Mix_AllocateChannels(sfx.length);
-	}
+	/// Stops any currently playing or paused music (rewinds it, unqueues it)
+	public void stopMusic();
 
-	~this() {
-		foreach (Mix_Chunk* effect ; sfx) {
-			if (effect !is null)
-				Mix_FreeChunk(effect);
-		}
+	/// Resume playback of any paused music
+	public void resumeMusic();
 
-		foreach (Mix_Music* track ; music) {
-			Mix_FreeMusic(track);
-		}
-
-		Mix_CloseAudio();
-	}
-
-	// Register a sound effect into the system
-	public void registerSFX(int id, string src) {
-
-		Mix_Chunk* temp = Mix_LoadWAV(toStringz(src));
-		if (temp is null) {
-			throw new Exception(to!string(fromStringz(Mix_GetError())));
-		}
-		sfx[id] = temp;
-	}
-
-	// Register a music track into the system
-	public void registerMusic(string title, string src) {
-
-		Mix_Music* temp = Mix_LoadMUS(toStringz(src));
-		if (temp is null) {
-			throw new Exception(to!string(fromStringz(Mix_GetError())));
-		}
-		music[title] = temp;
-	}
-
-	// Plays the already registered music track with the given title
-	public void playTrack(string title) {
-		//Mix_PauseMusic();
-		if (Mix_PlayMusic(music[title], 1) < 0) {
-			parent.notify(to!string("Failed to play track \"" ~ title ~ "\": "
-						  			~ fromStringz(Mix_GetError())));
-		}
-	}
-
-	// Pauses any currently playing music
-	public void pauseMusic() {
-		Mix_PauseMusic();
-	}
-
-	// Resume playback of any paused music
-	public void resumeMusic() {
-		Mix_ResumeMusic();
-	}
-
-	// Plays the sound effect with the registered ID
-	public void playSFX(int id) {
-		Mix_PlayChannel(id, sfx[id], 0);
-	}
+	/// Plays the sound effect with the registered ID
+	public void playSFX(int id);
 
 }

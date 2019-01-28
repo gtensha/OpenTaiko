@@ -1,33 +1,58 @@
 module opentaiko.mapgen;
 
 import std.conv;
-import std.stdio;
+import std.stdio : writeln;
 import std.file;
 import std.algorithm.searching;
 import std.algorithm.comparison;
+import std.algorithm.iteration;
 import std.array;
 import std.string;
 import std.ascii;
 import std.json;
+import std.zip;
+import std.process : execute;
+import std.typecons : tuple, Tuple;
 
 import opentaiko.drum;
 import opentaiko.bashable;
+import opentaiko.score;
 import opentaiko.song;
 import opentaiko.gamevars;
 import opentaiko.difficulty;
 import opentaiko.performance;
 import opentaiko.player;
+import opentaiko.keybinds;
+import opentaiko.languagehandler : Message;
 
 enum {
 	string MAP_DIR = "maps/",
+	string LOCALE_DIR = "locale/",
+	string OGG_EXTENSION = ".ogg",
+	string OLD_SUFFIX = ".old",
 	int WIDTH = 0,
 	int HEIGHT = 1,
 	int RED1 = 0,
 	int RED2 = 1,
 	int BLUE1 = 2,
 	int BLUE2 = 3,
-};
+}
 
+enum FFMPEG : string {
+	COMMAND = "ffmpeg",
+	INPUT_FLAG = "-i",
+	VERSION_FLAG = "-version"
+}
+
+/// Struct for internal use holding map data and conventional Difficulty struct
+struct MappedDifficulty {
+	Difficulty diff;
+	Song metadata;
+	string map;
+}
+
+/// Class with static methods to handle OpenTaiko map and settings
+/// loading/writing
 class MapGen {
 
 	/*
@@ -37,14 +62,17 @@ class MapGen {
 	see default map.conf file for template and attribute
 	specification
 	*/
-
-	// Returns array of drum objects with desired properties
+	
+	private static ffmpegStatusChecked = false;
+	private static ffmpegAvailability = false;
+	
+	/// Returns array of drum objects with desired properties
 	static Bashable[] parseMapFromFile(string file) {
 		int bpm = 140;
 		int zoom = 4;
 		double scroll = 1;
-		string map = to!string(std.file.read(MAP_DIR ~ file));
-		string[] lines = split(map, std.ascii.newline);
+		string map = cast(string)(std.file.read(file));
+		string[] lines = split(map, "\n");
 		Bashable[] drumArray;
 
 		int i;
@@ -121,29 +149,71 @@ class MapGen {
 		return drumArray;
 	}
 
-			// Calculate circle's position in milliseconds
+	/// Calculate circle's position in milliseconds
 	static int calculatePosition(int i, int offset, int bpm) {
 		return cast(int)(((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
 	}
 
+	/// Return array of Bashable from a map in string form from section with
+	/// given attributes
 	static Bashable[] readMapSection(string section,
 									 int bpm,
 									 double scroll,
 									 int* i,
 									 int offset) {
 		int index = *i;
+		bool processingDrumRoll = false;
+		int drumRollLength = 0;
 		Bashable[] drumArray;
 		foreach (char type ; section) {
-			if (type == 'D' || type == 'd') {
-				drumArray ~= new RedDrum(0,
-										 0,
-										 calculatePosition(index, offset, bpm),
-										 scroll);
-			} else if (type == 'K' || type == 'k') {
-				drumArray ~= new BlueDrum(0,
-										  0,
-										  calculatePosition(index, offset, bpm),
-										  scroll);
+			if (type == 'O' || type == 'o') {
+				drumRollLength++;
+			} else {
+				if (drumRollLength > 0) {
+					int startTime = calculatePosition(index - drumRollLength,
+													  offset,
+													  bpm);
+					int length = calculatePosition(index,
+												   offset,
+												   bpm) - startTime;
+					drumArray ~= new DrumRoll(0,
+											  0,
+											  startTime,
+											  scroll,
+											  length);
+				}
+				drumRollLength = 0;
+				if (type == 'd') {
+					drumArray ~= new RedDrum(0,
+											 0,
+											 calculatePosition(index,
+															   offset,
+															   bpm),
+											 scroll);
+				} else if (type == 'D') {
+					drumArray ~= new LargeRedDrum(0,
+												  0,
+												  calculatePosition(index,
+																	offset,
+																	bpm),
+												  scroll);
+				} else if (type == 'k') {
+					drumArray ~= new BlueDrum(0,
+											  0,
+											  calculatePosition(index,
+																offset,
+																bpm),
+											  scroll);
+				} else if (type == 'K') {
+					drumArray ~= new LargeBlueDrum(0,
+												   0,
+												   calculatePosition(index,
+																	 offset,
+																	 bpm),
+												   scroll);
+				} else if (type == '\r') { // ignore Windows' carriage return
+					continue;
+				}
 			}
 			index++;
 		}
@@ -151,152 +221,182 @@ class MapGen {
 		return drumArray;
 	}
 
-	static string songToJSON(Song song) {
+	/// Returns a JSONValue representing the Song struct song as JSON
+	static JSONValue songToJSON(Song song) {
 		JSONValue metaFile = JSONValue(["title": song.title,
 										"artist": song.artist,
 										"maintainer": song.maintainer,
-										"src": song.src]);
-
+										"src": song.src,
+										"difficulties": null]);
+										
+		metaFile["difficulties"].array = null;
+										
 		metaFile.object["tags"] = JSONValue(song.tags);
-		//metaFile.object["tags"] = JSONValue(["converted", "osu"]);
-		metaFile.object["difficulties"] = JSONValue([["name": song.difficulties[0].name,
-													  "mapper": song.difficulties[0].mapper]]);
+		foreach (Difficulty diff ; song.difficulties) {
+			JSONValue diffJSON;
+			diffJSON = JSONValue(["name": diff.name, "difficulty": null, "mapper": diff.mapper]);
+			diffJSON.object["difficulty"] = diff.difficulty;
+			metaFile["difficulties"].array ~= diffJSON;
+		}
 
-		metaFile["difficulties"].array[0].object["difficulty"] = song.difficulties[0].difficulty;
-
-		return toJSON(metaFile, true);
+		return metaFile;
 	}
-
-	static void convertMapFile(string source) {
-
-		string file = to!string(std.file.read(source));
-
+	
+	//static Song jsonToSong(JSONValue data);
+	
+	/// Extracts a .osz file into the directory maps/[archive name].
+	/// It merges existing data.
+	/// It may register wrong filenames if the difficulties inside have
+	/// different ones (different audio files, backgrounds etc).
+	static void extractOSZ(string path) {
 		Song newSong;
-		string convertedMap = fromOSUFile(file, &newSong);
-		string metaFile;
-		try {
-			isFile(MAP_DIR ~ newSong.title ~ "/meta.json");
-			JSONValue meta = parseJSON(to!string(std.file.read(MAP_DIR
-												 ~ newSong.title
-												 ~ "/meta.json")));
-
-			JSONValue newDiff = JSONValue(["name": newSong.difficulties[0].name,
-										   "mapper": newSong.difficulties[0].mapper]);
-
-			newDiff.object["difficulty"] = JSONValue(newSong.difficulties[0].difficulty);
-			meta["difficulties"].array ~= newDiff;
-			metaFile = toJSON(meta, true);
-		} catch (Exception e) {
-			metaFile = songToJSON(newSong);
+		if (path.length < 5 || equal(path[path.length - 3 .. path.length],
+		                             ".osz")) {
+			throw new Exception("Bad file extension");
 		}
-
-
-
-		try {
-			isDir(MAP_DIR ~ newSong.title);
-		} catch (Exception e) {
-			mkdir(MAP_DIR ~ newSong.title);
+		string[] pathParts = path.split("/");
+		string songTitle = pathParts[pathParts.length - 1];
+		songTitle = songTitle[0 .. songTitle.length - 4];
+		ZipArchive archive = new ZipArchive(read(path));
+		
+		const string directory = MAP_DIR ~ songTitle;
+		if (!exists(directory)) {
+			mkdir(directory);
 		}
-
-		JSONValue mapTree = parseJSON(to!string(std.file.read(MAP_DIR ~ "maps.json")));
-		bool hasIt = false;
-		foreach (JSONValue title ; mapTree["dirs"].array) {
-			if (title.str.equal(newSong.title)) {
-				hasIt = true;
+		
+		bool firstMapRead = true;
+		
+		foreach (name, am ; archive.directory) {
+			const string[] extensions = name.split(".");
+			const string extension = extensions[extensions.length - 1];
+			
+			switch (extension) {
+		
+				case "osu":
+					MappedDifficulty diff = fromOSU(cast(string)archive.expand(am));
+					if (firstMapRead) {
+						newSong = diff.metadata;
+						newSong.difficulties = null;
+						firstMapRead = false;
+					}
+					newSong.difficulties ~= diff.diff; // TODO fix duplicates registering
+					std.file.write(directory ~ "/" ~ diff.diff.name ~ ".otfm",
+					               diff.map);
+					
+					goto outside;
+				
+				default:
+					std.file.write(directory ~ "/" ~ name, archive.expand(am));
+					goto outside;
+							
 			}
+			outside:
 		}
-		if (!hasIt) {
-			mapTree["dirs"].array ~= JSONValue(newSong.title);
-			std.file.write(MAP_DIR ~ "maps.json", toJSON(mapTree, true));
+		
+		//newSong.title = songTitle;
+
+		if (ffmpegAvailable()) {
+			string[] splitAudioPath = newSong.src.split(".");
+			string newAudioPath;
+			if (splitAudioPath.length > 1) {
+				splitAudioPath[splitAudioPath.length - 1] = OGG_EXTENSION;
+				newAudioPath = splitAudioPath.join("");
+			} else {
+				newAudioPath = newSong.src ~ OGG_EXTENSION;
+			}
+			convertToOgg(directory ~ "/" ~ newSong.src, directory ~ "/" ~ newAudioPath, true);
+			newSong.src = newAudioPath;
 		}
-
-		std.file.write(MAP_DIR ~ newSong.title ~ "/" ~ newSong.difficulties[0].name ~ ".otfm", convertedMap);
-		std.file.write(MAP_DIR ~ newSong.title ~ "/meta.json", metaFile);
-
+		
+		JSONValue metadata;
+		string metaPath = directory ~ "/" ~ "meta.json";
+		metadata = songToJSON(newSong);		
+		writeln(newSong.difficulties.length);
+		std.file.write(metaPath, toJSON(metadata, true));
+		
 	}
 
-	static string fromOSUFile(string file, Song* newSong) {
+	/// Reads the string data as a .osu file, parses it and returns a
+	/// MappedDifficulty struct with song, difficulty and map data from the file
+	static MappedDifficulty fromOSU(string data) {
 
 		string openTaikoMap;
-		string[] lines = split(removechars(file, "\r"), "\n");
+		string[] lines = split(data, "\r\n");
 
-		writeln(lines);
-		Song song = *newSong;
+		//writeln(lines);
+		Song song;
+		Difficulty diff;
 
 		bool objectSection = false;
 		bool generalSection = false;
 		bool metaSection = false;
 
-		openTaikoMap ~= "# Map converted from .osu format" ~ std.ascii.newline ~ std.ascii.newline;
-		openTaikoMap ~= "!mapstart" ~ std.ascii.newline;
+		openTaikoMap ~= "# Map converted from .osu format" ~ "\n\n";
+		openTaikoMap ~= "!mapstart" ~ "\n";
 
 		foreach (string line ; lines) {
 
-			if (removechars(line, " ").equal("[HitObjects]")) {
+			if (line.canFind("[HitObjects]")) {
 				objectSection = true;
 				generalSection = false;
 				metaSection = false;
-			} else if (removechars(line, " ").equal("[General]")) {
+			} else if (line.canFind("[General]")) {
 				generalSection = true;
 				objectSection = false;
 				metaSection = false;
-			} else if (removechars(line, " ").equal("[Metadata]")) {
+			} else if (line.canFind("[Metadata]")) {
 				metaSection = true;
 				objectSection = false;
 				generalSection = false;
 
 			} else if (generalSection) {
-				string[] unformatted = line.split();
-				if (unformatted !is null && unformatted.length > 0) {
-					string formatted;
-					if (unformatted[0].equal("AudioFilename:")) {
-						for (int i = 1; i > unformatted.length; i++) {
-							formatted ~= unformatted[i];
-						}
-
-						song.src = formatted;
-					}
-				}
+				if (canFind(line, "AudioFilename:")) {
+					song.src = findSplitAfter(line, "AudioFilename: ")[1];
+				}				
 
 			} else if (metaSection) {
-				string[] unformatted = split(line, ":");
-				if (unformatted !is null && unformatted.length > 0) {
-					switch (unformatted[0]) {
+				string[] identifier = split(line, ":");
+				if (identifier.length > 1) {
+					switch (identifier[0]) {
 						case "Title":
-							song.title = unformatted[1];
+							song.title = findSplitAfter(line, "Title:")[1];
 							break;
 
 						case "Artist":
-							song.artist = unformatted[1];
+							song.artist = findSplitAfter(line, "Artist:")[1];
 							break;
 
 						case "Creator":
-							song.maintainer = unformatted[1];
+							song.maintainer = findSplitAfter(line, "Creator:")[1];
+							break;
+							
+						case "Tags":
+							song.tags = findSplitAfter(line, "Tags:")[1].split();
 							break;
 
 						case "Version":
-							Difficulty diff = {unformatted[1], 0, null};
+							diff.name = findSplitAfter(line, "Version:")[1];
+							diff.difficulty = 0;
 							song.difficulties ~= diff;
 							break;
 
 						default:
 							break;
-
-					}
-				}
+					}					
+				}					
 			} else if (objectSection) {
 				string[] properties = split(line, ',');
 				if (properties.length >= 5) {
 					if (properties[3].equal("1")) {
-						openTaikoMap ~= "!offset " ~ properties[2] ~ std.ascii.newline;
+						openTaikoMap ~= "!offset " ~ properties[2] ~ "\n";
 						switch (properties[4]) {
 
 							case "0":
-								openTaikoMap ~= "d" ~ std.ascii.newline;
+								openTaikoMap ~= "d" ~ "\n";
 								break;
 
 							case "2":
-								openTaikoMap ~= "k" ~ std.ascii.newline;
+								openTaikoMap ~= "k" ~ "\n";
 								break;
 
 							case "8":
@@ -311,29 +411,60 @@ class MapGen {
 					}
 				}
 			}
-
 		}
 
 		openTaikoMap ~= "!mapend";
 
-		song.difficulties[0].mapper = song.maintainer;
-		*newSong = song;
-		return openTaikoMap;
+		diff.mapper = song.maintainer;
+		MappedDifficulty ret;
+		ret.map = openTaikoMap;
+		ret.diff = diff;
+		ret.metadata = song;
+		return ret;
 
 	}
 
 	abstract string fromTJAFile(string file);
+	
+	/// Returns true if the FFMPEG command can be used
+	static bool ffmpegAvailable() {
+		if (!ffmpegStatusChecked) {
+			auto result = execute([FFMPEG.COMMAND, FFMPEG.VERSION_FLAG]);
+			ffmpegAvailability = result.status == 0;
+			ffmpegStatusChecked = true;
+		}
+		return ffmpegAvailability;
+	}
+	
+	/// Convert the file at path infile to a .ogg file using ffmpeg, where
+	/// outfile is the desired path to the converted file.
+	/// Delete infile if shouldDelete is true and file was converted
+	/// successfully
+	static void convertToOgg(string infile, string outfile, bool shouldDelete) {
+		isFile(infile);
+		if (exists(outfile)) {
+			rename(outfile, outfile ~ OLD_SUFFIX);
+		}
+		auto result = execute([FFMPEG.COMMAND, FFMPEG.INPUT_FLAG, infile, outfile]);
+		if (result.status != 0) {
+			rename(outfile ~ OLD_SUFFIX, outfile);
+			throw new Exception("Conversion failed: " ~ result.output);
+		} else {
+			remove(outfile ~ OLD_SUFFIX);
+		}
+		if (shouldDelete) {
+			remove(infile);
+		}
+	}
 
-	static Song[] readSongDatabase(string file) {
+	/// Reads the maps/ directory and returns an array of Song structs
+	static Song[] readSongDatabase() {
 		Song[] songs;
-		string unprocessed = to!string(std.file.read(file));
-		JSONValue maps = parseJSON(unprocessed);
 
-		foreach (JSONValue dir ; maps["dirs"].array) {
+		foreach (string dir ; dirEntries(MAP_DIR, SpanMode.shallow)) {
 			try {
-				JSONValue map = parseJSON(to!string(std.file.read(MAP_DIR
-																  ~ dir.str
-																  ~ "/meta.json")));
+				JSONValue map = parseJSON(cast(string)(std.file.read(dir
+																     ~ "/meta.json")));
 
 				Song song = {
 					map["title"].str,
@@ -341,6 +472,7 @@ class MapGen {
 					map["maintainer"].str,
 					null,
 					map["src"].str,
+					dir,
 					null
 				};
 
@@ -363,42 +495,68 @@ class MapGen {
 		}
 		return songs;
 	}
+	
+	/// Returns the path to an image file if it was found in directory, or null
+	/// if none could be found. Include '/' in directory name string
+	static string findImage(string directory) { // TODO: make this efficient
+	
+		version(Windows) {
+			directory = directory.split("/").join("\\");
+		}
 
+		static immutable supportedExts = ["jpg", "jpeg", "png", "gif"];
+		static immutable priorityFiles = ["thumb.png", "thumb.jpg", "bg.jpg"];
+		
+		foreach (string file ; priorityFiles) {
+			if (exists(directory ~ file)) {
+				return file;
+			}					
+		}		
+	
+		foreach (string file ; dirEntries(directory, SpanMode.shallow)) {
+			string[] exts = file.split(".");
+			if (exts.length > 1) {
+				string fileExt = exts[exts.length - 1];
+				foreach (string ext ; supportedExts) {
+				    if (ext.equal(fileExt)) {
+					    return file;
+				    }				
+				}				
+			}
+		}
+
+		return null;
+	}	
+	
 	/// Returns a GameVars struct reflecting the .json file from fileLoc
 	static GameVars readConfFile(string fileLoc) {
 
 		GameVars gameVars;
-		string input = to!string(std.file.read(fileLoc));
+		string input = cast(string)read(fileLoc);
 
 		JSONValue vars = parseJSON(input);
 
-		if (!(vars["defaultKeys"].array.length == 4
-			  &&
-			  vars["resolution"].array.length == 2
-			  &&
-			  (vars["vsync"].type == JSON_TYPE.TRUE || vars["vsync"].type == JSON_TYPE.FALSE))) {
-
-			throw new Exception("Incorrect parameters in config file");
-		}
-
-		int i;
-		foreach (JSONValue key ; vars["defaultKeys"].array) {
-			gameVars.defaultKeys[i] = to!int(key.integer);
-			i++;
-		} i = 0;
-
-		foreach (JSONValue dimension ; vars["resolution"].array) {
+		foreach (int i, JSONValue dimension ; vars["resolution"].array) {
 			gameVars.resolution[i] = to!int(dimension.integer);
-			i++;
-		} i = 0;
+		}
 
 		if (vars["vsync"].type == JSON_TYPE.TRUE) {
 			gameVars.vsync = true;
 		} else {
 			gameVars.vsync = false;
 		}
+		
+		gameVars.language = vars["language"].str;
 
 		return gameVars;
+	}
+	
+	static void writeConfFile(GameVars options, string dest) {
+		JSONValue vars = JSONValue(["resolution": options.resolution]);
+		//vars.object["resolution"] = JSONValue(options.resolution);
+		vars.object["vsync"] = JSONValue(options.vsync);
+		vars.object["language"] = JSONValue(options.language);
+		std.file.write(dest, toJSON(vars, true));
 	}
 	
 	/// Reads the JSON file from given path and returns an AA of pointers to
@@ -455,6 +613,132 @@ class MapGen {
 			std.file.write(dest, toJSON(lastOne, true));
 		}
 		
+	}
+	
+	/// Read key bindings from fileLoc and return array of Keybinds[] values
+	static Keybinds[] readKeybindsFile(string fileLoc) {
+
+		Keybinds[] playerBinds;
+		isFile(fileLoc);
+		
+		JSONValue vars = parseJSON(cast(string)read(fileLoc));
+		
+		foreach (JSONValue binds ; vars["bindings"].array) {
+			Keybinds bindings;
+			const(JSONValue)* keyboard = "keyboard" in binds;
+			if (keyboard !is null) {
+				JSONValue keyboardz = *keyboard;
+				foreach (int i, JSONValue key ; keyboardz.array) {
+					int[] keyBindings;
+					foreach (JSONValue keycode ; key.array) {
+						keyBindings ~= cast(int)keycode.integer;
+					}
+					bindings.keyboard.drumKeys[i] = keyBindings;
+				}
+			}
+			
+			const(JSONValue)* controller = "controller" in binds;
+			if (controller !is null) {
+				JSONValue controllerz = *controller;
+				foreach (int i, JSONValue button ; controllerz.array) {
+					bindings.controller.drumKeys[i] = cast(int)button.integer;
+				}
+			}
+			playerBinds ~= bindings;
+		}
+		
+		return playerBinds;		
+		
+	}
+	
+	/// Writes keybinds to fileLoc as a JSON struct
+	static void writeKeybindsFile(Keybinds[] keybinds, string fileLoc) {
+		JSONValue[] vars;
+		foreach (Keybinds binds ; keybinds) {
+			JSONValue[] arrayElms;
+			foreach (int[] keyCodes ; binds.keyboard.drumKeys) {
+				arrayElms ~= JSONValue(keyCodes);
+			}
+			vars ~= JSONValue(["keyboard": JSONValue(arrayElms)]);
+		}
+		JSONValue finalDoc = JSONValue(["bindings": vars]);
+		std.file.write(fileLoc, toJSON(finalDoc, true));
+	}
+	
+	static Tuple!(string, string[Message.MESSAGE_AMOUNT]) readLocaleFile(string[Message.MESSAGE_AMOUNT] messageList, string path) {
+		string[Message.MESSAGE_AMOUNT] ret;
+		JSONValue root = parseJSON(cast(string)read(path));
+		string languageName = root["language"].str;
+		JSONValue messages = root["message"];
+		foreach (int i, string message ; messageList) {
+			const(JSONValue*) match = message in messages;
+			if (match !is null) {
+				JSONValue deref = *match;
+				ret[i] = deref.str;
+			}
+		}
+		return tuple(languageName, ret);
+	}
+	
+	static Tuple!(string[string], string[Message.MESSAGE_AMOUNT][string]) readLocaleDir(immutable string[Message.MESSAGE_AMOUNT] messageIDs) {
+		string[Message.MESSAGE_AMOUNT][string] languageBindings;
+		string[string] languageNameAssoc;
+		foreach (DirEntry filepath ; dirEntries(LOCALE_DIR, SpanMode.shallow)) {
+			string[] splitPath = filepath.name.split("/");
+			const string filename = splitPath[splitPath.length - 1];
+			string[] splitName = filename.split(".");
+			if (splitName.length > 1 
+			    && 
+			    filepath.isFile() 
+			    && 
+			    splitName[splitName.length - 1].equal("json")) {
+
+				string languageAbbrev = splitName[0 .. splitName.length - 1].join();
+				try {
+					auto returned = readLocaleFile(messageIDs, filepath.name);
+					languageBindings[languageAbbrev] = returned[1];
+					languageNameAssoc[languageAbbrev] = returned[0];
+				} catch (JSONException e) {
+					writeln("Warning: Language "
+					        ~ filename
+					        ~ " failed to load: "
+					        ~ e.toString());
+					continue;
+				}
+			}
+		}
+		return tuple(languageNameAssoc, languageBindings);
+	}
+
+	/// Reads scores line by line from file and returns them as an array
+	/// ordered by read sequence
+	static Score[] readScores(string file) {
+		if (!exists(file)) {
+			return null;
+		}
+		string[] lines = split(cast(string)read(file), "\n");
+		Score[] scores;
+		foreach (string line ; lines) {
+			if (line.length > 0) {
+				scores ~= Score.fromString(line);
+			}
+		}
+		return scores;
+	}
+
+	/// Appends string representation of score to the file at fileDest
+	static void writeScore(Score score, string fileDest) {
+		append(fileDest, score.toString() ~ "\n");
+	}
+
+	/// Returns an int stored as a string in file at path file
+	static int getPlayerId(string file) {
+		return to!int(cast(char[])read(file));
+	}
+
+	/// Write id to file fileDest as a string
+	static void writePlayerId(int id, string fileDest) {
+		write(fileDest, to!string(id));
 	}
 	
 }

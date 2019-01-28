@@ -5,7 +5,6 @@ import maware.renderable.menus.traversable;
 import maware.renderable.solid;
 import maware.renderable.text;
 import maware.renderable.menus.menu;
-import maware.util.math.polynomialfunction;
 import maware.util.timer;
 import maware.util.math.ezmath;
 
@@ -18,9 +17,8 @@ class VerticalButton : Button {
 	private Solid highlightLayer;
 	private Text invertedText;
 	private Timer timer;
-	private PolynomialFunction!double buttonAnimation;
 	private bool highlighting = false;
-	private uint animationDuration = 800;
+	private uint animationDuration = 1000;
 
 	this(Text text,
 		 int value,
@@ -48,23 +46,25 @@ class VerticalButton : Button {
 
 		invertedText.setColor(r, g, b, a);
 
-		buttonAnimation = new PolynomialFunction!double(0.01, -0.00015, 0);
 		int timerIndex = Timer.addTimer();
 		timer = Timer.timers[timerIndex];
 	}
 
 	override public void render() {
 
-		int percentagePassed = timer.getPercentagePassed();
+		double x = timer.getPercentagePassed();
+		if (x < 1) {
+			x = 1;
+		}
+		double percentagePassed = (101 - (1 / (0.01 * x)));
+
 		if (percentagePassed > 100) {
 			percentagePassed = 100;
-		} else {
-			//percentagePassed = to!int(buttonAnimation.rect.y(percentagePassed));
 		}
 		if (highlighting) {
-			highlightLayer.rect.w = (EzMath.getCoords(percentagePassed, 0, solid.rect.w));
+			highlightLayer.rect.w = cast(int)(EzMath.getCoords(percentagePassed, 0, solid.rect.w));
 		} else {
-			highlightLayer.rect.w = (EzMath.getCoords(percentagePassed, solid.rect.w, 0));
+			highlightLayer.rect.w = cast(int)(EzMath.getCoords(percentagePassed, solid.rect.w, 0));
 		}
 
 		solid.render();
@@ -87,6 +87,11 @@ class VerticalButton : Button {
 		}
 
 		timer.set(Timer.libInitPassed, Timer.libInitPassed + animationDuration);
+	}
+	
+	override void setTitle(string title) {
+		super.setTitle(title);
+		invertedText.updateText(title);
 	}
 
 }

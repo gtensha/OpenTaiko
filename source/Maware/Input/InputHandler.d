@@ -17,84 +17,116 @@ struct TextInputBinder {
 	void delegate() eraseCharacter; /// Called to erase a character
 	void delegate(bool) moveCursor; /// Called to move the cursor's position
 	void delegate() commit; /// Called on enter press
+	void delegate() cancel; /// Called on escape press (cancel)
 	SDL_Rect* inputField; /// Set to whereever the input field is located
 }
 
 /// A class for capturing input events and handling them via delegates
 class InputHandler {
 
+	enum QUIT_EVENT_CODE = -1; /// Code for when a quit event occurs
+	enum NONE_EVENT_CODE = -2; /// Code for when no event occured
+
 	/// A simple structure that contains action codes and
 	/// their designated actions as delegates
 	struct ActionBinder {
 		void delegate()[int] actions; /// The action bindings
+		void delegate(int) anyKeyPressAction; /// Function to call in any key listen mode
 	}
 	
 	protected TextInputBinder* inputBinder; /// The bindings to call when text editing mode is enabled
+	
+	private int delegate(SDL_Event) activeEventHandler; /// Current handler for events
 
 	private Engine parent;
 	private int[int] bindings;
 	private ActionBinder[] actionBinders;
 	private uint currentBinder;
-	private bool isTextEditing;
 	private bool typing;
 	private bool enterPressed;
 
 	/// Creates a new InputHandler for the given parent Engine
 	this(Engine parent) {
 		this.parent = parent;
+		activeEventHandler = &listenKeyAction;
 	}
 
-	/// Listen for events from the keyboard and handle them
-	public int listenKeyboard() {
+	/// Listens for events from the keyboard and handles them
+	/// Returns the code of the last handled event
+	public int listenHandleEvents() {
 		SDL_Event event;
-		while (SDL_PollEvent(&event) == 1) {
-			// for some reason, using a switch here makes the game unresponsive
-			// if you switch to a different window, so if/else will have to do
-			if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
-				if (!isTextEditing) {
-					int* binding = (event.key.keysym.sym in bindings);
-					if (binding !is null) {
-						doAction(*binding);
-						return *binding;
-					}
-				} else {
-					if (event.key.keysym.sym == SDLK_BACKSPACE && !typing) {
-						inputBinder.eraseCharacter();
-					} else if (event.key.keysym.sym == SDLK_ESCAPE) {
-						stopTextEditing();
-					} else if (event.key.keysym.sym == SDLK_RETURN && !typing) {
-						if (!enterPressed) {
-							enterPressed = true; // need enter twice
-						} else {
-							if (inputBinder.commit !is null) {
-								inputBinder.commit();
-							}
-							stopTextEditing();
-						}
-					} else if ((event.key.keysym.sym == SDLK_v 
-							    && 
-							    SDL_GetModState() & KMOD_CTRL)
-							   ||
-							   (event.key.keysym.sym == SDLK_INSERT 
-							    && 
-							    SDL_GetModState() & KMOD_SHIFT)) {
-						
-						inputBinder.giveText(cast(string)fromStringz(cast(char*)SDL_GetClipboardText()));
-					}
-				}
-			} else if (event.type == SDL_QUIT) {
-				return -1;
-			} else if (event.type == SDL_TEXTINPUT) {
-				inputBinder.giveText(cast(string)fromStringz(cast(char*)event.text.text));
-				enterPressed = false;
-				typing = false;
-			} else if (event.type == SDL_TEXTEDITING) {
-				//writeln(typing);
-				typing = true;
+		int retCode = NONE_EVENT_CODE;
+		while (SDL_PollEvent(&event) == 1 && retCode != QUIT_EVENT_CODE) {
+			if (event.type == SDL_QUIT) {
+				retCode = QUIT_EVENT_CODE;
+			} else {
+				retCode = activeEventHandler(event);
 			}
-	
 		}
-		return -2;
+		return retCode;
+	}
+	
+	/// Handle keypresses according to bound actions in currently active
+	/// ActionBinder
+	private int listenKeyAction(SDL_Event event) {
+		if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+			int* binding = (event.key.keysym.sym in bindings);
+			if (binding !is null) {
+				doAction(*binding);
+				return *binding;
+			}
+		}
+		return NONE_EVENT_CODE;
+	}
+	
+	/// Listen for any keypresses, return their keycode and call the 
+	/// anyKeyPressAction callback if defined
+	private int listenAnyKey(SDL_Event event) {
+		if (event.type == SDL_KEYDOWN) {
+			void delegate(int) action = actionBinders[currentBinder].anyKeyPressAction;
+			if (action !is null) {
+				action(event.key.keysym.sym);
+			}
+			return event.key.keysym.sym;
+		} else {
+			return NONE_EVENT_CODE;
+		}
+	}
+	
+	/// Listen for textediting events
+	private int listenTextEditing(SDL_Event event) {
+		if (event.type == SDL_KEYDOWN) { // TODO: non-hardcoded editing keys
+			if (event.key.keysym.sym == SDLK_BACKSPACE && !typing) {
+				inputBinder.eraseCharacter();
+			} else if (event.key.keysym.sym == SDLK_ESCAPE) {
+				cancelTextEditing();
+			} else if (event.key.keysym.sym == SDLK_RETURN && !typing) {
+				if (!enterPressed) {
+					enterPressed = true; // need enter twice
+				} else {
+					if (inputBinder.commit !is null) {
+						inputBinder.commit();
+					}
+					stopTextEditing();
+				}
+			} else if ((event.key.keysym.sym == SDLK_v 
+			            && 
+			            SDL_GetModState() & KMOD_CTRL)
+			           ||
+					   (event.key.keysym.sym == SDLK_INSERT 
+			            && 
+			            SDL_GetModState() & KMOD_SHIFT)) {
+
+				inputBinder.giveText(cast(string)fromStringz(cast(char*)SDL_GetClipboardText()));
+			}
+		} else if (event.type == SDL_TEXTINPUT) {
+			inputBinder.giveText(cast(string)fromStringz(cast(char*)event.text.text));
+			enterPressed = false;
+			typing = false;
+		} else if (event.type == SDL_TEXTEDITING) {
+			typing = true;
+		}
+		return NONE_EVENT_CODE;
 	}
 
 	/// Bind the key with the given SDL_Keycode to the given event number
@@ -110,6 +142,11 @@ class InputHandler {
 		}
 		bindings = bindings.rehash();
 	}
+	
+	/// Removes the binding of key to its event number
+	public void unbind(int key) {
+		bindings.remove(key);
+	}
 
 	/// Adds an ActionBinder to the system and returns its index
 	public int addActionBinder() {
@@ -117,12 +154,18 @@ class InputHandler {
 		actionBinders ~= toAdd;
 		return cast(int)actionBinders.length - 1;
 	}
+	
+	/// Binds an action delegate to be used when listening for any keypress
+	/// to the ActionBinder with binderID
+	public void setAnyKeyAction(int binderID, void delegate(int) action) {
+		actionBinders[binderID].anyKeyPressAction = action;
+	}
 
 	/// Binds an action delegate with the action number actionID, to binder
 	/// with index binderID
 	public void bindAction(int binderID, int actionID, void delegate() action) {
-			actionBinders[binderID].actions[actionID] = action;
-			actionBinders[binderID].actions = actionBinders[binderID].actions.rehash();
+		actionBinders[binderID].actions[actionID] = action;
+		actionBinders[binderID].actions = actionBinders[binderID].actions.rehash();
 	}
 
 	/// Runs the delegate assigned to the code action in the currently active
@@ -133,6 +176,28 @@ class InputHandler {
 		if (binding !is null) {
 			void delegate() instruction = *binding;
 			instruction();
+		}
+	}
+	
+	/// Returns an array of key codes associated with actionCode
+	public int[] findAssociatedKeys(int actionCode) {
+		int[] keyCodes;
+		foreach (int code ; bindings.keys) {
+			int boundKey = bindings[code];
+			if (boundKey == actionCode) {
+				keyCodes ~= code;
+			}
+		}
+		return keyCodes;
+	}
+	
+	/// Returns the keyCode as a string
+	static string getKeyName(int keyCode) {
+		string possibleName = to!string(fromStringz(SDL_GetKeyName(keyCode)));
+		if (possibleName.length < 1) {
+			return "UnknownKey#" ~ to!string(keyCode);
+		} else {
+			return possibleName;
 		}
 	}
 
@@ -151,6 +216,15 @@ class InputHandler {
 		this.inputBinder = binder;
 	}
 	
+	/// Enables listening for any keypress
+	public void enableAnyKeyListen() {
+		activeEventHandler = &listenAnyKey;
+	}
+	
+	public void enableBoundActionListen() {
+		activeEventHandler = &listenKeyAction;
+	}
+	
 	/// Enables text input for the currently set inputBinder
 	public void enableTextEditing() {
 		if (inputBinder is null) {
@@ -158,13 +232,21 @@ class InputHandler {
 		}
 		SDL_StartTextInput();
 		SDL_SetTextInputRect(inputBinder.inputField);
-		isTextEditing = true;
+		activeEventHandler = &listenTextEditing;
 	}
+	
+	/// Calls the cancel delegate and stops editing
+	private void cancelTextEditing() {
+		if (inputBinder.cancel !is null) {
+			inputBinder.cancel();		
+		}
+		stopTextEditing();
+	}	
 	
 	/// Stops registering text input
 	public void stopTextEditing() {
 		SDL_StopTextInput();
-		isTextEditing = false;
+		activeEventHandler = &listenKeyAction;
 	}
 
 }

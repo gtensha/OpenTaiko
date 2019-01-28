@@ -3,13 +3,21 @@ module maware.engine;
 import std.stdio;
 
 import maware.renderer;
-import maware.audiomixer;
+import maware.audio.mixer;
+import maware.audio.sdlmixer;
+import maware.audio.sfmlmixer;
 import maware.inputhandler;
 import maware.util.timer;
 import maware.assets;
 import std.conv : to;
 
-// A class for handling rendering and audio playback
+version (SFMLMixer) {
+	
+} else {
+	version = SDLMixer;
+}
+
+/// A class for handling rendering and audio playback
 class Engine {
 
 	private string title;
@@ -22,8 +30,33 @@ class Engine {
 
 	private uint notifyBinderIndex;
 
+	/// Load libraries needed for Renderer and AudioMixer
+	static void initialise() {
+		Renderer.initialise();
+		version (SDLMixer) {
+			SDLMixer.initialise();
+		}
+		version (SFMLMixer) {
+			SFMLMixer.initialise();
+		}
+	}
+
+	/// Deinitialise libraries needed by Renderer and AudioMixer
+	static void deInitialise() {
+		Renderer.deInitialise();
+		version (SDLMixer) {
+			SDLMixer.deInitialise();
+		}
+	}
+
 	this(string title) {
 		this.title = title;
+	}
+
+	~this() {
+		renderer.destroy();
+		audioMixer.destroy();
+		inputHandler.destroy();
 	}
 
 	// Starts the engine
@@ -33,7 +66,12 @@ class Engine {
 
 		try {
 			renderer = new Renderer(this);
-			audioMixer = new AudioMixer(this);
+			version (SDLMixer) {
+				audioMixer = new SDLMixer(this);
+			}
+			version (SFMLMixer) {
+				audioMixer = new SFMLMixer(this, 256);
+			}
 			inputHandler = new InputHandler(this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
@@ -61,7 +99,7 @@ class Engine {
 	public int renderFrame() {
 		Timer.refresh(renderer.getTicks());
 		renderer.renderFrame();
-		return inputHandler.listenKeyboard();
+		return inputHandler.listenHandleEvents();
 	}
 
 	public void loadAssets(Assets assets, string extraPath) {

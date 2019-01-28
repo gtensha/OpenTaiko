@@ -1,6 +1,7 @@
 module maware.renderable.scene;
 
 import maware.renderable.renderable;
+import maware.animatable.animatable;
 
 import derelict.sdl2.sdl : SDL_Color;
 
@@ -18,6 +19,8 @@ class Scene : Renderable {
 	private Renderable[][] renderables;
 	private Renderable[][] hiddenLayers; // temporary storage for hidden layers
 	
+	private Animatable[] animatables; // array of Animatables to process in render()
+	
 	SDL_Color backgroundColor; /// The background color to render with
 
 	/// Create a new Scene with the given name and amount of layers
@@ -29,6 +32,9 @@ class Scene : Renderable {
 
 	/// Render all the renderables in this scene
 	public void render() {
+		foreach (Animatable animatable ; animatables) {
+			animatable.animate();
+		}
 		foreach (Renderable[] renderableObjects ; renderables) {
 			foreach (Renderable renderable ; renderableObjects) {
 				if (renderable !is null) {
@@ -93,6 +99,20 @@ class Scene : Renderable {
 		Renderable toReplace = renderables[layer][index];
 		renderables[layer][index] = renderable;
 		return toReplace;
+	}
+	
+	/// Adds an Animatable to run during render times and return its index
+	public int addAnimatable(Animatable animatable) {
+		animatables ~= animatable;
+		return cast(int)animatables.length - 1;
+	}
+	
+	/// Removes the Animatable at index from the Scene and returns it
+	public Animatable removeAnimatable(int index) {
+		Animatable animatable = animatables[index];
+		animatables = animatables[0 .. index] 
+					  ~ animatables[index + 1 .. animatables.length];
+		return animatable;
 	}
 
 }

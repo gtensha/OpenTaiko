@@ -29,6 +29,7 @@ class TextInputField : Renderable {
 	/// Create a new text input field with given dimensions and font
 	this(Font font,
 		 void delegate() commitCallback,
+		 void delegate() cancelCallback,
 		 string* destination,
 		 int w, int h, int x, int y) {
 			 
@@ -50,6 +51,7 @@ class TextInputField : Renderable {
 		this.bindings.moveCursor = &moveCursor;
 		this.bindings.inputField = &fieldBackground.rect;
 		this.bindings.commit = &deactivate;
+		this.bindings.cancel = cancelCallback;
 		
 		this.commitCallback = commitCallback;
 		this.putDestination = destination;

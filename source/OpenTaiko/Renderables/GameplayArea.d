@@ -1,10 +1,13 @@
 module opentaiko.renderable.gameplayarea;
 
+import opentaiko.bashable.bashable;
+import opentaiko.drumindicator;
 import opentaiko.performance;
 import opentaiko.renderable.hitstatus;
 import opentaiko.game : OpenTaiko;
 import opentaiko.playerdisplay;
 import opentaiko.player;
+import opentaiko.languagehandler : Message, phrase;
 import maware.renderer;
 import maware.renderable;
 import maware.font;
@@ -41,6 +44,7 @@ class GameplayArea : Renderable {
 	protected Textured reception;
 	
 	protected HitStatus hitResultEffect;
+	protected DrumIndicator hitIndicator;
 
 	//protected Text player;
 	protected NameBox playerDisplay;
@@ -119,13 +123,30 @@ class GameplayArea : Renderable {
 
 		score.rect.x = (offsetX + maxWidth - score.rect.w - 20);
 		
-		this.hitResultEffect = new HitStatus([new Textured(renderer.getTexture("GoodHit"),
+		this.hitResultEffect = new HitStatus([new Textured(renderer.getTexture("GoodHitKanji"),
 														   0, 0),
-											  new Textured(renderer.getTexture("OkHit"),
+											  new Textured(renderer.getTexture("GoodHitAlpha"),
+											               0, 0),
+											  new Textured(renderer.getTexture("OkHitKanji"),
 														   0, 0),
-											  new Textured(renderer.getTexture("BadHit"),
-														   0, 0)],
+											  new Textured(renderer.getTexture("OkHitAlpha"),
+											               0, 0),
+											  new Textured(renderer.getTexture("BadHitKanji"),
+														   0, 0),
+											  new Textured(renderer.getTexture("BadHitAlpha"),
+											               0, 0)],
 											 this.reception);
+											 
+		Textured[4] hi = [
+			new Textured(renderer.getTexture("IndicatorLeftRim"), 0, 0),
+			new Textured(renderer.getTexture("IndicatorLeftMid"), 0, 0),
+			new Textured(renderer.getTexture("IndicatorRightMid"), 0, 0),
+			new Textured(renderer.getTexture("IndicatorRightRim"), 0, 0)
+		];
+											 
+		this.hitIndicator = new DrumIndicator(new Textured(renderer.getTexture("IndicatorBase"), 0, 0),
+											  hi,
+											  this.drumConveyor);
 
 	}
 
@@ -141,11 +162,12 @@ class GameplayArea : Renderable {
 		header.render();
 		drumConveyor.render();
 		indicatorArea.render();
+		hitResultEffect.render();
 		reception.render();
+		hitIndicator.render();
 		currentPerformance.render();
 		score.render();
 		combo.render();
-		hitResultEffect.render();
 		playerDisplay.render();
 		
 		if (done) {
@@ -154,10 +176,14 @@ class GameplayArea : Renderable {
 			}
 			return;
 		}
-		
-		if (currentPerformance.checkTardiness()) {
+
+		int tardyValue = currentPerformance.checkTardiness();
+		if (tardyValue == Performance.TardyValue.TARDY) {
 			this.giveHitStatus(StatusType.BAD);
 			missEventCallback();
+		} else if (tardyValue == Performance.TardyValue.BONUS_EXPIRED) {
+			int hitValue = currentPerformance.hitResult & Bashable.Success.MASK;
+			this.giveHitStatus(hitValue);
 		} else if (currentPerformance.finished) {
 			drawResults();
 		}
@@ -191,8 +217,14 @@ class GameplayArea : Renderable {
 		}
 	}
 	
+	/// Calls DrumIndicator hitIndicator's hit method with section.
+	/// section must be an integer in the range 0-3.
+	public void giveDrumHit(int section) {
+		hitIndicator.hit(section);
+	}
+	
 	private void drawResults() {
-		Text good = new Text("Good: " ~ to!string(currentPerformance.score.good),
+		Text good = new Text(phrase(Message.Score.GOOD) ~ ": " ~ to!string(currentPerformance.hits(Bashable.Success.GOOD)),
 							 score.getFont(),
 							 true,
 							 drumConveyor.rect.x + 10, drumConveyor.rect.y,
@@ -200,7 +232,7 @@ class GameplayArea : Renderable {
 		good.rect.y -= good.rect.h;
 		resultDisplay ~= good;
 		
-		Text ok = new Text("Ok: " ~ to!string(currentPerformance.score.ok),
+		Text ok = new Text(phrase(Message.Score.OK) ~ ": " ~ to!string(currentPerformance.hits(Bashable.Success.OK)),
 						   score.getFont(),
 						   true,
 						   good.rect.x + good.rect.w + 20, drumConveyor.rect.y,
@@ -208,7 +240,7 @@ class GameplayArea : Renderable {
 		ok.rect.y -= ok.rect.h;
 		resultDisplay ~= ok;
 		
-		Text bad = new Text("Bad: " ~ to!string(currentPerformance.score.bad),
+		Text bad = new Text(phrase(Message.Score.BAD) ~ ": " ~ to!string(currentPerformance.score.bad),
 						    score.getFont(),
 						    true,
 						    ok.rect.x + ok.rect.w + 20, drumConveyor.rect.y,
@@ -216,7 +248,7 @@ class GameplayArea : Renderable {
 		bad.rect.y -= bad.rect.h;
 		resultDisplay ~= bad;
 		
-		Text combo = new Text("Max combo: " ~ to!string(currentPerformance.score.highestCombo),
+		Text combo = new Text(phrase(Message.Score.COMBO) ~ ": " ~ to!string(currentPerformance.score.highestCombo),
 						   score.getFont(),
 						   true,
 						   bad.rect.x + bad.rect.w + 20, drumConveyor.rect.y,

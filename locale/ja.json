@@ -1,0 +1,70 @@
+{
+	"language": "日本語",
+	"message": {
+		"title_game": "OpenTaiko",
+		"title_game_greeting": "キーボードをたたいてスタート",
+
+		"menus_topbar_play": "遊ぶ",
+		"menus_topbar_players": "プレイヤー",
+		"menus_topbar_settings": "設定",
+
+		"menus_play_arcademode": "演奏ゲーム",
+		"menus_play_highscores": "ハイスコア",
+
+		"menus_players_addplayer": "相手を登録する",
+		"menus_players_addplayer_select": "プレイヤーを選んで",
+		"menus_players_addplayer_nameentry": "[入力]",
+		"menus_players_addplayer_selectname": "",
+		"menus_players_addplayer_entername": "プレイヤー名を入力して",
+		"menus_players_removeplayer": "相手を抜かす",
+		"menus_players_removeplayer_choose": "抜かされるプレイヤーを選んで",
+		"menus_players_removeplayer_addplayerfirst": "その前にプレイヤーを追加しなきゃ",
+		"menus_players_removeplayer_return": "[戻る]",
+		"menus_players_keybinds_change": "叩けれるキーを変化する",
+		"menus_players_keybinds_presskey": "「%s」の新しいキーをたたいて (ESCだと戻れる)",
+		"menus_players_keybinds_clear": "プレイヤー特定の叩けれるキーを取り消す",
+		"menus_players_keybinds_unbound": "(設定されてない)",
+
+		"menus_settings_importmap": "マップをインポートする",
+		"menus_settings_importmap_osz": ".oszからインポートする",
+		"menus_settings_importmap_enter_path": "ファイルのパスを入力して (またはCTRL+V/SHIFT+INSERT)",
+		"menus_settings_importmap_success": "インポート完了",
+		"menus_settings_songlist_reload": "曲リストを再ロードする",
+		"menus_settings_vsync": "vsyncモード：%s",
+		"menus_settings_language": "言語/Language",
+
+		"menus_song_title": "Song title",
+		"menus_song_mapper": "ゲーム譜面作者",
+		"menus_song_difficultylevel": "難しさ",
+		"menus_song_highscores": "ハイスコア",
+		"menus_song_no_scores": "まだスコアがない",
+
+		"menus_welcometext": "OpenTaikoへようこそ！",
+
+		"score_good": "良",
+		"score_ok": "可",
+		"score_bad": "ヤバい",
+		"score_combo": "最大列",
+
+		"keys_drum_rim_left": "左カツ",
+		"keys_drum_center_left": "左ドン",
+		"keys_drum_center_right": "右ドン",
+		"keys_drum_rim_right": "右カツ",
+		
+		"values_on": "オン",
+		"values_off": "オフ",
+		
+		"terminology_player": "プレイヤー",
+		
+		"error_no_player_registered": "演奏を始まる失敗: プレイヤーが登録していない",
+		"error_loading_settings": "%sから設定をロード失敗した、ディフォールト設定を利用している",
+		"error_loading_keymaps": "%sからキー設定をロード失敗した、ディフォールトキーを利用している(%s)",
+		"error_set_language_load": "言語のセット失敗: %s",
+		"error_loading_playerlist": "プレイヤーリストのロード失敗: %sプレイヤーリストは書き換えしない。手で直してください。",
+		"error_importing_map": "マップのインポート失敗: %s",
+		"error_loading_difficulty": "譜面のロード失敗: %s",
+		"error_no_maps_registered": "遊べる前にマップを登録しよう!",
+		"error_loading_scores": "%sのスコアをロード時にエラー: %s"
+	}
+}
+	

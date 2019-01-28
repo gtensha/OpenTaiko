@@ -10,6 +10,7 @@ struct Song {
     string[] tags;
 
     string src;
+	string directory;
 
     Difficulty[] difficulties;
 

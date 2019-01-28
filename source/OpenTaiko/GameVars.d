@@ -10,5 +10,7 @@ struct GameVars {
     int[2] resolution; // w * h
     // int maxFPS
     bool vsync; /// ditto
+	
+	string language; /// active language
 
 }

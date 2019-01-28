@@ -1,0 +1,70 @@
+{
+	"language": "Norsk bokmål",
+	"message": {
+		"title_game": "OpenTaiko",
+		"title_game_greeting": "Trykk en tast",
+
+		"menus_topbar_play": "Spill",
+		"menus_topbar_players": "Spillere",
+		"menus_topbar_settings": "Innstillinger",
+
+		"menus_play_arcademode": "Arkademodus",
+		"menus_play_highscores": "Poengtavle",
+
+		"menus_players_addplayer": "Legg til spiller",
+		"menus_players_addplayer_select": "Velg en spiller...",
+		"menus_players_addplayer_nameentry": "[Ny spiller]",
+		"menus_players_addplayer_selectname": "",
+		"menus_players_addplayer_entername": "Skriv inn spillernavn",
+		"menus_players_removeplayer": "Fjern spiller",
+		"menus_players_removeplayer_choose": "Velg spiller for å fjerne",
+		"menus_players_removeplayer_addplayerfirst": "Velg minst én spiller først!",
+		"menus_players_removeplayer_return": "[Tilbake]",
+		"menus_players_keybinds_change": "Endre tastekombinasjoner",
+		"menus_players_keybinds_presskey": "Trykk en ny knapp for \"%s\" (ESC for å avbryte)",
+		"menus_players_keybinds_clear": "Fjern en spillers tastekombinasjoner",
+		"menus_players_keybinds_unbound": "(ikke bunnet)",
+
+		"menus_settings_importmap": "Importer map",
+		"menus_settings_importmap_osz": "Importer fra .osz",
+		"menus_settings_importmap_enter_path": "Skriv inn sti til fil (eller CTRL+V/SHIFT+INSERT)",
+		"menus_settings_importmap_success": "Map ble vellykket importert.",
+		"menus_settings_songlist_reload": "Last inn sanger på nytt",
+		"menus_settings_vsync": "vsync modus: %s",
+		"menus_settings_language": "Språk/Language",
+
+		"menus_song_title": "Tittel",
+		"menus_song_mapper": "Mapforfatter",
+		"menus_song_difficultylevel": "Vanskelighetsgrad",
+		"menus_song_highscores": "Poengtavle",
+		"menus_song_no_scores": "Ikke spilt ennå",
+
+		"menus_welcometext": "Velkommen til OpenTaiko!",
+
+		"score_good": "Bra",
+		"score_ok": "Tålelig",
+		"score_bad": "Dårlig",
+		"score_combo": "Høyeste combo",
+
+		"keys_drum_rim_left": "Venstre kant",
+		"keys_drum_center_left": "Venstre midt",
+		"keys_drum_center_right": "Høyre midt",
+		"keys_drum_rim_right": "Høyre kant",
+		
+		"values_on": "På",
+		"values_off": "Av",
+		
+		"terminology_player": "Spiller",
+		
+		"error_no_player_registered": "Kunne ikke spille sang: Ingen spillere er registrert",
+		"error_loading_settings": "Kunne ikke laste inn instillinger fra %sBruker trygge instillinger.",
+		"error_loading_keymaps": "Kunne ikke laste inn tastekombinasjoner fra %sBruker trygge kombinasjoner (%s)",
+		"error_set_language_load": "Kunne ikke velge satt språk: %s",
+		"error_loading_playerlist": "Feil under lasting av spillertavle: %sSpillertavlen vil ikke bli endret. Vennligst korriger tavlen manuelt.",
+		"error_importing_map": "Kunne ikke importere map: %s",
+		"error_loading_difficulty": "Kunne ikke laste inn vanskelighetsgrad: %s",
+		"error_no_maps_registered": "Du må legge til minst ett map før du kan spille!",
+		"error_loading_scores": "Feil ved innlasting av poengtavle for %s: %s"
+	}
+}
+	

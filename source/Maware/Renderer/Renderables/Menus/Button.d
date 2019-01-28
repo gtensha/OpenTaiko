@@ -17,8 +17,8 @@ class Button : Renderable {
 	protected SDL_Renderer* renderer;
 	protected SDL_Color color;
 	protected int value;
-	protected void delegate() instruction;
-	protected Traversable subMenu;
+	public void delegate() instruction;
+	public Traversable subMenu;
 	protected bool highlighted = false;
 
 	// The percentage value of how transitioned the button is
@@ -95,6 +95,10 @@ class Button : Renderable {
 	
 	public string getTitle() {
 		return buttonText.getText();
+	}
+	
+	public void setTitle(string title) {
+		buttonText.updateText(title);
 	}
 
 }

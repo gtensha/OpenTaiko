@@ -14,6 +14,9 @@ struct ColorPalette {
 			  buttonTextColor,
 			  redDrumColor,
 			  blueDrumColor,
+			  goodNotifyColor,
+			  okNotifyColor,
+			  badNotifyColor,
 			  playAreaUpper,
 			  playAreaConveyor,
 			  playAreaLower;
@@ -34,6 +37,9 @@ static this() {
 	const SDL_Color buttonTextColor = {r:0xfd, g:0xfd, b:0xfd, 0xff};
 	const SDL_Color redDrumColor = {r:0xc5, g:0x11, b:0x62, a:0xff};
 	const SDL_Color blueDrumColor = {r:0x64, g:0xdd, b:0x17, a:0xff};
+	const SDL_Color goodNotifyColor = {r:0xee, g:0xff, b:0x41, a:0xff};
+	const SDL_Color okNotifyColor = {r:0x84, g:0xff, b:0xff, a:0xff};
+	const SDL_Color badNotifyColor = {r:0xff, g:0x17, b:0x44, a:0xff};
 	
 	ColorPalette newPalette;
 	newPalette.backgroundColor = backgroundColor;
@@ -46,6 +52,9 @@ static this() {
 	newPalette.buttonTextColor = buttonTextColor;
 	newPalette.redDrumColor = redDrumColor;
 	newPalette.blueDrumColor = blueDrumColor;
+	newPalette.goodNotifyColor = goodNotifyColor;
+	newPalette.okNotifyColor = okNotifyColor;
+	newPalette.badNotifyColor = badNotifyColor;
 	newPalette.playAreaUpper = cardColor;
 	newPalette.playAreaConveyor = backgroundColor;
 	newPalette.playAreaLower = uiColorMain;

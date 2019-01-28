@@ -1,0 +1,70 @@
+{
+	"language": "English",
+	"message": {
+		"title_game": "OpenTaiko",
+		"title_game_greeting": "Press any key",
+
+		"menus_topbar_play": "Play",
+		"menus_topbar_players": "Players",
+		"menus_topbar_settings": "Settings",
+
+		"menus_play_arcademode": "Arcade mode",
+		"menus_play_highscores": "High scores",
+
+		"menus_players_addplayer": "Add player",
+		"menus_players_addplayer_select": "Select a player...",
+		"menus_players_addplayer_nameentry": "[Name entry]",
+		"menus_players_addplayer_selectname": "",
+		"menus_players_addplayer_entername": "Enter player name",
+		"menus_players_removeplayer": "Remove player",
+		"menus_players_removeplayer_choose": "Select player to remove",
+		"menus_players_removeplayer_addplayerfirst": "Add a player first!",
+		"menus_players_removeplayer_return": "[Return]",
+		"menus_players_keybinds_change": "Change keybinds",
+		"menus_players_keybinds_presskey": "Press a key for \"%s\" (ESC cancels)",
+		"menus_players_keybinds_clear": "Clear keybinds for player",
+		"menus_players_keybinds_unbound": "(not bound)",
+
+		"menus_settings_importmap": "Import map",
+		"menus_settings_importmap_osz": "Import from .osz",
+		"menus_settings_importmap_enter_path": "Enter path to file (or CTRL+V/SHIFT+INSERT)",
+		"menus_settings_importmap_success": "Map successfully imported.",
+		"menus_settings_songlist_reload": "Reload song list",
+		"menus_settings_vsync": "vsync mode: %s",
+		"menus_settings_language": "Language",
+
+		"menus_song_title": "Song title",
+		"menus_song_mapper": "Mapper",
+		"menus_song_difficultylevel": "Difficulty level",
+		"menus_song_highscores": "High scores",
+		"menus_song_no_scores": "Not played yet",
+
+		"menus_welcometext": "Welcome to OpenTaiko!",
+
+		"score_good": "Good",
+		"score_ok": "Ok",
+		"score_bad": "Bad",
+		"score_combo": "Max combo",
+
+		"keys_drum_rim_left": "Left rim",
+		"keys_drum_center_left": "Left center",
+		"keys_drum_center_right": "Right center",
+		"keys_drum_rim_right": "Right rim",
+		
+		"values_on": "On",
+		"values_off": "Off",
+		
+		"terminology_player": "Player",
+		
+		"error_no_player_registered": "Failed to play song: No players registered",
+		"error_loading_settings": "Failed to load settings from %s Using fallback settings",
+		"error_loading_keymaps": "Failed to load key mappings from %s Using fallback keys (%s)",
+		"error_set_language_load": "Failed to load set language: %s",
+		"error_loading_playerlist": "Error loading player list: %sPlayer list write has been disabled. Please correct the file's formatting.",
+		"error_importing_map": "Failed to import map: %s",
+		"error_loading_difficulty": "Difficulty load failed: %s",
+		"error_no_maps_registered": "You need to add some maps before you can play!",
+		"error_loading_scores": "Error loading scores for %s: %s"
+	}
+}
+	

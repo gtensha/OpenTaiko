@@ -23,9 +23,10 @@ ShouldThrow myMissingSymCB(string symbolName) {
 }
 
 /// A renderer class for creating and rendering on-screen objects and scenes
+/// Must be initialised before it can be used; see initialise() methods
 class Renderer {
 	
-	static bool sdlIsInit;
+	private static bool sdlIsInit;
 
 	// The parent game engine of this renderer
 	private Engine parent;
@@ -43,32 +44,22 @@ class Renderer {
 	private Scene[] scenes; // the scenes present in the renderer
 	private uint currentScene; // the index of the scene to be rendered at present
 
+	/// Attempt loading the SDL2 libraries. Needed to successfully construct
+	/// an object of this class. Throws exceptions on load failure.
+	static void initialise(int videoFlags, int imgFlags) {
 
-	/// Create the object with the given parent and initiate video
-	this(Engine parent) {
+		//DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
 
-		if (parent is null) {
-			throw new Exception("Error: Cannot have a renderer without an engine");
-		} else {
-			this.parent = parent;
-		}
+		DerelictSDL2.load();
+		DerelictSDL2Image.load();
+		DerelictSDL2ttf.load();
 
-		DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
-
-		try {
-			DerelictSDL2.load();
-			DerelictSDL2Image.load();
-			DerelictSDL2ttf.load();
-		} catch (Exception e) {
-			throw e;
-		}
-
-		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		if (SDL_Init(videoFlags) < 0) {
 			throw new Exception(to!string("Failed to initialise SDL: "
 										  ~ fromStringz(SDL_GetError())));
 		}
 
-		if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) < 0) {
+		if (IMG_Init(imgFlags) < 0) {
 			throw new Exception(to!string("Failed to initialise SDL_image: "
 										  ~ fromStringz(IMG_GetError())));
 		}
@@ -77,22 +68,51 @@ class Renderer {
 			throw new Exception(to!string("Failed to initialise SDL_ttf: "
 										  ~ fromStringz(TTF_GetError())));
 		}
-		
+
 		sdlIsInit = true;
+	}
+
+	/// Call initialise() with default video subsystem flags
+	static void initialise() {
+		initialise(SDL_INIT_VIDEO, IMG_INIT_PNG | IMG_INIT_JPG);
+	}
+
+	/// Reverses the library initialisations made by initialise().
+	/// Must NOT be called before ALL resources made with the respective
+	/// libraries have been freed.
+	static void deInitialise() {
+		TTF_Quit();
+		IMG_Quit();
+		SDL_Quit();
+	}
+
+
+	/// Create the object with the given parent
+	this(Engine parent) {
+
+		if (!sdlIsInit) {
+			throw new Exception("SDL was not initialised");
+		}
+
+		if (parent is null) {
+			throw new Exception("Error: Cannot have a renderer without an engine");
+		} else {
+			this.parent = parent;
+		}
 
 	}
 
 	~this() {
-		sdlIsInit = false;
 		foreach (SDL_Texture* texture ; textures) {
 			SDL_DestroyTexture(texture);
 		}
 
+		foreach (Font font ; fonts) {
+			font.destroy();
+		}
+
 		SDL_DestroyRenderer(renderer);
 		SDL_DestroyWindow(window);
-		TTF_Quit();
-		IMG_Quit();
-		SDL_Quit();
 	}
 
 	/// Create a new window with given properties
@@ -107,7 +127,7 @@ class Renderer {
 									   SDL_WINDOWPOS_UNDEFINED,
 									   x,
 									   y,
-									   0);
+									   cast(SDL_WindowFlags)0);
 
 		if (this.window is null) {
 			throw new Exception(to!string("Failed to create window: "
@@ -167,6 +187,7 @@ class Renderer {
 			throw new Exception(to!string(fromStringz(SDL_GetError())));
 		}
 		registerTexture(key, tempSurface);
+		SDL_FreeSurface(tempSurface);
 	}
 
 	/// Register a new texture into the system with the given key
@@ -177,7 +198,10 @@ class Renderer {
 		if (tempTexture is null) {
 			throw new Exception(to!string(fromStringz(SDL_GetError())));
 		}
-		SDL_FreeSurface(surface);
+		SDL_Texture** possibleTexture = key in textures;
+		if (possibleTexture !is null) {
+			SDL_DestroyTexture(*possibleTexture);
+		}
 		textures[key] = tempTexture;
 	}
 
