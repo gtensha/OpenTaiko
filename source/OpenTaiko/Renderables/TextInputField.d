@@ -1,4 +1,4 @@
-module opentaiko.textinputfield;
+module opentaiko.renderable.textinputfield;
 
 import maware.inputhandler : TextInputBinder;
 import maware.renderable.renderable;

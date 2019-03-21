@@ -1,4 +1,4 @@
-module opentaiko.browsablelist;
+module opentaiko.renderable.menus.browsablelist;
 
 import maware.renderable;
 import maware.font;

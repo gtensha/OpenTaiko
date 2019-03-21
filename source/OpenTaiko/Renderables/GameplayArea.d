@@ -1,11 +1,11 @@
 module opentaiko.renderable.gameplayarea;
 
 import opentaiko.bashable.bashable;
-import opentaiko.drumindicator;
+import opentaiko.renderable.drumindicator;
 import opentaiko.performance;
 import opentaiko.renderable.hitstatus;
 import opentaiko.game : OpenTaiko;
-import opentaiko.playerdisplay;
+import opentaiko.renderable.playerdisplay;
 import opentaiko.player;
 import opentaiko.languagehandler : Message, phrase;
 import maware.renderer;

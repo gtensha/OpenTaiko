@@ -1,4 +1,4 @@
-module opentaiko.drumindicator;
+module opentaiko.renderable.drumindicator;
 
 import maware.renderable.renderable;
 import maware.renderable.textured;

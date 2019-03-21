@@ -1,6 +1,6 @@
 module opentaiko.renderable.inputbox;
 
-import opentaiko.textinputfield;
+import opentaiko.renderable.textinputfield;
 import opentaiko.game;
 
 import maware.renderable.renderable;

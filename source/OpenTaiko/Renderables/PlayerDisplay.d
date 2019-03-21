@@ -1,4 +1,4 @@
-module opentaiko.playerdisplay;
+module opentaiko.renderable.playerdisplay;
 
 import maware.renderable.renderable;
 import maware.renderable.solid;
