@@ -85,11 +85,35 @@ abstract class Bashable : Renderable {
 		return cast(int)(position - currentOffset * scroll);
 	}
 
+	/// Return true if this object was hit and should no longer be rendered
+	public abstract bool isFinished();
+
 	public int getObjectMaxHeight() {
 		int max = 0;
 		foreach (Solid renderable ; renderables) {
 			if (renderable.rect.h > max) {
 				max = renderable.rect.h;
+			}
+		}
+		return max;
+	}
+
+	/// Returns the (visible) length of this object
+	public int getObjectLength() {
+		if (renderables.length < 1) {
+			return 0;
+		}
+		int minX = renderables[0].rect.x;
+		foreach (Solid renderable ; renderables) {
+			if (renderable.rect.x < minX) {
+				minX = renderable.rect.x;
+			}
+		}
+		int max;
+		foreach (Solid s ; renderables) {
+			int actualWidth = s.rect.x - minX + s.rect.w;
+			if (actualWidth > max) {
+				max = actualWidth;
 			}
 		}
 		return max;

@@ -129,6 +129,10 @@ class DrumRoll : Bashable {
 		return currentOffset > actualPosition() + length / scroll;
 	}
 
+	override bool isFinished() {
+		return expired();
+	}
+
 	override void render() {
 		foreach (Animatable a ; animations[activeAnimationIndex]) {
 			//a.animate(); // animations broken, do not use now

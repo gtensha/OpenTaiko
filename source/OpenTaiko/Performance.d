@@ -7,6 +7,7 @@ import opentaiko.bashable;
 import maware.renderable.renderable;
 import maware.util.timer;
 import opentaiko.mapgen : MapGen;
+import opentaiko.renderable.renderqueue;
 import opentaiko.score;
 
 class Performance : Renderable {
@@ -37,6 +38,7 @@ class Performance : Renderable {
 
 	string mapTitle;
 	Bashable[] drums;
+	RenderQueue renderQueue;
 	Timer timer;
 	InternalScore score;
 	int i;
@@ -52,7 +54,7 @@ class Performance : Renderable {
 		int highestCombo;
 	}
 
-	this(string title, Bashable[] hitObjects, Timer timer, int xOffset, int yOffset) {
+	this(string title, Bashable[] hitObjects, Timer timer, int xOffset, int yOffset, int areaWidth) {
 
 		mapTitle = title;
 		drums = array(hitObjects);
@@ -62,6 +64,8 @@ class Performance : Renderable {
 			bashable.adjustX(xOffset);
 			bashable.adjustY(yOffset);
 		}
+
+		renderQueue = new RenderQueue(drums, timer, areaWidth);
 
 	}
 
@@ -192,9 +196,7 @@ class Performance : Renderable {
 
 	public void render() {
 		Bashable.currentOffset = timer.getTimerPassed();
-		for (int it = this.i; it < drums.length; it++) {
-			drums[it].render();
-		}
+		renderQueue.render();
 	}
 
 	public void setRenderableOffset(int xOffset, int yOffset, int maxHeight) {

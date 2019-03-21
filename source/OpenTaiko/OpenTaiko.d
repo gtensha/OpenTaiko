@@ -234,7 +234,7 @@ class OpenTaiko {
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
 			Bashable[] map = MapGen.parseMapFromFile(song.directory ~ "/" ~ diff.name ~ ".otfm");
-			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0);
+			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0, renderer.windowWidth);
 			playerAreas[i].setPerformance(currentPerformances[i]);
 			//playerAreas[i].setPlayer(players[i], i);
 		}

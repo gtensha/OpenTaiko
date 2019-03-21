@@ -20,6 +20,8 @@ abstract class Drum : Bashable {
 	
 	immutable int keyType;
 
+	protected bool wasHit;
+
 	static SDL_Renderer* renderer;
 
 	this(Solid[] renderables, uint position, double scroll, int keyType) {
@@ -49,6 +51,7 @@ abstract class Drum : Bashable {
 				successType = Success.OK;
 			}
 		}
+		wasHit = true;
 
 		return successType;
 
@@ -56,6 +59,10 @@ abstract class Drum : Bashable {
 
 	override public bool expired() {
 		return true;
+	}
+
+	override public bool isFinished() {
+		return wasHit;
 	}
 
 }
@@ -160,6 +167,10 @@ abstract class LargeDrum : Drum {
 
 	override bool expired() {
 		return firstHit >= 0 ? currentOffset > firstHit + HIT_WINDOW : false;
+	}
+
+	override bool isFinished() {
+		return wasHit && expired();
 	}
 
 	override int value() {
