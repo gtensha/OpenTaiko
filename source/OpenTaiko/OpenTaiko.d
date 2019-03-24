@@ -950,12 +950,16 @@ class OpenTaiko {
 	
 	/// Returns a standard VerticalMenu suitable for the main menu
 	VerticalMenu makeStandardMenu(string title) {
+		int maxHeight = (renderer.windowHeight
+						 - GUIDimensions.TOP_BAR_HEIGHT
+						 - 20);
 		return new VerticalMenu(title,
 		                        renderer.getFont("Noto-Light"),
 		                        renderer.windowWidth / 3,
 		                        60,
 		                        10,
 		                        GUIDimensions.TOP_BAR_HEIGHT + 20,
+								maxHeight,
 		                        guiColors.activeButtonColor,
 		                        guiColors.buttonTextColor);
 	}

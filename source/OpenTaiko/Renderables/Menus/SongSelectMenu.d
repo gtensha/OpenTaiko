@@ -316,6 +316,7 @@ class DifficultyListMenu : Traversable {
 										  DIFF_LIST_BUTTON_HEIGHT,
 										  menuPadding.rect.x + BORDER_SPACING,
 										  menuPadding.rect.y + BORDER_SPACING,
+										  menuPadding.rect.h - BORDER_SPACING,
 										  OpenTaiko.guiColors.activeButtonColor,
 										  OpenTaiko.guiColors.buttonTextColor);
 		

@@ -57,11 +57,23 @@ class Button : Renderable {
 	}
 
 	public void setX(int x) {
+		int textOffset = buttonText.rect.x - solid.rect.x;
 		solid.rect.x = x;
+		buttonText.rect.x = x + textOffset;
 	}
 
 	public void setY(int y) {
+		int textOffset = buttonText.rect.y - solid.rect.y;
 		solid.rect.y = y;
+		buttonText.rect.y = y + textOffset;
+	}
+
+	public int getX() {
+		return solid.rect.x;
+	}
+
+	public int getY() {
+		return solid.rect.y;
 	}
 
 	public Traversable getValue() {

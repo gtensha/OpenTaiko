@@ -94,4 +94,16 @@ class VerticalButton : Button {
 		invertedText.updateText(title);
 	}
 
+	override public void setX(int x) {
+		super.setX(x);
+		highlightLayer.rect.x = x;
+		invertedText.rect.x = buttonText.rect.x;
+	}
+
+	override public void setY(int y) {
+		super.setY(y);
+		highlightLayer.rect.y = y;
+		invertedText.rect.y = buttonText.rect.y;
+	}
+
 }
