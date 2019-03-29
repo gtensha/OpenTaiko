@@ -85,7 +85,7 @@ abstract class Menu : Traversable {
 				activeButton--;
 			}
 		}
-		if (activeButton >= 0) {
+		if (activeButton >= 0 && buttons.length > 0) {
 			buttons[activeButton].toggleHighlighted();
 		}
 	}

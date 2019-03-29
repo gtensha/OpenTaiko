@@ -11,20 +11,27 @@ import maware.renderable.menus.menu;
 
 import derelict.sdl2.sdl : SDL_Renderer, SDL_Color;
 
+import std.math : ceil;
+
 class VerticalMenu : Menu {
 
 	enum UP_MARKER = "▲";
 	enum DOWN_MARKER = "▼";
 	enum BUTTON_SPACING = 20;
+	enum SCROLLBAR_WIDTH = BUTTON_SPACING / 2;
+	enum SCROLLBAR_ELM_SPACING = 5;
 
 	protected int xOffset;
 	protected int yOffset;
 	protected const int buttonsPerPage;
 	protected const int maxHeight;
+	protected int currentPage;
 
 	protected SDL_Color textColor;
 
+	protected Solid upMarker;
 	protected Solid scrollBar;
+	protected Solid downMarker;
 
 	this(string title,
 		 Font font,
@@ -41,7 +48,27 @@ class VerticalMenu : Menu {
 			  buttonWidth,
 			  buttonHeight,
 			  buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a);
-			  
+
+		int barX = xOffset + buttonWidth + BUTTON_SPACING / 2;
+		this.upMarker = new Text(UP_MARKER,
+								 buttonFont.get(SCROLLBAR_WIDTH + 1),
+								 true,
+								 barX,
+								 yOffset,
+								 textColor);
+		int barY = upMarker.rect.y + upMarker.rect.h + SCROLLBAR_ELM_SPACING;
+		this.scrollBar = new Solid(SCROLLBAR_WIDTH,
+								   0,
+								   barX,
+								   barY,
+								   textColor);
+		this.downMarker = new Text(DOWN_MARKER,
+								   buttonFont.get(SCROLLBAR_WIDTH + 1),
+								   true,
+								   barX,
+								   0,
+								   textColor);
+		this.downMarker.rect.y = yOffset + maxHeight - downMarker.rect.h;
 		this.textColor = textColor;
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
@@ -78,14 +105,38 @@ class VerticalMenu : Menu {
 			activeButton = 0;
 			buttons[activeButton].toggleHighlighted();
 		}
+		updateScrollBar();
 		return buttons[buttons.length - 1];
 	}
 
+	private void updateScrollBar() {
+		if (buttons.length > buttonsPerPage) {
+			int pageAmount = cast(int)ceil((cast(double)buttons.length
+											/ buttonsPerPage));
+			scrollBar.rect.h = cast(int)((1.0 / pageAmount)
+										 * (maxHeight
+											- upMarker.rect.h
+											- downMarker.rect.h
+											- 2 * SCROLLBAR_ELM_SPACING));
+			scrollBar.rect.y = (yOffset
+								+ upMarker.rect.h
+								+ SCROLLBAR_ELM_SPACING
+								+ scrollBar.rect.h * (currentPage));
+		} else {
+			scrollBar.rect.h = 0;
+		}
+	}
+
 	override public void render() {
+		if (scrollBar.rect.h > 0) {
+			upMarker.render();
+			downMarker.render();
+			scrollBar.render();
+		}
 		foreach (Button button ; buttons) {
 			if (button.getY < yOffset) {
 				continue;
-			} else if (button.getY + buttonHeight + BUTTON_SPACING / 2
+			} else if (button.getY + buttonHeight + BUTTON_SPACING
 					   >
 					   yOffset + maxHeight) {
 				break;
@@ -96,6 +147,9 @@ class VerticalMenu : Menu {
 	}
 
 	override public void move(bool direction) {
+		if (buttons.length < 1) {
+			return;
+		}
 		int previousIndex = activeButton;
 		super.move(direction);
 		Button active = buttons[activeButton];
@@ -108,11 +162,19 @@ class VerticalMenu : Menu {
 				move(Moves.RIGHT);
 			}
 			return;
-		} else if (buttonY + buttonHeight > yOffset + maxHeight) {
+		} else if (buttonY + buttonHeight + BUTTON_SPACING > yOffset + maxHeight) {
 			moveAmount = 0 - (buttonY - yOffset);
+			if (activeButton == 0) {
+				currentPage = 0;
+			} else {
+				currentPage++;
+			}
+			updateScrollBar();
 		} else if (buttonY < yOffset) {
-			moveAmount = yOffset - buttons[activeButton
-										   - buttonsPerPage].getY; // danger zone
+			moveAmount = yOffset - buttons[activeButton // danger
+										   - buttonsPerPage + 1].getY; // zone
+			currentPage--;
+			updateScrollBar();
 		} else {
 			return;
 		}
