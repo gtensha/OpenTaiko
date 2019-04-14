@@ -1,6 +1,6 @@
 module maware.renderable.compactingtext;
 
-import maware.renderable.text;
+import maware.renderable.boundedtext;
 
 import derelict.sdl2.sdl : SDL_QueryTexture, SDL_Color;
 import derelict.sdl2.ttf : TTF_Font;
@@ -10,9 +10,7 @@ import derelict.sdl2.ttf : TTF_Font;
 /// "compacted." It is ugly, but makes things possible to read at smaller
 /// resolutions and therefore shouldn't be used for text that normally exceeds
 /// its supposed bounds.
-class CompactingText : Text {
-
-	int maxWidth;
+class CompactingText : BoundedText {
 
 	this(string text,
 		 TTF_Font* font,
@@ -21,9 +19,7 @@ class CompactingText : Text {
 		 int x, int y,
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(text, font, pretty, x, y, r, g, b, a);
-		this.maxWidth = maxWidth;
-		compact();
+		super(text, font, pretty, maxWidth, x, y, r, g, b, a);
 	}
 
 	this(string text,
@@ -39,7 +35,7 @@ class CompactingText : Text {
 
 	/// Checks the length of the text texture, and sets the rect width to
 	/// maxWidth if it is longer than maxWidth, else sets it to normal width.
-	private void compact() {
+	override protected void updateWidth() {
 		int w;
 		SDL_QueryTexture(texture, null, null, &w, null);
 		if (w > maxWidth) {
@@ -49,15 +45,6 @@ class CompactingText : Text {
 		}
 	}
 
-	override void updateText(string text) {
-		super.updateText(text);
-		compact();
-	}
-
-	override void updateText() {
-		this.updateText(currentText);
-	}
-
 	// TODO: renderPart()
-	
+
 }
