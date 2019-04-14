@@ -20,9 +20,9 @@ import derelict.sdl2.ttf : TTF_Font,
 
 class Text : Textured {
 
-	private string currentText;
+	protected string currentText;
 	private TTF_Font* font;
-	private bool pretty;
+	protected bool pretty;
 
 	this(string text,
 		 TTF_Font* font,

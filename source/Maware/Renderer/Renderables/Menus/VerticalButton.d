@@ -1,5 +1,6 @@
 module maware.renderable.menus.verticalbutton;
 
+import maware.renderable.compactingtext;
 import maware.renderable.menus.button;
 import maware.renderable.menus.traversable;
 import maware.renderable.solid;
@@ -37,12 +38,14 @@ class VerticalButton : Button {
 								   text.color.b, 
 								   text.color.a);
 
-		invertedText = new Text(buttonText.getText,
-								buttonText.getFont,
-								true,
-								buttonText.rect.x,
-								buttonText.rect.y,
-								r, g, b, a);
+		CompactingText t = cast(CompactingText)text;
+		invertedText = new CompactingText(buttonText.getText,
+										  buttonText.getFont,
+										  true,
+										  t.maxWidth,
+										  buttonText.rect.x,
+										  buttonText.rect.y,
+										  r, g, b, a);
 
 		invertedText.setColor(r, g, b, a);
 

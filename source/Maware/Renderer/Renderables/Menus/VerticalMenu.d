@@ -1,6 +1,7 @@
 module maware.renderable.menus.verticalmenu;
 
 import maware.renderable.renderable;
+import maware.renderable.compactingtext;
 import maware.renderable.solid;
 import maware.renderable.menus.traversable;
 import maware.font;
@@ -84,15 +85,16 @@ class VerticalMenu : Menu {
 									 void delegate() instruction) {
 
 		size_t btY = yOffset + buttons.length * (buttonHeight + BUTTON_SPACING);
-		buttons ~= new VerticalButton(new Text(title,
-											   buttonFont.get(fontSize),
-											   true,
-											   xOffset,
-											   0,
-											   textColor.r,
-											   textColor.g,
-											   textColor.b,
-											   textColor.a),
+		buttons ~= new VerticalButton(new CompactingText(title,
+														 buttonFont.get(fontSize),
+														 true,
+														 buttonWidth - BUTTON_SPACING,
+														 xOffset,
+														 0,
+														 textColor.r,
+														 textColor.g,
+														 textColor.b,
+														 textColor.a),
 									  value,
 									  subMenu,
 									  instruction,
