@@ -9,7 +9,7 @@ import derelict.sdl2.ttf : TTF_Font;
 /// universally
 abstract class BoundedText : Text {
 
-	private int maximumWidth;
+	private int maxWidth;
 
 	this(string text,
 		 TTF_Font* font,
@@ -19,8 +19,7 @@ abstract class BoundedText : Text {
 		 ubyte r, ubyte g, ubyte b, ubyte a) {
 
 		super(text, font, pretty, x, y, r, g, b, a);
-		this.maximumWidth = maxWidth;
-		updateWidth();
+	    setMaxWidth(maxWidth);
 	}
 
 	this(string text,
@@ -46,13 +45,13 @@ abstract class BoundedText : Text {
 		this.updateText(currentText);
 	}
 
-	@property void maxWidth(int value) {
+	void setMaxWidth(int value) {
 		maxWidth = value;
 		updateWidth();
 	}
 
-	@property int maxWidth() {
-		return maximumWidth;
+	int getMaxWidth() {
+		return maxWidth;
 	}
 
 }

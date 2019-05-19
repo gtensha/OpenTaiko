@@ -168,32 +168,23 @@ class SongSelectMenuItem : Renderable {
 		static const int edge = 10;
 		const int maxWidth = w - edge * 2;
 
-		block = new Solid(w, h, x, y, OpenTaiko.guiColors.cardColor.r, 
-									  OpenTaiko.guiColors.cardColor.g, 
-									  OpenTaiko.guiColors.cardColor.b, 
-									  OpenTaiko.guiColors.cardColor.a);
+		block = new Solid(w, h, x, y, OpenTaiko.guiColors.cardColor);
 		this.thumbnail = new Textured(thumbnail, w - edge * 2, w - edge * 2, x + edge, y + edge);
 		this.title = new EllipsedText(song.title, 
-							  titleFont.get(20), 
-							  true,
-							  maxWidth,
-							  x + edge, 
-							  y + this.thumbnail.rect.h + edge, 
-							  OpenTaiko.guiColors.cardTextColor.r, 
-							  OpenTaiko.guiColors.cardTextColor.g, 
-							  OpenTaiko.guiColors.cardTextColor.b, 
-							  OpenTaiko.guiColors.cardTextColor.a);
+									  titleFont.get(20), 
+									  true,
+									  maxWidth,
+									  x + edge, 
+									  y + this.thumbnail.rect.h + edge, 
+									  OpenTaiko.guiColors.cardTextColor);
 							  
 		this.artist = new EllipsedText(song.artist,
-							   artistFont.get(18), 
-							   true,
-							   maxWidth,
-							   x + edge, 
-							   y + this.title.rect.h + this.thumbnail.rect.h + edge,
-							   OpenTaiko.guiColors.cardTextColor.r, 
-							   OpenTaiko.guiColors.cardTextColor.g, 
-							   OpenTaiko.guiColors.cardTextColor.b, 
-							   OpenTaiko.guiColors.cardTextColor.a);
+									   artistFont.get(18), 
+									   true,
+									   maxWidth,
+									   x + edge, 
+									   y + this.title.rect.h + this.thumbnail.rect.h + edge,
+									   OpenTaiko.guiColors.cardTextColor);
 
 		for (int i = 0; i < offset; i++) {
 			move(Moves.RIGHT);
@@ -253,6 +244,7 @@ class DifficultyListMenu : Traversable {
 	enum BORDER_SPACING = 10; /// pixels between squares
 	enum TEXT_SPACING = 10;
 	enum DIFF_LIST_BUTTON_HEIGHT = 50;
+	enum TEXTBOX_COLUMN_COUNT = 2;
 	
 	protected Song song;
 	protected SongSelectMenuItem parentItem;
@@ -260,7 +252,8 @@ class DifficultyListMenu : Traversable {
 	protected Menu difficultyList;
 	protected Solid menuPadding;
 	protected Solid difficultyInfoPadding;
-	
+
+	protected TextBox[] difficultyInfoBox;
 	protected Text[] difficultyTitle;
 	protected Text mapperText;
 	protected Text[] mapperInfo;
@@ -296,19 +289,13 @@ class DifficultyListMenu : Traversable {
 										  paddingHeight,
 										  BORDER_SPACING,
 										  GUIDimensions.TOP_BAR_HEIGHT + BORDER_SPACING,
-										  OpenTaiko.guiColors.cardColor.r, 
-										  OpenTaiko.guiColors.cardColor.g, 
-										  OpenTaiko.guiColors.cardColor.b, 
-										  OpenTaiko.guiColors.cardColor.a);
+										  OpenTaiko.guiColors.cardColor);
 										  
 		menuPadding = new Solid(paddingWidth - BORDER_SPACING,
 								paddingHeight,
 								paddingWidth + (BORDER_SPACING * 2),
 								GUIDimensions.TOP_BAR_HEIGHT + BORDER_SPACING,
-								OpenTaiko.guiColors.cardColor.r, 
-								OpenTaiko.guiColors.cardColor.g, 
-								OpenTaiko.guiColors.cardColor.b, 
-								OpenTaiko.guiColors.cardColor.a);
+								OpenTaiko.guiColors.cardColor);
 		
 		difficultyList = new VerticalMenu("Difficulty select",
 		                                  boldFont,
@@ -320,73 +307,7 @@ class DifficultyListMenu : Traversable {
 										  OpenTaiko.guiColors.activeButtonColor,
 										  OpenTaiko.guiColors.buttonTextColor);
 		
-		difficultyTitle = new Text[song.difficulties.length];
-		difficultyTitle[0] = new Text("difficultyTitle",
-									  boldFont.get(textSize + (textSize * 2) / 2),
-									  true,
-									  difficultyInfoPadding.rect.x + TEXT_SPACING,
-									  difficultyInfoPadding.rect.y + BORDER_SPACING,
-									  OpenTaiko.guiColors.cardTextColor.r, 
-									  OpenTaiko.guiColors.cardTextColor.g, 
-									  OpenTaiko.guiColors.cardTextColor.b, 
-									  OpenTaiko.guiColors.cardTextColor.a);
-									  
-		mapperText = new Text(phrase(Message.Menus.SONG_MAPPER),
-							  boldFont.get(textSize),
-							  true,
-							  difficultyInfoPadding.rect.x + BORDER_SPACING,
-							  difficultyTitle[0].rect.y 
-							  + difficultyTitle[0].rect.h + TEXT_SPACING,
-							  OpenTaiko.guiColors.cardTextColor.r, 
-							  OpenTaiko.guiColors.cardTextColor.g, 
-							  OpenTaiko.guiColors.cardTextColor.b, 
-							  OpenTaiko.guiColors.cardTextColor.a);
-		
-		mapperInfo = new Text[song.difficulties.length];
-		mapperInfo[0] = new Text("mapperInfo",
-								 textFont.get(textSize),
-								 true,
-								 difficultyInfoPadding.rect.x + BORDER_SPACING,
-								 mapperText.rect.y 
-								 + mapperText.rect.h,
-								 OpenTaiko.guiColors.cardTextColor.r, 
-								 OpenTaiko.guiColors.cardTextColor.g, 
-								 OpenTaiko.guiColors.cardTextColor.b, 
-								 OpenTaiko.guiColors.cardTextColor.a);
-								 
-		difficultyText = new Text(phrase(Message.Menus.SONG_DIFFICULTYLEVEL),
-								  boldFont.get(textSize),
-								  true,
-								  difficultyInfoPadding.rect.x + BORDER_SPACING,
-								  mapperInfo[0].rect.y
-								  + mapperInfo[0].rect.h + TEXT_SPACING,
-								  OpenTaiko.guiColors.cardTextColor.r, 
-								  OpenTaiko.guiColors.cardTextColor.g, 
-								  OpenTaiko.guiColors.cardTextColor.b, 
-								  OpenTaiko.guiColors.cardTextColor.a);
-		
-		difficultyLevel = new Text[song.difficulties.length];
-		difficultyLevel[0] = new Text("difficultyLevel",
-									  textFont.get(textSize),
-									  true,
-									  difficultyInfoPadding.rect.x + BORDER_SPACING,
-									  difficultyText.rect.y
-									  + difficultyText.rect.h,
-									  OpenTaiko.guiColors.cardTextColor.r, 
-									  OpenTaiko.guiColors.cardTextColor.g, 
-									  OpenTaiko.guiColors.cardTextColor.b, 
-									  OpenTaiko.guiColors.cardTextColor.a);
-									  
-		highScoreText = new Text(phrase(Message.Menus.PLAY_HIGHSCORES),
-								 boldFont.get(textSize),
-								 true,
-								 difficultyInfoPadding.rect.x + BORDER_SPACING,
-								 difficultyLevel[0].rect.y
-								 + difficultyLevel[0].rect.h + TEXT_SPACING,
-								 OpenTaiko.guiColors.cardTextColor.r, 
-								 OpenTaiko.guiColors.cardTextColor.g, 
-								 OpenTaiko.guiColors.cardTextColor.b, 
-								 OpenTaiko.guiColors.cardTextColor.a);
+		difficultyInfoBox = new TextBox[song.difficulties.length];
 		
 		foreach (int i, Difficulty diff ; song.difficulties) {
 			wchar[10] starparts = ['☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆'];
@@ -394,45 +315,38 @@ class DifficultyListMenu : Traversable {
 				starparts[ii] = '★';
 			}
 			const string stars = to!string(starparts);
-			
+			const int boxWidth = difficultyInfoPadding.rect.w - BORDER_SPACING;
+			const int textWidth = boxWidth / TEXTBOX_COLUMN_COUNT;
 			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, songSelectCallback);
-			
-			difficultyTitle[i] = new Text(diff.name,
-										  boldFont.get(textSize + (textSize * 2) / 2),
-										  true,
-										  difficultyInfoPadding.rect.x + BORDER_SPACING,
-										  difficultyInfoPadding.rect.y + TEXT_SPACING,
-										  OpenTaiko.guiColors.cardTextColor.r, 
-										  OpenTaiko.guiColors.cardTextColor.g, 
-										  OpenTaiko.guiColors.cardTextColor.b, 
-										  OpenTaiko.guiColors.cardTextColor.a);
-										  
-			mapperInfo[i] = new Text(diff.mapper,
-									 textFont.get(textSize),
-									 true,
-									 difficultyInfoPadding.rect.x + BORDER_SPACING,
-									 mapperText.rect.y 
-									 + mapperText.rect.h,
-									 OpenTaiko.guiColors.cardTextColor.r, 
-									 OpenTaiko.guiColors.cardTextColor.g, 
-									 OpenTaiko.guiColors.cardTextColor.b, 
-									 OpenTaiko.guiColors.cardTextColor.a);
-									 
-			difficultyLevel[i] = new Text(stars ~ " (" ~ to!string(diff.difficulty) ~ ")",
-										  textFont.get(textSize),
-										  true,
-										  difficultyInfoPadding.rect.x + BORDER_SPACING,
-										  difficultyText.rect.y
-										  + difficultyText.rect.h,
-										  OpenTaiko.guiColors.cardTextColor.r, 
-										  OpenTaiko.guiColors.cardTextColor.g, 
-										  OpenTaiko.guiColors.cardTextColor.b, 
-										  OpenTaiko.guiColors.cardTextColor.a);
+			TextBox box = new TextBox(boxWidth,
+									  difficultyInfoPadding.rect.h - BORDER_SPACING,
+									  difficultyInfoPadding.rect.x + BORDER_SPACING,
+									  difficultyInfoPadding.rect.y + BORDER_SPACING,
+									  TEXTBOX_COLUMN_COUNT,
+									  0);
+			box.addLine(new EllipsedText(diff.name,
+										 boldFont.get(textSize + (textSize * 2) / 2),
+										 true,
+										 0,
+										 0,
+										 0,
+										 OpenTaiko.guiColors.cardTextColor));
+			box.addLine(new CompactingText(diff.mapper,
+										   textFont.get(textSize),
+										   true,
+										   0,
+										   0,
+										   0,
+										   OpenTaiko.guiColors.cardTextColor));
+			box.addLine(new CompactingText(stars ~ " (" ~ to!string(diff.difficulty) ~ ")",
+										   textFont.get(textSize),
+										   true,
+										   0,
+										   0,
+										   0,
+										   OpenTaiko.guiColors.cardTextColor));
 			Score[]* scoreArrPtr = diff in scores;
 			Score[] scoreArr = scoreArrPtr !is null ? *scoreArrPtr : null;
-			int currentY = highScoreText.rect.y + highScoreText.rect.h;
-			int originalY = currentY;
-			Text[] scoreTexts;
 			int scoreRank = 1;
 			foreach (Score score ; scoreArr.sort!("a > b")) {
 				Player* p = OpenTaiko.getPlayerById(score.playerId);
@@ -452,51 +366,43 @@ class DifficultyListMenu : Traversable {
 										  score.good,
 										  score.ok,
 										  score.bad);
-				Text upperCandidate = new Text(playerTimeText,
-											   boldFont.get(textSize),
+				CompactingText upperCandidate;
+				upperCandidate = new CompactingText(playerTimeText,
+													boldFont.get(textSize),
+													true,
+													0,
+													0,
+													0,
+													OpenTaiko.guiColors.cardTextColor);
+				CompactingText candidate;
+				candidate = new CompactingText(scoreText,
+											   textFont.get(textSize),
 											   true,
-											   difficultyInfoPadding.rect.x + BORDER_SPACING,
-											   currentY,
+											   0,
+											   0,
+											   0,
 											   OpenTaiko.guiColors.cardTextColor);
-				currentY += upperCandidate.rect.h;
-				Text candidate = new Text(scoreText,
-										  textFont.get(textSize),
-										  true,
-										  difficultyInfoPadding.rect.x + BORDER_SPACING,
-										  currentY,
-										  OpenTaiko.guiColors.cardTextColor);
-				if (currentY + candidate.rect.h + BORDER_SPACING
-					<=
-					difficultyInfoPadding.rect.h + difficultyInfoPadding.rect.y) {
-
-					scoreTexts ~= upperCandidate;
-					scoreTexts ~= candidate;
-					currentY += candidate.rect.h;
-					scoreRank++;
-				} else {
+				scoreRank++;
+				if (!box.addLine(upperCandidate) || !box.addLine(candidate)) {
 					break;
 				}
 			}
-			if (scoreTexts.length > 0) {
-				highScoreDisplay ~= scoreTexts;
-			} else {
-				highScoreDisplay ~= [new Text(phrase(Message.Menus.SONG_NO_SCORES),
-											  textFont.get(textSize),
-											  true,
-											  difficultyInfoPadding.rect.x + BORDER_SPACING,
-											  originalY,
-											  OpenTaiko.guiColors.cardTextColor)];
+			if (scoreRank < 2) {
+				box.addLine(new CompactingText(phrase(Message.Menus.SONG_NO_SCORES),
+											   textFont.get(textSize),
+											   true,
+											   0,
+											   0,
+											   0,
+											   OpenTaiko.guiColors.cardTextColor));
 			}
+			difficultyInfoBox[i] = box;
 		}
 	}
 	
 	void move(bool direction) {
-		if (direction == Moves.LEFT && !activeDiffIndex == 0) {
-			activeDiffIndex--;
-		} else if (direction == Moves.RIGHT && activeDiffIndex < difficultyTitle.length - 1) {
-			activeDiffIndex++;
-		}
 		difficultyList.move(direction);
+		activeDiffIndex = difficultyList.getActiveButtonId();
 	}
 	
 	Traversable press() {
@@ -508,15 +414,7 @@ class DifficultyListMenu : Traversable {
 		difficultyInfoPadding.render();
 		menuPadding.render();
 		difficultyList.render();
-		difficultyTitle[activeDiffIndex].render();
-		mapperText.render();
-		mapperInfo[activeDiffIndex].render();
-		difficultyText.render();
-		difficultyLevel[activeDiffIndex].render();
-		highScoreText.render();
-		foreach (Text t ; highScoreDisplay[activeDiffIndex]) {
-			t.render();
-		}
+		difficultyInfoBox[activeDiffIndex].render();
 	}
 	
 	int getActiveButtonId() {

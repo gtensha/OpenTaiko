@@ -1,14 +1,17 @@
 module maware.renderable.ellipsedtext;
 
-import maware.renderable.text;
+import maware.renderable.boundedtext;
 
 import derelict.sdl2.sdl : SDL_Color;
 import derelict.sdl2.ttf : TTF_Font;
 
+import std.algorithm.comparison : equal;
+
 /// A class similar to Text but with a width boundary
-class EllipsedText : Text {
-	
-	int maxWidth;
+class EllipsedText : BoundedText {
+
+	private bool shrinking;
+	private string originalText;
 	
 	this(string text,
 	     TTF_Font* font,
@@ -17,9 +20,9 @@ class EllipsedText : Text {
 	     int x, int y,
 	     ubyte r, ubyte g, ubyte b, ubyte a) {
 
-		super(text, font, pretty, x, y, r, g, b, a);
-		this.maxWidth = maxWidth;
-		updateText(text);
+		originalText = text;
+		super(text, font, pretty, maxWidth, x, y, r, g, b, a);
+		this.updateText();
 	}
 	
 	this(string text,
@@ -31,14 +34,28 @@ class EllipsedText : Text {
 
 		this(text, font, pretty, maxWidth, x, y, color.r, color.g, color.b, color.a);
 	}
-	
+
 	/// Make a new text until it is no wider than maxWidth
-	override public void updateText(string text) {
-		super.updateText(text);
-		while (rect.w > maxWidth && text.length > 1) {
-			super.updateText(text ~ "...");
-			text = text[0 .. text.length - 2];
+	override protected void updateWidth() {
+		if (shrinking) {
+			return;
 		}
+		string text = originalText;
+		shrinking = true;
+		while (rect.w > getMaxWidth() && text.length > 1) {
+			text = text[0 .. text.length - 2];
+			super.updateText(text ~ "...");
+		}
+		shrinking = false;
 	}
-	
+
+	override public void updateText(string text) {
+		originalText = text;
+		super.updateText(text);
+	}
+
+	override public void updateText() {
+		updateText(originalText);
+	}
+
 }

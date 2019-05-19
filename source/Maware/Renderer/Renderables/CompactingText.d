@@ -38,8 +38,8 @@ class CompactingText : BoundedText {
 	override protected void updateWidth() {
 		int w;
 		SDL_QueryTexture(texture, null, null, &w, null);
-		if (w > maxWidth) {
-			rect.w = maxWidth;
+		if (w > getMaxWidth()) {
+			rect.w = getMaxWidth();
 		} else {
 			rect.w = w;
 		}

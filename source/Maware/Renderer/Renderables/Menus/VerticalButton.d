@@ -42,7 +42,7 @@ class VerticalButton : Button {
 		invertedText = new CompactingText(buttonText.getText,
 										  buttonText.getFont,
 										  true,
-										  t.maxWidth,
+										  t.getMaxWidth,
 										  buttonText.rect.x,
 										  buttonText.rect.y,
 										  r, g, b, a);
