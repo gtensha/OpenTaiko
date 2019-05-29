@@ -1,5 +1,6 @@
 module opentaiko.renderable.playerdisplay;
 
+import maware.renderable.ellipsedtext;
 import maware.renderable.renderable;
 import maware.renderable.solid;
 import maware.font;
@@ -89,15 +90,14 @@ class NameBox : Renderable {
 		 Font font,
 		 int fontSize,
 		 int maxWidth, int h, int x, int y) {
-		
-		this.playerName = new Text("[P" ~ to!string(number + 1) ~ "] " ~ player.name,
-								   font.get(fontSize),
-								   true,
-								   0, y,
-								   OpenTaiko.guiColors.buttonTextColor.r,
-								   OpenTaiko.guiColors.buttonTextColor.g,
-								   OpenTaiko.guiColors.buttonTextColor.b,
-								   OpenTaiko.guiColors.buttonTextColor.a);
+
+		const string t = "[P" ~ to!string(number + 1) ~ "] " ~ player.name;
+		playerName = new EllipsedText(t,
+									  font.get(fontSize),
+									  true,
+									  maxWidth,
+									  0, y,
+									  OpenTaiko.guiColors.buttonTextColor);
 								   
 		this.playerName.rect.x = x - this.playerName.rect.w - PlayerDisplay.NAME_SPACING;
 		this.playerName.rect.y = y + (h - this.playerName.rect.h) / 2;

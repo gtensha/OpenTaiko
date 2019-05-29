@@ -259,4 +259,9 @@ class GameplayArea : Renderable {
 		done = true;
 	}
 
+	/// Return the x coordinate of the score display text
+	public int getScoreDisplayX() {
+		return score.rect.x;
+	}
+
 }

@@ -238,11 +238,14 @@ class OpenTaiko {
 			playerAreas[i].setPerformance(currentPerformances[i]);
 			//playerAreas[i].setPlayer(players[i], i);
 		}
-		Text songTitle = new Text(song.artist ~ " - " ~ song.title,
-								  renderer.getFont("Noto-Light").get(30),
-								  true,
-								  GUIDimensions.TEXT_SPACING, 0,
-								  guiColors.buttonTextColor);
+		int titleMaxWidth = (playerAreas[0].getScoreDisplayX()
+							 - GUIDimensions.TEXT_SPACING);
+		Text songTitle = new EllipsedText(song.artist ~ " - " ~ song.title,
+										  renderer.getFont("Noto-Light").get(30),
+										  true,
+										  titleMaxWidth,
+										  GUIDimensions.TEXT_SPACING, 0,
+										  guiColors.buttonTextColor);
 		
 		renderer.getScene(gameplaySceneIndex).clearLayer(1);
 		renderer.getScene(gameplaySceneIndex).addRenderable(1, songTitle);
