@@ -319,7 +319,7 @@ class DifficultyListMenu : Traversable {
 			const int textWidth = boxWidth / TEXTBOX_COLUMN_COUNT;
 			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, songSelectCallback);
 			TextBox box = new TextBox(boxWidth,
-									  difficultyInfoPadding.rect.h - BORDER_SPACING,
+									  difficultyInfoPadding.rect.h - BORDER_SPACING * 2,
 									  difficultyInfoPadding.rect.x + BORDER_SPACING,
 									  difficultyInfoPadding.rect.y + BORDER_SPACING,
 									  TEXTBOX_COLUMN_COUNT,
