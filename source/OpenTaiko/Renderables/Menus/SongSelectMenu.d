@@ -315,7 +315,7 @@ class DifficultyListMenu : Traversable {
 				starparts[ii] = '★';
 			}
 			const string stars = to!string(starparts);
-			const int boxWidth = difficultyInfoPadding.rect.w - BORDER_SPACING;
+			const int boxWidth = difficultyInfoPadding.rect.w - BORDER_SPACING * 2;
 			const int textWidth = boxWidth / TEXTBOX_COLUMN_COUNT;
 			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, songSelectCallback);
 			TextBox box = new TextBox(boxWidth,
