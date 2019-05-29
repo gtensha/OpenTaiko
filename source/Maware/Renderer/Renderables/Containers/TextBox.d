@@ -35,7 +35,7 @@ class TextBox : Renderable {
 			} else {
 				y = yPos;
 			}
-			if (y + line.rect.h <= xPos + height) {
+			if (y + line.rect.h <= yPos + height) {
 				line.rect.y = y;
 				line.rect.x = cast(int)(xPos + i * (width / lines.length));
 				line.setMaxWidth = cast(int)(width / lines.length);
