@@ -57,4 +57,8 @@ class HorizontalTopBarMenu : Menu {
 		return addButton(title, value, null, null);
 	}
 
+	override public uint getW() {
+	    return buttonWidth * cast(uint)buttons.length;
+	}
+
 }

@@ -678,7 +678,7 @@ class OpenTaiko {
 		
 		playerDisplay = new PlayerDisplay(activePlayers,
 										  r.getFont("Noto-Light"),
-										  (r.windowWidth / 3 * 2),
+										  renderer.windowWidth - topBarMenu.getW,
 										  GUIDimensions.TOP_BAR_HEIGHT,
 										  r.windowWidth, 0);
 										  

@@ -10,17 +10,21 @@ import opentaiko.player;
 import opentaiko.game : OpenTaiko, GUIDimensions;
 
 import std.conv : to;
+import std.format : format;
 
 /// Class for displaying current players
 class PlayerDisplay : Renderable {
 	
 	enum NAME_SPACING = 10;
+	enum FONT_SIZE = 18;
+	enum PLAYERNAME_MAX_WIDTH = 200;
 	
 	protected Player*[] players;
 	protected int prevPlayerCount;
 	protected Font font;
 	protected Solid underline;
 	protected NameBox[] names;
+	protected Text additionalPlayers;
 	
 	protected int maxWidth;
 	protected int startX;
@@ -35,6 +39,7 @@ class PlayerDisplay : Renderable {
 		this.font = font;
 		this.height = height;
 		this.startX = startX;
+		this.maxWidth = maxWidth;
 		this.underline = new Solid(0, GUIDimensions.UNDERLINE_HEIGHT,
 								   startX, y + GUIDimensions.TOP_BAR_HEIGHT - GUIDimensions.UNDERLINE_HEIGHT,
 								   OpenTaiko.guiColors.uiColorSecondary.r,
@@ -47,8 +52,11 @@ class PlayerDisplay : Renderable {
 	
 	void render() {
 		underline.render();
-		foreach(NameBox name ; names) {
+		foreach (NameBox name ; names) {
 			name.render();
+		}
+		if (additionalPlayers !is null) {
+			additionalPlayers.render();
 		}
 	}
 	
@@ -58,20 +66,37 @@ class PlayerDisplay : Renderable {
 		names = null;
 		underline.rect.w = 0;
 		underline.rect.x = startX;
-		for (int i = 0; i < players.length; i++) {
-			names ~= new NameBox(players[i],
-								 i,
-								 font,
-								 18,
-								 200,
-								 height,
-								 (i > 0) ? names[i - 1].getX : startX, 0);
-								 
-			const int newWidth = names[i].width + NAME_SPACING;
-			underline.rect.w += newWidth;
-			underline.rect.x -= newWidth;
+		const int nameWidth = PLAYERNAME_MAX_WIDTH > maxWidth ? maxWidth : PLAYERNAME_MAX_WIDTH;
+		int i;
+		for (i = 0; i < players.length; i++) {
+			NameBox n = new NameBox(players[i],
+									i,
+									font,
+									FONT_SIZE,
+									nameWidth,
+									height,
+									names.length > 0 ? names[names.length - 1].getX : startX, 0);
+			if (i == 0 || startX - n.getX <= maxWidth) {
+				names ~= n;
+				const int newWidth = n.width + NAME_SPACING;
+				underline.rect.w += newWidth;
+				underline.rect.x -= newWidth;
+			}
 		}
-		
+		if (names.length > 0 && i > names.length) {
+			string text = "+%d".format(i - names.length);
+			int fontSize = cast(int)(FONT_SIZE * 0.8);
+			NameBox b = names[names.length - 1];
+			int xVal = b.getX();
+			int yVal = b.getY() - fontSize;
+			additionalPlayers = new Text(text,
+										 font.get(fontSize),
+										 true,
+										 xVal, yVal,
+										 OpenTaiko.guiColors.buttonTextColor);
+		} else {
+			additionalPlayers = null;
+		}
 	}
 	
 }
@@ -110,9 +135,17 @@ class NameBox : Renderable {
 	int getX() {
 		return playerName.rect.x;
 	}
+
+	int getY() {
+		return playerName.rect.y;
+	}
 	
 	int width() {
 		return playerName.rect.w;
+	}
+
+	int height() {
+		return playerName.rect.h;
 	}
 	
 }
