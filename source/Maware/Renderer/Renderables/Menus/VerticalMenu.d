@@ -9,6 +9,7 @@ import maware.renderable.menus.button;
 import maware.renderable.menus.verticalbutton;
 import maware.renderable.text;
 import maware.renderable.menus.menu;
+import maware.renderable.menus.scrollbar;
 
 import derelict.sdl2.sdl : SDL_Renderer, SDL_Color;
 
@@ -16,11 +17,7 @@ import std.math : ceil;
 
 class VerticalMenu : Menu {
 
-	enum UP_MARKER = "▲";
-	enum DOWN_MARKER = "▼";
 	enum BUTTON_SPACING = 20;
-	enum SCROLLBAR_WIDTH = BUTTON_SPACING / 2;
-	enum SCROLLBAR_ELM_SPACING = 5;
 
 	protected int xOffset;
 	protected int yOffset;
@@ -30,9 +27,7 @@ class VerticalMenu : Menu {
 
 	protected SDL_Color textColor;
 
-	protected Solid upMarker;
-	protected Solid scrollBar;
-	protected Solid downMarker;
+	protected ScrollBar scrollBar;
 
 	this(string title,
 		 Font font,
@@ -51,25 +46,12 @@ class VerticalMenu : Menu {
 			  buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a);
 
 		int barX = xOffset + buttonWidth + BUTTON_SPACING / 2;
-		this.upMarker = new Text(UP_MARKER,
-								 buttonFont.get(SCROLLBAR_WIDTH + 1),
-								 true,
-								 barX,
-								 yOffset,
-								 textColor);
-		int barY = upMarker.rect.y + upMarker.rect.h + SCROLLBAR_ELM_SPACING;
-		this.scrollBar = new Solid(SCROLLBAR_WIDTH,
-								   0,
-								   barX,
-								   barY,
-								   textColor);
-		this.downMarker = new Text(DOWN_MARKER,
-								   buttonFont.get(SCROLLBAR_WIDTH + 1),
-								   true,
-								   barX,
-								   0,
-								   textColor);
-		this.downMarker.rect.y = yOffset + maxHeight - downMarker.rect.h;
+		int barY = yOffset;
+		this.scrollBar = new ScrollBar(font,
+									   maxHeight,
+									   barX,
+									   barY,
+									   textColor);
 		this.textColor = textColor;
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
@@ -112,29 +94,13 @@ class VerticalMenu : Menu {
 	}
 
 	private void updateScrollBar() {
-		if (buttons.length > buttonsPerPage) {
-			int pageAmount = cast(int)ceil((cast(double)buttons.length
-											/ buttonsPerPage));
-			scrollBar.rect.h = cast(int)((1.0 / pageAmount)
-										 * (maxHeight
-											- upMarker.rect.h
-											- downMarker.rect.h
-											- 2 * SCROLLBAR_ELM_SPACING));
-			scrollBar.rect.y = (yOffset
-								+ upMarker.rect.h
-								+ SCROLLBAR_ELM_SPACING
-								+ scrollBar.rect.h * (currentPage));
-		} else {
-			scrollBar.rect.h = 0;
-		}
+	    scrollBar.update(currentPage,
+						 buttonsPerPage,
+						 cast(int)buttons.length);
 	}
 
 	override public void render() {
-		if (scrollBar.rect.h > 0) {
-			upMarker.render();
-			downMarker.render();
-			scrollBar.render();
-		}
+	    scrollBar.render();
 		foreach (Button button ; buttons) {
 			if (button.getY < yOffset) {
 				continue;
@@ -164,7 +130,9 @@ class VerticalMenu : Menu {
 				move(Moves.RIGHT);
 			}
 			return;
-		} else if (buttonY + buttonHeight + BUTTON_SPACING > yOffset + maxHeight) {
+		} else if (buttonY + buttonHeight + BUTTON_SPACING
+				   > yOffset + maxHeight) {
+
 			moveAmount = 0 - (buttonY - yOffset);
 			if (activeButton == 0) {
 				currentPage = 0;
@@ -173,9 +141,14 @@ class VerticalMenu : Menu {
 			}
 			updateScrollBar();
 		} else if (buttonY < yOffset) {
-			moveAmount = yOffset - buttons[activeButton // danger
-										   - buttonsPerPage + 1].getY; // zone
-			currentPage--;
+			if (activeButton == 0) {
+				moveAmount = 0 - (buttonY - yOffset);
+				currentPage = 0;
+			} else {
+				moveAmount = yOffset - buttons[activeButton // danger
+											   - buttonsPerPage + 1].getY;// zone
+				currentPage--;
+			}
 			updateScrollBar();
 		} else {
 			return;

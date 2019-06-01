@@ -7,6 +7,8 @@ import opentaiko.game : OpenTaiko;
 
 import derelict.sdl2.sdl : SDL_Color;
 
+import std.math : floor;
+
 /// A class implementing a renderable list to present things like file
 /// trees or player lists
 class BrowsableList : Menu {
@@ -14,9 +16,12 @@ class BrowsableList : Menu {
 	enum PADDING = 10; /// Frame padding
 	
 	protected Solid frame;
+	protected ScrollBar scrollBar;
 	
 	protected int listHeight;
 	protected int x, y;
+	private int buttonsPlaced;
+	private int buttonsPerPage;
 	
 	this(Font font,
 		 int itemWidth,
@@ -35,19 +40,37 @@ class BrowsableList : Menu {
 							   0, 0, 0, 0);
 							   
 		this.frame.color = OpenTaiko.guiColors.uiColorMain;
-		
+		this.buttonsPerPage = listHeight / itemHeight;
+		const int scrollBarX = x + itemWidth + PADDING + PADDING / 2;
+		const SDL_Color color = OpenTaiko.guiColors.buttonTextColor;
+		this.scrollBar = new ScrollBar(font, listHeight, scrollBarX, y, color);
 	}
 	
 	override void render() {
 		frame.render();
-		super.render();
+		const int pageToRender = currentPage();
+		int i = pageToRender * buttonsPerPage;
+		int furthestButton = i + buttonsPerPage;
+		for (;i < buttons.length && i < furthestButton;
+			 i++) {
+
+			buttons[i].render();
+		}
+		scrollBar.render();
 	}
 	
 	override Button addButton(string title,
 							  int value,
 							  Traversable subMenu,
 							  void delegate() instruction) {
-		
+
+		int buttonY = y + buttonsPlaced * buttonHeight + PADDING;
+		if (buttonY - y + buttonHeight > listHeight) {
+			buttonsPlaced = 1;
+			buttonY = y + PADDING;
+		} else {
+			buttonsPlaced++;
+		}
 		buttons ~= new ListItem(title,
 								buttonFont, 
 								value,
@@ -56,14 +79,24 @@ class BrowsableList : Menu {
 								buttonWidth, 
 								buttonHeight, 
 								x + PADDING,
-								y + cast(int)buttons.length * buttonHeight + PADDING);
-								
-		frame.rect.h += buttonHeight;
+								buttonY);
+
+		if (buttons.length <= buttonsPerPage) {
+			frame.rect.h += buttonHeight;
+		} else if (buttons.length == buttonsPerPage + 1) {
+			frame.rect.w += scrollBar.SCROLLBAR_WIDTH;
+		}
 		if (activeButton < 0) {
 			activeButton = 0;
 			buttons[activeButton].toggleHighlighted();
 		}
+		updateScrollBar();
 		return buttons[buttons.length - 1];
+	}
+
+	override public void move(bool direction) {
+		super.move(direction);
+		updateScrollBar();
 	}
 	
 	public int getX() {
@@ -72,6 +105,16 @@ class BrowsableList : Menu {
 	
 	public int getY() {
 		return y;
+	}
+
+	private void updateScrollBar() {
+		scrollBar.update(currentPage,
+						 buttonsPerPage,
+						 cast(int)buttons.length);
+	}
+
+	private int currentPage() {
+		return cast(int)floor(cast(double)activeButton / buttonsPerPage);
 	}
 	
 }
@@ -109,11 +152,12 @@ class ListItem : Button {
 		
 		const SDL_Color c = OpenTaiko.guiColors.buttonTextColor;
 		
-		buttonText = new Text(text,
-							  font.get(cast(int)(h * TEXT_REL_SIZE)),
-							  true,
-							  x, y,
-							  c.r, c.g, c.b, c.a);
+		buttonText = new EllipsedText(text,
+									  font.get(cast(int)(h * TEXT_REL_SIZE)),
+									  true,
+									  w,
+									  x, y,
+									  c.r, c.g, c.b, c.a);
 							  
 		buttonText.rect.y = y + (solid.rect.h - buttonText.rect.h) / 2;
 	}
