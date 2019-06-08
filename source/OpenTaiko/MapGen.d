@@ -462,7 +462,7 @@ class MapGen {
 		Song[] songs;
 		foreach (string dir ; dirEntries(MAP_DIR, SpanMode.shallow)) {
 			const string jsonFile = dir ~ "/meta.json";
-			if (isDir(dir) && isFile(jsonFile)) {
+			if (isDir(dir) && exists(jsonFile) && isFile(jsonFile)) {
 				try {
 					JSONValue map = parseJSON(cast(string)(read(jsonFile)));
 					Song song = {
