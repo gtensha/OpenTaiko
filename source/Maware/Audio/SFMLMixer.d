@@ -124,7 +124,9 @@ class SFMLMixer : AudioMixer {
 
 	/// Pause music playback
 	void pauseMusic() {
-		sfMusic_pause(currentlyPlaying);
+		if (currentlyPlaying !is null) {
+			sfMusic_pause(currentlyPlaying);
+		}
 	}
 
 	/// Stop music playback (reset playing position)
@@ -136,7 +138,9 @@ class SFMLMixer : AudioMixer {
 
 	/// Resume playing last played or paused track
 	void resumeMusic() {
-		sfMusic_play(currentlyPlaying);
+		if (currentlyPlaying !is null) {
+			sfMusic_play(currentlyPlaying);
+		}
 	}
 
 	/// Play the sound effect with the given id
