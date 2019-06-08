@@ -460,37 +460,35 @@ class MapGen {
 	/// Reads the maps/ directory and returns an array of Song structs
 	static Song[] readSongDatabase() {
 		Song[] songs;
-
 		foreach (string dir ; dirEntries(MAP_DIR, SpanMode.shallow)) {
-			try {
-				JSONValue map = parseJSON(cast(string)(std.file.read(dir
-																     ~ "/meta.json")));
-
-				Song song = {
-					map["title"].str,
-					map["artist"].str,
-					map["maintainer"].str,
-					null,
-					map["src"].str,
-					dir,
-					null
-				};
-
-				foreach (JSONValue tag ; map["tags"].array) {
-					song.tags ~= tag.str;
-				}
-
-				foreach (JSONValue difficulty ; map["difficulties"].array) {
-					Difficulty diff = {
-						difficulty["name"].str,
-						to!int(difficulty["difficulty"].integer),
-						difficulty["mapper"].str
+			const string jsonFile = dir ~ "/meta.json";
+			if (isDir(dir) && isFile(jsonFile)) {
+				try {
+					JSONValue map = parseJSON(cast(string)(read(jsonFile)));
+					Song song = {
+						map["title"].str,
+						map["artist"].str,
+						map["maintainer"].str,
+						null,
+						map["src"].str,
+						dir,
+						null
 					};
-					song.difficulties ~= diff;
+					foreach (JSONValue tag ; map["tags"].array) {
+						song.tags ~= tag.str;
+					}
+					foreach (JSONValue difficulty ; map["difficulties"].array) {
+						Difficulty diff = {
+							difficulty["name"].str,
+							to!int(difficulty["difficulty"].integer),
+							difficulty["mapper"].str
+						};
+						song.difficulties ~= diff;
+					}
+					songs ~= song;
+				} catch (JSONException e) {
+					writeln(dir ~ " load error, malformed meta.json: " ~ e.msg);
 				}
-				songs ~= song;
-			} catch (Exception e) {
-				writeln(e.msg);
 			}
 		}
 		return songs;
