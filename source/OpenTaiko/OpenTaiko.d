@@ -87,7 +87,8 @@ enum GUIDimensions {
 	PLAYER_PICKER_LIST_WIDTH = 300,
 	BROWSABLELIST_ELM_HEIGHT = 30,
 	BROWSABLELIST_DESC_TEXT_SIZE = 24,
-	TEXT_SPACING = 10
+	TEXT_SPACING = 10,
+	VALUEDIAL_HEIGHT = 20
 }
 
 /// GUI Scale sizes
@@ -629,8 +630,8 @@ class OpenTaiko {
 
 		settingsMenu = makeStandardMenu("Settings");
 		VerticalMenu importMenu = makeStandardMenu("Import...");
-		
 		VerticalMenu languageMenu = makeStandardMenu("Language select");
+		VerticalMenu timingMenu = makeStandardMenu("Adjust timing");
 		
 		void delegate() makeLangChangeCallback(string id) {
 			return (){changeLanguage(id);};
@@ -643,11 +644,24 @@ class OpenTaiko {
 			                       makeLangChangeCallback(languageOption));
 		}
 
+		ValueDial!int offsetDial = new ValueDial!int(0,
+													 int.max,
+													 int.min,
+													 [1, 10, 100, 1000, int.max / 3],
+													 null,
+													 GUIDimensions.VALUEDIAL_HEIGHT,
+													 renderer.getFont("Noto-Light"),
+													 guiColors.buttonTextColor,
+													 GUIDimensions.TEXT_SPACING,
+													 GUIDimensions.TOP_BAR_HEIGHT + GUIDimensions.TEXT_SPACING);
+		timingMenu.addButton("Hit offset", 0, offsetDial, null);
+
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_IMPORTMAP), 0, importMenu, null);
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_SONGLIST_RELOAD), 1, null, &loadSongs);
 		Button vsyncButton = settingsMenu.addButton(makeVsyncButtonTitle(options.vsync), 2, null, null);
 		vsyncButton.instruction = (){toggleVsync(vsyncButton);};
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_LANGUAGE), 3, languageMenu, null);
+		settingsMenu.addButton("Timing values", 4, timingMenu, null);
 
 		void delegate(int) importCallback = (int mode) {
 			try {
