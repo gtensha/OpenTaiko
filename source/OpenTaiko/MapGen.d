@@ -11,7 +11,7 @@ import std.string;
 import std.ascii;
 import std.json;
 import std.zip;
-import std.process : execute;
+import std.process : execute, ProcessException;
 import std.typecons : tuple, Tuple;
 
 import opentaiko.drum;
@@ -254,6 +254,9 @@ class MapGen {
 		                             ".osz")) {
 			throw new Exception("Bad file extension");
 		}
+		version (Windows) {
+			path = path.split("\\").join("/");
+		}
 		string[] pathParts = path.split("/");
 		string songTitle = pathParts[pathParts.length - 1];
 		songTitle = songTitle[0 .. songTitle.length - 4];
@@ -311,7 +314,6 @@ class MapGen {
 		JSONValue metadata;
 		string metaPath = directory ~ "/" ~ "meta.json";
 		metadata = songToJSON(newSong);		
-		writeln(newSong.difficulties.length);
 		std.file.write(metaPath, toJSON(metadata, true));
 		
 	}
@@ -429,9 +431,14 @@ class MapGen {
 	/// Returns true if the FFMPEG command can be used
 	static bool ffmpegAvailable() {
 		if (!ffmpegStatusChecked) {
-			auto result = execute([FFMPEG.COMMAND, FFMPEG.VERSION_FLAG]);
-			ffmpegAvailability = result.status == 0;
 			ffmpegStatusChecked = true;
+			try {
+				auto result = execute([FFMPEG.COMMAND, FFMPEG.VERSION_FLAG]);
+				ffmpegAvailability = result.status == 0;
+			} catch (ProcessException e) {
+				writeln("Warning: FFMPEG execute failed: " ~ e.msg);
+				return false;
+			}
 		}
 		return ffmpegAvailability;
 	}
@@ -442,14 +449,16 @@ class MapGen {
 	/// successfully
 	static void convertToOgg(string infile, string outfile, bool shouldDelete) {
 		isFile(infile);
+		bool fileExisted;
 		if (exists(outfile)) {
 			rename(outfile, outfile ~ OLD_SUFFIX);
+			fileExisted = true;
 		}
 		auto result = execute([FFMPEG.COMMAND, FFMPEG.INPUT_FLAG, infile, outfile]);
 		if (result.status != 0) {
 			rename(outfile ~ OLD_SUFFIX, outfile);
 			throw new Exception("Conversion failed: " ~ result.output);
-		} else {
+		} else if (fileExisted) {
 			remove(outfile ~ OLD_SUFFIX);
 		}
 		if (shouldDelete) {
