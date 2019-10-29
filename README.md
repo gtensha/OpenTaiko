@@ -67,6 +67,27 @@ You should verify the .deb file with the associated .sig before you proceed any 
 sudo dpkg -i dmd_2.084.0-0_amd64.deb
 ```
 
+#### Ubuntu (Bionic Stable)
+Use apt and install the following packages, if you haven't already:
+
+* libsdl2-2.0-0
+* libsdl2-image-2.0-0
+* libsdl2-mixer-2.0-0
+* libsdl2-ttf-2.0-0
+* libcsfml-audio2.4
+* ffmpeg
+
+```
+apt install libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libsdl2-ttf-2.0-0 libcsfml-audio2.4 ffmpeg
+```
+
+For dub and dmd, same as debian.
+
+```
+wget http://downloads.dlang.org/releases/2.x/2.084.0/dmd_2.084.0-0_amd64.deb
+sudo dpkg -i dmd_2.084.0-0_amd64.deb
+```
+
 ### Windows
 Download the dmd installer from [dlang.org](https://dlang.org/download.html#dmd) (the non-nightly Windows exe is recommended), and follow the installation instructions. You do not need any extras. Select "Do nothing" when prompted to choose Visual Studio Installation. You now have dmd and dub installed.
 
