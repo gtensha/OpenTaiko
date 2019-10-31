@@ -152,7 +152,7 @@ class Performance : Renderable {
 	}
 
 	private bool tardy(Bashable obj) {
-		if (obj.actualPosition() + Bashable.latestHit
+		if (obj.actualPosition() + Bashable.timing.hitWindow
 			<
 			timer.getTimerPassed()) {
 

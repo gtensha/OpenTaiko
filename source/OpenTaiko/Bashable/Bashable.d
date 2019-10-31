@@ -1,14 +1,15 @@
 module opentaiko.bashable.bashable;
 
+import opentaiko.timingvars;
+
 import maware.renderable.renderable;
 import maware.renderable.solid;
 
 /// A class that can be rendered and hit in a timing window
 abstract class Bashable : Renderable {
 
-	/// How many milliseconds for the timing window
-	static const int latestHit = 200;
-	static const int goodHit = 50; /// ditto
+	static immutable TimingVars fallbackTiming = {0, 200, 50, 10};
+	static TimingVars timing = fallbackTiming; /// Globally effective timing variables
 
 	/// Success codes for the hitting of an object
 	enum Success : ubyte {
@@ -31,7 +32,7 @@ abstract class Bashable : Renderable {
 		MASK = 0xff00
 	}
 
-	public static int currentOffset; /// The current time offset in ms
+	public static long currentOffset; /// The current time offset in ms
 
 	immutable uint position; /// Object position in milliseconds
 	immutable double scroll; /// How fast the object will advance (multiplier)

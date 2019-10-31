@@ -31,30 +31,30 @@ abstract class Drum : Bashable {
 	}
 	
 	override public int hit(int key) {
-	
-		if (currentOffset < actualPosition() - latestHit) {
+		const int lateValue = actualPosition() - timing.hitWindow;
+		if (currentOffset < lateValue) {
+			if (currentOffset >= lateValue - timing.preHitDeadWindow) {
+				wasHit = true;
+				return Success.BAD;
+			}
 			return Success.IGNORE;
 		}
-
 		int successType = Success.BAD;
 		if (key == this.keyType) {
-
-			if (currentOffset < actualPosition() + goodHit 
+			if (currentOffset < actualPosition() + timing.goodHitWindow
 				&& 
-				currentOffset > actualPosition() - goodHit) {
+				currentOffset > actualPosition() - timing.goodHitWindow) {
 
 				successType = Success.GOOD;
-			} else if (currentOffset < actualPosition() + latestHit 
+			} else if (currentOffset < actualPosition() + timing.hitWindow
 					   && 
-					   currentOffset > actualPosition() - latestHit) {
+					   currentOffset > actualPosition() - timing.hitWindow) {
 
 				successType = Success.OK;
 			}
 		}
 		wasHit = true;
-
 		return successType;
-
 	}
 
 	override public bool expired() {
@@ -128,7 +128,7 @@ abstract class LargeDrum : Drum {
 	static SDL_Texture* rimTexture;
 
 	private int initialHitResult;
-	private int firstHit = -1;
+	private long firstHit = -1;
 
 	this(SDL_Texture* texture,
 		 int xOffset, int yOffset, uint position, double scroll, int keyType) {

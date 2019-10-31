@@ -19,6 +19,7 @@ import opentaiko.renderable.menus.browsablelist : BrowsableList;
 import opentaiko.keybinds;
 import opentaiko.renderable.inputbox;
 import opentaiko.languagehandler : Message, phrase;
+import opentaiko.timingvars;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -52,11 +53,9 @@ void main(string[] args) {
 	Engine.deInitialise();
 }
 
-/**
-The possible inputs recognised by the game
-0-127 are generic commands
-128-131 + [player amount * 4] are drum inputs for gameplay
-*/
+/// The possible inputs recognised by the game.
+/// 0-127 are generic commands,
+/// 128-131 + [(player amount - 1) * 4] are drum inputs for gameplay.
 enum Action : int {
 	// Arrow keys
 	UP = 0,
@@ -69,7 +68,6 @@ enum Action : int {
 	PAUSE = 6,
 	QUIT = 7,
 	MODESEL = 8,
-
 	// Drum actions
 	DRUM_LEFT_RIM = 128,
 	DRUM_LEFT_CENTER = 129,
@@ -103,6 +101,7 @@ enum SCORE_EXTENSION = ".scores";
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
 enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
+enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 enum LASTPLAYER_FILE_PATH = "last.player"; /// File path storing last used player
 
 class OpenTaiko {
@@ -152,7 +151,8 @@ class OpenTaiko {
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
 	private string assetDir = ASSET_DIR ~ ASSETS_DEFAULT;
-	
+
+	private TimingVars initialTimingVars;
 	private GameVars options;
 	private bool titleMusicEnabled;
 	private bool menuMusicEnabled;
@@ -226,7 +226,11 @@ class OpenTaiko {
 		
 		if (gameplayTimer is null) {
 			version (SFMLMixer) {
-				gameplayTimer = new PreciseTimer(&audioMixer.getMusicPosition, 1_000);
+				PreciseTimer t;
+				t = new PreciseTimer(cast(long delegate())&audioMixer.getMusicPosition,
+									 1_000);
+				t.regardlessOffset = Bashable.timing.hitOffset;
+				gameplayTimer = t;
 			} else {
 				gameplayTimer = new Timer();
 			}
@@ -274,6 +278,9 @@ class OpenTaiko {
 		}
 		if (activePlayers.length > 0) {
 			MapGen.writePlayerId(activePlayers[0].id, LASTPLAYER_FILE_PATH);
+		}
+		if (initialTimingVars != Bashable.timing) {
+			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
 		}
 	}
 
@@ -411,6 +418,17 @@ class OpenTaiko {
 			bindings.keyboard.drumKeys = fallbackKeys;
 			playerKeybinds ~= bindings;
 			disableKeybindsListWrite = true;
+		}
+		if (exists(TIMINGS_FILE_PATH)) {
+			try {
+				initialTimingVars = MapGen.readTimings(TIMINGS_FILE_PATH);
+				Bashable.timing = initialTimingVars;
+			} catch (Exception e) {
+				Engine.notify("***REPLACE ME WITH LOCALISED STRING***"
+							  ~ e.toString);
+			}
+		} else {
+			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
 		}
 		try {
 			Message.setLanguage(options.language);
@@ -647,7 +665,7 @@ class OpenTaiko {
 		ValueDial!int offsetDial = new ValueDial!int(0,
 													 int.max,
 													 int.min,
-													 [1, 10, 100, 1000, int.max / 3],
+													 [1, 10, 100],
 													 null,
 													 GUIDimensions.VALUEDIAL_HEIGHT,
 													 renderer.getFont("Noto-Light"),
@@ -713,7 +731,7 @@ class OpenTaiko {
 		immutable int initX = renderer.windowWidth;
 		immutable int minX = 0 - greeting.rect.w;
 		void delegate(Timer, Solid) greetingRule = (Timer timer, Solid solid){
-			const int passed = timer.getTimerPassed();
+			const long passed = timer.getTimerPassed();
 			if (passed < 12) {
 				return;
 			}

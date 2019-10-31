@@ -24,6 +24,7 @@ import opentaiko.performance;
 import opentaiko.player;
 import opentaiko.keybinds;
 import opentaiko.languagehandler : Message;
+import opentaiko.timingvars;
 
 enum {
 	string MAP_DIR = "maps/",
@@ -670,6 +671,28 @@ class MapGen {
 		}
 		JSONValue finalDoc = JSONValue(["bindings": vars]);
 		std.file.write(fileLoc, toJSON(finalDoc, true));
+	}
+
+	/// Reads the timings file at fileLoc as JSON and returns its equivalent
+	/// TimingVars struct.
+	static TimingVars readTimings(string fileLoc) {
+		TimingVars timingVars;
+		string input = cast(string)read(fileLoc);
+		JSONValue vars = parseJSON(input);
+		timingVars.hitOffset = cast(int)vars["hitOffset"].integer;
+		timingVars.hitWindow = cast(uint)vars["hitWindow"].integer;
+		timingVars.goodHitWindow = cast(uint)vars["goodHitWindow"].integer;
+		timingVars.preHitDeadWindow = cast(uint)vars["preHitDeadWindow"].integer;
+		return timingVars;
+	}
+
+	/// Writes the TimingVars struct to the file at fileLoc as JSON.
+	static void writeTimings(TimingVars timingVars, string fileLoc) {
+		JSONValue root = JSONValue(["hitOffset": timingVars.hitOffset,
+									"hitWindow": timingVars.hitWindow,
+									"goodHitWindow": timingVars.goodHitWindow,
+									"preHitDeadWindow": timingVars.preHitDeadWindow]);
+		write(fileLoc, toJSON(root, true));
 	}
 	
 	static Tuple!(string, string[Message.MESSAGE_AMOUNT]) readLocaleFile(string[Message.MESSAGE_AMOUNT] messageList, string path) {
