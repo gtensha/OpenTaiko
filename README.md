@@ -16,10 +16,10 @@ _(Screenshots do not necessarily represent the current state of the game)_
 To start using OpenTaiko, you need a compiler, and the necessary dependencies. The acquisition method of these vary from platform to platform. There are currently no binary releases available, as not all the features related to such a release have been decided and implemented yet.
 
 ## Compiler
-dmd is the only supported compiler right now, but other compilers could work, and support is planned for ldc in particular. Compiling with -release flag will generate a segfaulting binary; only debug builds are supported currently, due to a bug with dmd and derelict-sdl2. This should be fixed at a later time.
+Both dmd and ldc are supported compilers, provided their version is rather recent. Compiling using dmd with the -release flag will generate a segfaulting binary; only debug builds are supported currently, due to a bug with dmd and derelict-sdl2. This should be fixed at a later time. ldc builds fine with -release.
 
 ## Dependencies
-* dmd
+* dmd OR ldc
 * dub
 * SDL >= 2.0
 * SDL2\_ttf
