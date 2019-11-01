@@ -78,6 +78,7 @@ class ValueDial (T) : Traversable {
 									true,
 									leftIndicator.rect.x, y,
 									color);
+		incrementDisplay.rect.y -= incrementDisplay.rect.h / 2;
 		updateIncrementText();
 	}
 
