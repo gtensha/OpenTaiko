@@ -43,25 +43,38 @@ OpenTaiko should compile and run on nearly any Linux distribution.
 Use your package manager to find and install the dependencies listed in the _dependencies_ section. This is usually the extent of all you need to do.
 
 #### Debian/Devuan (stable)
-Use apt and install the following packages, if you haven't already:
+Debian buster now includes ldc 1.12; it's possible to use this compiler instead of dmd, and is recommended unless you need dmd's features. If you're running stretch or Devuan ascii, you need to follow the instructions for installing dmd further down below; don't install packages marked only for buster in this case. Use apt and install the following packages, if you haven't already:
 
+* gcc (only for buster)
+* ldc (only for buster)
+* dub (only for buster)
 * libsdl2-2.0-0
 * libsdl2-image-2.0-0
 * libsdl2-ttf-2.0-0
-* libcsfml-audio2.3
+* libcsfml-audio2.5 (libcsfml-audio2.3 for stretch/ascii)
 * ffmpeg
 
+##### buster
+The following command is only runnable as is on buster and will install ldc and dub from the official Debian repositories:
+
 ```
-apt install libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libcsfml-audio2.3 ffmpeg
+apt install gcc ldc dub libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libcsfml-audio2.5 ffmpeg
 ```
 
-For dub and dmd, you might want to use the [official installer](https://dlang.org/download.html) from dlang.org, as Debian stable (currently) does not supply them in the package repositories.
+If you're running buster, you need to create a symlink to the installed libcsfml library, because derelict-sfml2 doesn't know to look for 2.5, only 2.4 and below. Place the link either in the project directory or in your /usr/lib equivalent directory as you see fit. Find and place the link in the current working directory with the following command:
+
+```
+ln --symbolic $(find /usr -name libcsfml-audio.so.2.5 | head -n 1) libcsfml-audio.so.2
+```
+
+##### stretch/ascii
+If you are running stretch/ascii or older, you have to follow the steps below and use the [official installer](https://dlang.org/download.html) from dlang.org. 2.084 is known to work on stretch/ascii, but unless you're unsure you should get the newest version instead. Run the command below to download 2.084:
 
 ```
 wget http://downloads.dlang.org/releases/2.x/2.084.0/dmd_2.084.0-0_amd64.deb
 ```
 
-You should verify the .deb file with the associated .sig before you proceed any further.
+You should verify the .deb file with the associated .sig before you proceed any further. Run the following command to install the newly downloaded package:
 
 ```
 sudo dpkg -i dmd_2.084.0-0_amd64.deb
