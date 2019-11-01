@@ -80,6 +80,34 @@ You should verify the .deb file with the associated .sig before you proceed any 
 sudo dpkg -i dmd_2.084.0-0_amd64.deb
 ```
 
+#### Guix
+Install, or add to your environment the following packages:
+
+* ldc
+* dub
+* sdl2
+* sdl2-ttf
+* sdl2-image
+* sfml
+* ffmpeg
+
+```
+guix install ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
+```
+
+...or just use them in the current terminal session:
+
+```
+guix environment --ad-hoc ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
+```
+
+CSFML is not included in the official repositories, but you can easily download and build it automatically using [this package definition](https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2). Download and install it like so:
+
+```
+wget https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2/raw/3530f5ddf95281513c3bfcb7d964f31af5a19de5/csfml-guix.scm
+guix package --install-from-file=csfml-guix.scm
+```
+
 ### Windows
 Download the dmd installer from [dlang.org](https://dlang.org/download.html#dmd) (the non-nightly Windows exe is recommended), and follow the installation instructions. You do not need any extras. Select "Do nothing" when prompted to choose Visual Studio Installation. You now have dmd and dub installed.
 
