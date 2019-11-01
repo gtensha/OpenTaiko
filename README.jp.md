@@ -13,12 +13,12 @@ _※画像は現在のゲームと異なる可能性があります。_
 OpenTaiko を使う前に、コンパイラとその他の必要なものを準備しましょう。OS ごとにインストール方法が異なるので、利用している OS のインストール方法をご覽ください。バイナリのリリースはありません。リリースに関する機能は未実装です。
 
 # コンパイラ
-現在、dmd のみ対応しています。しかし、場合によっては他のコンパイラも使えるかもしれません。なお、将来は ldc に対応予定です。
+現在、dmd と ldc のみ対応しています。しかし、場合によっては他のコンパイラも使えるかもしれません。
 
-コンパイル時に release フラグをつけると実行時にエラーが発生します。そのため、現在はデバッグビルドのみサポートしています。これは dmd と derelict-sdl2 のバグのためです。
+コンパイル時に dmd の release フラグをつけると実行時にエラーが発生します。そのため、現在は dmd のデバッグビルドのみサポートしています。これは dmd と derelict-sdl2 のバグのためです。ldc は問題なく release ビルドを行えます。
 
 # 依存パッケージ
-* dmd
+* dmd または ldc
 * dub
 * SDL >= 2.0
 * SDL2\_ttf
@@ -41,19 +41,34 @@ dub.sdl をご覧ください。
 ディストリビューション標準のパッケージマネージャを使って、コンパイルに必要なパッケージをインストールしてください。
 
 #### Debian/Devuan (stable)
+Debian buster のリポジトリーに ldc のバージョン1.12がありますので、dmd よりこのバージョンをお勧めします。
+stretch や ascii を利用している方は未だに dmd をインストールする必要があります。その場合は依存パッケージをインストールの上もっと下の stretch/ascii 節をご覧ください。
 apt を使って、これらのパッケージをインストールします。
 
+* gcc (buster のみ)
+* ldc (buster のみ)
+* dub (buster のみ)
 * libsdl2-2.0-0
 * libsdl2-image-2.0-0
 * libsdl2-ttf-2.0-0
-* libcsfml-audio2.3
+* libcsfml-audio2.5 (stretch/ascii に libcsfml-audio2.3)
 * ffmpeg
 
+##### buster
+下のコマンドは buster のみ対応しています。ldc と dub は Debian の公式リポジトリーからインストールされます。
+
 ```
-apt install libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libcsfml-audio2.3 ffmpeg
+apt install gcc ldc dub libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libcsfml-audio2.5 ffmpeg
 ```
 
-dub とdmd が公式のリポジトリにはないので、dlang.org の [official installer](https://dlang.org/download.html) を使用してください。
+derelict-sfml2 は libcsfml-audio のバージョン 2.4 以上の情報を持っていないため、シンボリックリンクを作る必要があります。リンクは /usr/lib かプロジェクトのディレクトリかどっちに作っても同じです。下のコマンドは DLL を探してワーキングディレクトリにリンクを作ります。
+
+```
+ln --symbolic $(find /usr -name libcsfml-audio.so.2.5 | head -n 1) libcsfml-audio.so.2
+```
+
+##### stretch/ascii
+dub とdmd が公式のリポジトリにはないので、dlang.org の [official installer](https://dlang.org/download.html) を使用してください。下のコマンドはバージョン 2.084 をダウンロードしますが、ダウンロードページからの最新のバージョンをお勧めします。
 
 ```
 wget http://downloads.dlang.org/releases/2.x/2.084.0/dmd_2.084.0-0_amd64.deb
@@ -63,6 +78,36 @@ wget http://downloads.dlang.org/releases/2.x/2.084.0/dmd_2.084.0-0_amd64.deb
 
 ```
 sudo dpkg -i dmd_2.084.0-0_amd64.deb
+```
+
+#### Guix
+ご覧のパッケージをインストールして、または environment に追加してください。
+
+* ldc
+* dub
+* sdl2
+* sdl2-ttf
+* sdl2-image
+* sfml
+* ffmpeg
+
+インストールするには
+
+```
+guix install ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
+```
+
+で、environment に追加するだけには下のコマンドを実行します。
+
+```
+guix environment --ad-hoc ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
+```
+
+CSFML は公式リポジトリからインストール出来ませんが、[このパッケージ製法](https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2)を使えば自動的にダウンロードおよびビルドが行い、インストール出来ます。下のコマンドの風になります。
+
+```
+wget https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2/raw/3530f5ddf95281513c3bfcb7d964f31af5a19de5/csfml-guix.scm
+guix package --install-from-file=csfml-guix.scm
 ```
 
 ### Windows
