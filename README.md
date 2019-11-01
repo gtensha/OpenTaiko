@@ -161,15 +161,21 @@ dub build
 ```
 
 ...will build only. Don't forget the
-```--config=SFMLMixer```
+
+```
+--config=SFMLMixer
+```
+
 flag which is currently still required to build with SFML2 audio support (although that requirement will probably be removed in the near future.)
 
 Running either of these commands will place a binary in the current working directory, which can be run directly afterwards.
 
 In general, you do not need to specify the processor architecture you are building on, if you plan to compile for your current machine only. An exception is when building on 64-bit x86 Windows, where this must be specified.
+
 ```
 --arch=x86_64
 ```
+
 will build for 64-bit x86. You may combine these as you please:
 
 ```
