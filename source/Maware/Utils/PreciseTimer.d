@@ -4,20 +4,23 @@ import maware.util.timer;
 
 /// A timer that can update its offset at set intervals
 class PreciseTimer : Timer {
+
+	enum ADJUSTINTERVAL_DEFAULT = 1_000;
 	
-	int delegate() getSecondOpinion; /// Callback to get accurate timer value
-	int adjustInterval; /// How often to check for accuracy in ms
-	int lastCheck; /// Last time (since lib init) accuracy was checked
-	private int originalFrom;
+	long delegate() getSecondOpinion; /// Callback to get accurate timer value
+	uint adjustInterval; /// How often to check for accuracy in ms
+	long lastCheck; /// Last time (since lib init) accuracy was checked
+	long regardlessOffset; /// Value in milliseconds that will be added or subtracted from timer value
+	private long originalFrom;
 	
 	/// Create a new PreciseTimer with 1 sec accuracy adjust
-	this(int delegate() getPreciseTimeCallback) {
+	this(long delegate() getPreciseTimeCallback) {
 		getSecondOpinion = getPreciseTimeCallback;
-		adjustInterval = 1_000;
+		adjustInterval = ADJUSTINTERVAL_DEFAULT;
 	}
 	
 	/// Create a new PreciseTimer with custom adjustInterval
-	this(int delegate() getPreciseTimeCallback, int adjustInterval) {
+	this(long delegate() getPreciseTimeCallback, uint adjustInterval) {
 		getSecondOpinion = getPreciseTimeCallback;
 		this.adjustInterval = adjustInterval;
 	}
@@ -28,21 +31,21 @@ class PreciseTimer : Timer {
 		lastCheck = libInitPassed;
 	}
 	
-	override uint getTimerPassed() {
-		if (getSecondOpinion !is null && 
-			libInitPassed - lastCheck > adjustInterval) {
-
-			adjustAccuracy();
+	override long getTimerPassed() {
+		if (libInitPassed - lastCheck > adjustInterval) {
+			if (getSecondOpinion !is null) {
+				adjustAccuracy();
+			}
 		}
-		return libInitPassed - measureFrom;
+		return libInitPassed - measureFrom + regardlessOffset;
 	}
 	
-	override void set(uint newTime) {
+	override void set(long newTime) {
 		measureFrom = newTime;
 		originalFrom = newTime;
 	}
 	
-	override void set(uint newTime, uint newTimeTo) {
+	override void set(long newTime, long newTimeTo) {
 		set(newTime);
 		measureTo = newTimeTo;
 	}

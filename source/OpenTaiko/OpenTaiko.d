@@ -19,6 +19,7 @@ import opentaiko.renderable.menus.browsablelist : BrowsableList;
 import opentaiko.keybinds;
 import opentaiko.renderable.inputbox;
 import opentaiko.languagehandler : Message, phrase;
+import opentaiko.timingvars;
 
 import derelict.sdl2.sdl : SDL_Keycode;
 
@@ -52,11 +53,9 @@ void main(string[] args) {
 	Engine.deInitialise();
 }
 
-/**
-The possible inputs recognised by the game
-0-127 are generic commands
-128-131 + [player amount * 4] are drum inputs for gameplay
-*/
+/// The possible inputs recognised by the game.
+/// 0-127 are generic commands,
+/// 128-131 + [(player amount - 1) * 4] are drum inputs for gameplay.
 enum Action : int {
 	// Arrow keys
 	UP = 0,
@@ -69,7 +68,6 @@ enum Action : int {
 	PAUSE = 6,
 	QUIT = 7,
 	MODESEL = 8,
-
 	// Drum actions
 	DRUM_LEFT_RIM = 128,
 	DRUM_LEFT_CENTER = 129,
@@ -87,7 +85,8 @@ enum GUIDimensions {
 	PLAYER_PICKER_LIST_WIDTH = 300,
 	BROWSABLELIST_ELM_HEIGHT = 30,
 	BROWSABLELIST_DESC_TEXT_SIZE = 24,
-	TEXT_SPACING = 10
+	TEXT_SPACING = 10,
+	VALUEDIAL_HEIGHT = 20
 }
 
 /// GUI Scale sizes
@@ -102,6 +101,7 @@ enum SCORE_EXTENSION = ".scores";
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
 enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
+enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 enum LASTPLAYER_FILE_PATH = "last.player"; /// File path storing last used player
 
 class OpenTaiko {
@@ -151,7 +151,8 @@ class OpenTaiko {
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
 	private string assetDir = ASSET_DIR ~ ASSETS_DEFAULT;
-	
+
+	private TimingVars initialTimingVars;
 	private GameVars options;
 	private bool titleMusicEnabled;
 	private bool menuMusicEnabled;
@@ -225,7 +226,11 @@ class OpenTaiko {
 		
 		if (gameplayTimer is null) {
 			version (SFMLMixer) {
-				gameplayTimer = new PreciseTimer(&audioMixer.getMusicPosition, 1_000);
+				PreciseTimer t;
+				t = new PreciseTimer(cast(long delegate())&audioMixer.getMusicPosition,
+									 1_000);
+				t.regardlessOffset = Bashable.timing.hitOffset;
+				gameplayTimer = t;
 			} else {
 				gameplayTimer = new Timer();
 			}
@@ -273,6 +278,9 @@ class OpenTaiko {
 		}
 		if (activePlayers.length > 0) {
 			MapGen.writePlayerId(activePlayers[0].id, LASTPLAYER_FILE_PATH);
+		}
+		if (initialTimingVars != Bashable.timing) {
+			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
 		}
 	}
 
@@ -411,10 +419,23 @@ class OpenTaiko {
 			playerKeybinds ~= bindings;
 			disableKeybindsListWrite = true;
 		}
+		if (exists(TIMINGS_FILE_PATH)) {
+			try {
+				initialTimingVars = MapGen.readTimings(TIMINGS_FILE_PATH);
+				Bashable.timing = initialTimingVars;
+			} catch (Exception e) {
+				Engine.notify(format(phrase(Message.Error.LOADING_TIMINGS),
+									 e.toString));
+			}
+		} else {
+			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
+		}
 		try {
 			Message.setLanguage(options.language);
 		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD), e.msg));
+			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD),
+								 options.language,
+								 e.msg));
 		}
 	}
 	
@@ -629,8 +650,8 @@ class OpenTaiko {
 
 		settingsMenu = makeStandardMenu("Settings");
 		VerticalMenu importMenu = makeStandardMenu("Import...");
-		
 		VerticalMenu languageMenu = makeStandardMenu("Language select");
+		VerticalMenu timingMenu = makeStandardMenu("Adjust timing");
 		
 		void delegate() makeLangChangeCallback(string id) {
 			return (){changeLanguage(id);};
@@ -643,11 +664,40 @@ class OpenTaiko {
 			                       makeLangChangeCallback(languageOption));
 		}
 
+		const int c = 4;
+		string[c] timingLabels = [phrase(Message.Menus.TIMINGVARS_SET_OFFSET),
+								  phrase(Message.Menus.TIMINGVARS_SET_WINDOW),
+								  phrase(Message.Menus.TIMINGVARS_SET_GOODWINDOW),
+								  phrase(Message.Menus.TIMINGVARS_SET_DEADWINDOW)];
+		int[c] initVals = [Bashable.timing.hitOffset,
+						   Bashable.timing.hitWindow,
+						   Bashable.timing.goodHitWindow,
+						   Bashable.timing.preHitDeadWindow];
+		void delegate(int)[c] timingCallbacks = [(int v){Bashable.timing.hitOffset = v;},
+												 (int v){Bashable.timing.hitWindow = v;},
+												 (int v){Bashable.timing.goodHitWindow = v;},
+												 (int v){Bashable.timing.preHitDeadWindow = v;}];
+		for (int i = 0; i < timingLabels.length; i++) {
+			ValueDial!int v = new ValueDial!int(initVals[i],
+												int.max,
+												int.min,
+												[1, 10, 100],
+												timingCallbacks[i],
+												GUIDimensions.VALUEDIAL_HEIGHT,
+												renderer.getFont("Noto-Light"),
+												guiColors.buttonTextColor,
+												GUIDimensions.TEXT_SPACING,
+												(GUIDimensions.TOP_BAR_HEIGHT
+												 + GUIDimensions.TEXT_SPACING));
+			timingMenu.addButton(timingLabels[i], i, v, null);
+		}
+
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_IMPORTMAP), 0, importMenu, null);
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_SONGLIST_RELOAD), 1, null, &loadSongs);
 		Button vsyncButton = settingsMenu.addButton(makeVsyncButtonTitle(options.vsync), 2, null, null);
 		vsyncButton.instruction = (){toggleVsync(vsyncButton);};
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_LANGUAGE), 3, languageMenu, null);
+		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_TIMINGVARS), 4, timingMenu, null);
 
 		void delegate(int) importCallback = (int mode) {
 			try {
@@ -699,7 +749,7 @@ class OpenTaiko {
 		immutable int initX = renderer.windowWidth;
 		immutable int minX = 0 - greeting.rect.w;
 		void delegate(Timer, Solid) greetingRule = (Timer timer, Solid solid){
-			const int passed = timer.getTimerPassed();
+			const long passed = timer.getTimerPassed();
 			if (passed < 12) {
 				return;
 			}

@@ -14,33 +14,22 @@ class Timer {
 	}
 
 	/// The raw time in ms
-	public shared static uint libInitPassed;
+	public shared static long libInitPassed;
 
 	/// The current ms value to calculate from
-	protected uint measureFrom;
+	protected long measureFrom;
 	/// The current ms value to calculate to
-	protected uint measureTo;
+	protected long measureTo;
 
 	/// Refresh time and recalculate
-	public static void refresh(uint currentTime) {
+	public static void refresh(long currentTime) {
 		libInitPassed = currentTime;
 	}
 
 	// Calculate time passed and return
-	public uint getTimerPassed() {
+	public long getTimerPassed() {
 		return libInitPassed - measureFrom;
 	}
-
-	/*// Returns percentage value of how much of the time has passed
-	public int getPercentagePassed() {
-		if (libInitPassed >= measureTo) {
-			return 100;
-		} else if (libInitPassed <= measureFrom) {
-			return 0;
-		} else {
-			return ((libInitPassed - measureFrom) * 100) / (measureTo - libInitPassed);
-		}
-	}*/
 	
 	/// Returns percentage value of how much of the time has passed
 	public double getPercentagePassed() {
@@ -54,11 +43,11 @@ class Timer {
 	}
 
 	// Set new value to measure from
-	public void set(uint newTime) {
+	public void set(long newTime) {
 		this.measureFrom = newTime;
 	}
 
-	public void set(uint newTime, uint newTimeTo) {
+	public void set(long newTime, long newTimeTo) {
 		this.measureFrom = newTime;
 		this.measureTo = newTimeTo;
 	}

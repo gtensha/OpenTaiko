@@ -90,7 +90,7 @@ class RenderQueue : Renderable {
 		if (objectGroupIndex >= objectGroups.length) {
 			return;
 		}
-		int currentOffset = gameplayTimer.getTimerPassed();
+		const long currentOffset = gameplayTimer.getTimerPassed();
 		if (objectGroups[objectGroupIndex].lastAppearance < currentOffset) {
 			objectGroupIndex++;
 		}
