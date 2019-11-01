@@ -32,6 +32,12 @@
 		"menus_settings_songlist_reload": "曲リストを再ロードする",
 		"menus_settings_vsync": "vsyncモード：%s",
 		"menus_settings_language": "言語/Language",
+		"menus_settings_timingvars": "タイミング変数",
+
+		"menus_timingvars_set_offset": "音楽・叩きのタイミングを調整する",
+		"menus_timingvars_set_window": "可ヒットゾーンを設定する",
+		"menus_timingvars_set_goodwindow": "良ヒットゾーンを設定する",
+		"menus_timingvars_set_deadwindow": "叩ける寸前のアウト確定ゾーンを設定する",
 
 		"menus_song_title": "Song title",
 		"menus_song_mapper": "ゲーム譜面作者",
@@ -59,12 +65,13 @@
 		"error_no_player_registered": "演奏を始まる失敗: プレイヤーが登録していない",
 		"error_loading_settings": "%sから設定をロード失敗した、ディフォールト設定を利用している",
 		"error_loading_keymaps": "%sからキー設定をロード失敗した、ディフォールトキーを利用している(%s)",
-		"error_set_language_load": "言語のセット失敗: %s",
+		"error_set_language_load": "「%s」の言語の設定に失敗: %s",
 		"error_loading_playerlist": "プレイヤーリストのロード失敗: %sプレイヤーリストは書き換えしない。手で直してください。",
 		"error_importing_map": "マップのインポート失敗: %s",
 		"error_loading_difficulty": "譜面のロード失敗: %s",
 		"error_no_maps_registered": "遊べる前にマップを登録しよう!",
-		"error_loading_scores": "%sのスコアをロード時にエラー: %s"
+		"error_loading_scores": "%sのスコアをロード時にエラー: %s",
+		"error_loading_timings": "タイミング変数をロード時にエラー: %s"
 	}
 }
 	

@@ -22,7 +22,7 @@ class ValueDial (T) : Traversable {
 
 	private T currentValue;
 
-	private void delegate() updateCallback;
+	private void delegate(T) updateCallback;
 
 	private Text leftIndicator;
 	private Text rightIndicator;
@@ -38,12 +38,13 @@ class ValueDial (T) : Traversable {
 		 T maxValue,
 		 T minValue,
 		 T[] incrementFactors,
-		 void delegate() updateCallback,
+		 void delegate(T) updateCallback,
 		 int height,
 		 Font dialFont,
 		 SDL_Color color,
 		 int x, int y) {
 
+		this.currentValue = initialValue;
 		this.height = height;
 		this.updateCallback = updateCallback;
 		if (incrementFactors.length < 1) {
@@ -95,7 +96,7 @@ class ValueDial (T) : Traversable {
 		}
 		updateValueText();
 		if (updateCallback !is null) {
-			updateCallback();
+			updateCallback(currentValue);
 		}
 	}
 

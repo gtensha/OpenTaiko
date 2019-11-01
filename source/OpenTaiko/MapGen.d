@@ -66,6 +66,10 @@ class MapGen {
 	
 	private static ffmpegStatusChecked = false;
 	private static ffmpegAvailability = false;
+
+	/// If an error occured when loading language with id as key, then the error
+	/// message is stored as the value for reading in here.
+	public static string[string] languageLoadErrors;
 	
 	/// Returns array of drum objects with desired properties
 	static Bashable[] parseMapFromFile(string file) {
@@ -733,6 +737,7 @@ class MapGen {
 					        ~ filename
 					        ~ " failed to load: "
 					        ~ e.toString());
+					languageLoadErrors[languageAbbrev] = e.toString();
 					continue;
 				}
 			}

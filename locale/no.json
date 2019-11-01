@@ -32,6 +32,12 @@
 		"menus_settings_songlist_reload": "Last inn sanger på nytt",
 		"menus_settings_vsync": "vsync modus: %s",
 		"menus_settings_language": "Språk/Language",
+		"menus_settings_timingvars": "Tidsinnstillinger for treff",
+
+		"menus_timingvars_set_offset": "Juster treghetskompansering",
+		"menus_timingvars_set_window": "Juster toleranse for tålelige treff",
+		"menus_timingvars_set_goodwindow": "Juster toleranse for bra treff",
+		"menus_timingvars_set_deadwindow": "Juster dødvindu før tålelige treff",
 
 		"menus_song_title": "Tittel",
 		"menus_song_mapper": "Mapforfatter",
@@ -59,12 +65,13 @@
 		"error_no_player_registered": "Kunne ikke spille sang: Ingen spillere er registrert",
 		"error_loading_settings": "Kunne ikke laste inn instillinger fra %sBruker trygge instillinger.",
 		"error_loading_keymaps": "Kunne ikke laste inn tastekombinasjoner fra %sBruker trygge kombinasjoner (%s)",
-		"error_set_language_load": "Kunne ikke velge satt språk: %s",
+		"error_set_language_load": "Kunne ikke velge det satte språket \"%s\": %s",
 		"error_loading_playerlist": "Feil under lasting av spillertavle: %sSpillertavlen vil ikke bli endret. Vennligst korriger tavlen manuelt.",
 		"error_importing_map": "Kunne ikke importere map: %s",
 		"error_loading_difficulty": "Kunne ikke laste inn vanskelighetsgrad: %s",
 		"error_no_maps_registered": "Du må legge til minst ett map før du kan spille!",
-		"error_loading_scores": "Feil ved innlasting av poengtavle for %s: %s"
+		"error_loading_scores": "Feil ved innlasting av poengtavle for %s: %s",
+		"error_loading_timings": "Feil ved innlasting av tidsinnstillinger for treff: %s"
 	}
 }
 	

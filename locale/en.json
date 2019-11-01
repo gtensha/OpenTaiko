@@ -32,6 +32,12 @@
 		"menus_settings_songlist_reload": "Reload song list",
 		"menus_settings_vsync": "vsync mode: %s",
 		"menus_settings_language": "Language",
+		"menus_settings_timingvars": "Timing values",
+
+		"menus_timingvars_set_offset": "Set timing/music offset",
+		"menus_timingvars_set_window": "Set normal hit window",
+		"menus_timingvars_set_goodwindow": "Set good hit window",
+		"menus_timingvars_set_deadwindow": "Set pre-hit dead window",
 
 		"menus_song_title": "Song title",
 		"menus_song_mapper": "Mapper",
@@ -59,12 +65,13 @@
 		"error_no_player_registered": "Failed to play song: No players registered",
 		"error_loading_settings": "Failed to load settings from %s Using fallback settings",
 		"error_loading_keymaps": "Failed to load key mappings from %s Using fallback keys (%s)",
-		"error_set_language_load": "Failed to load set language: %s",
+		"error_set_language_load": "Failed to load the set language, \"%s\": %s",
 		"error_loading_playerlist": "Error loading player list: %sPlayer list write has been disabled. Please correct the file's formatting.",
 		"error_importing_map": "Failed to import map: %s",
 		"error_loading_difficulty": "Difficulty load failed: %s",
 		"error_no_maps_registered": "You need to add some maps before you can play!",
-		"error_loading_scores": "Error loading scores for %s: %s"
+		"error_loading_scores": "Error loading scores for %s: %s",
+		"error_loading_timings": "Error loading timing values: %s"
 	}
 }
 	

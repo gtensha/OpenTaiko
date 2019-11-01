@@ -121,6 +121,12 @@ static class Message {
 		"menus_settings_songlist_reload",
 		"menus_settings_vsync",
 		"menus_settings_language",
+		"menus_settings_timingvars",
+
+		"menus_timingvars_set_offset",
+		"menus_timingvars_set_window",
+		"menus_timingvars_set_goodwindow",
+		"menus_timingvars_set_deadwindow",
 		
 		"menus_song_title",
 		"menus_song_mapper",
@@ -163,7 +169,8 @@ static class Message {
 		"error_importing_map",
 		"error_loading_difficulty",
 		"error_no_maps_registered",
-		"error_loading_scores"
+		"error_loading_scores",
+		"error_loading_timings"
 	];
 	
 	private static immutable string[][] allMessageIDArrays = [
@@ -184,7 +191,7 @@ static class Message {
 	private static string[MESSAGE_AMOUNT] activeLanguage;
 	
 	private static string[string] languageNames;
-	
+
 	unittest {
 		assert(equal(allMessageIDArrays.join(), allMessageIDs));
 	}
@@ -204,7 +211,9 @@ static class Message {
 		if (localisation !is null) {
 			activeLanguage = *localisation;
 		} else {
-			throw new Exception("Specified language does not exist");
+			const string* error = id in MapGen.languageLoadErrors;
+			throw new Exception(error ? *error
+										: "Specified language does not exist");
 		}
 	}
 	

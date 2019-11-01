@@ -424,8 +424,8 @@ class OpenTaiko {
 				initialTimingVars = MapGen.readTimings(TIMINGS_FILE_PATH);
 				Bashable.timing = initialTimingVars;
 			} catch (Exception e) {
-				Engine.notify("***REPLACE ME WITH LOCALISED STRING***"
-							  ~ e.toString);
+				Engine.notify(format(phrase(Message.Error.LOADING_TIMINGS),
+									 e.toString));
 			}
 		} else {
 			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
@@ -433,7 +433,9 @@ class OpenTaiko {
 		try {
 			Message.setLanguage(options.language);
 		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD), e.msg));
+			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD),
+								 options.language,
+								 e.msg));
 		}
 	}
 	
@@ -662,24 +664,40 @@ class OpenTaiko {
 			                       makeLangChangeCallback(languageOption));
 		}
 
-		ValueDial!int offsetDial = new ValueDial!int(0,
-													 int.max,
-													 int.min,
-													 [1, 10, 100],
-													 null,
-													 GUIDimensions.VALUEDIAL_HEIGHT,
-													 renderer.getFont("Noto-Light"),
-													 guiColors.buttonTextColor,
-													 GUIDimensions.TEXT_SPACING,
-													 GUIDimensions.TOP_BAR_HEIGHT + GUIDimensions.TEXT_SPACING);
-		timingMenu.addButton("Hit offset", 0, offsetDial, null);
+		const int c = 4;
+		string[c] timingLabels = [phrase(Message.Menus.TIMINGVARS_SET_OFFSET),
+								  phrase(Message.Menus.TIMINGVARS_SET_WINDOW),
+								  phrase(Message.Menus.TIMINGVARS_SET_GOODWINDOW),
+								  phrase(Message.Menus.TIMINGVARS_SET_DEADWINDOW)];
+		int[c] initVals = [Bashable.timing.hitOffset,
+						   Bashable.timing.hitWindow,
+						   Bashable.timing.goodHitWindow,
+						   Bashable.timing.preHitDeadWindow];
+		void delegate(int)[c] timingCallbacks = [(int v){Bashable.timing.hitOffset = v;},
+												 (int v){Bashable.timing.hitWindow = v;},
+												 (int v){Bashable.timing.goodHitWindow = v;},
+												 (int v){Bashable.timing.preHitDeadWindow = v;}];
+		for (int i = 0; i < timingLabels.length; i++) {
+			ValueDial!int v = new ValueDial!int(initVals[i],
+												int.max,
+												int.min,
+												[1, 10, 100],
+												timingCallbacks[i],
+												GUIDimensions.VALUEDIAL_HEIGHT,
+												renderer.getFont("Noto-Light"),
+												guiColors.buttonTextColor,
+												GUIDimensions.TEXT_SPACING,
+												(GUIDimensions.TOP_BAR_HEIGHT
+												 + GUIDimensions.TEXT_SPACING));
+			timingMenu.addButton(timingLabels[i], i, v, null);
+		}
 
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_IMPORTMAP), 0, importMenu, null);
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_SONGLIST_RELOAD), 1, null, &loadSongs);
 		Button vsyncButton = settingsMenu.addButton(makeVsyncButtonTitle(options.vsync), 2, null, null);
 		vsyncButton.instruction = (){toggleVsync(vsyncButton);};
 		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_LANGUAGE), 3, languageMenu, null);
-		settingsMenu.addButton("Timing values", 4, timingMenu, null);
+		settingsMenu.addButton(phrase(Message.Menus.SETTINGS_TIMINGVARS), 4, timingMenu, null);
 
 		void delegate(int) importCallback = (int mode) {
 			try {
