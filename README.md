@@ -145,7 +145,7 @@ If the command succeeds, you will find OpenTaiko.exe has appeared in the directo
 BSD has not been tested but assuming you can get dmd working, it could work, as most BSDs supply the necessary libraries. Apply the same ideas as with Linux.
 
 ### MacOS
-Unknown, but should work.
+Use [homebrew](https://brew.sh/) and install the required packages.
 
 ## Building
 dub is used to build OpenTaiko. dub should be run from your OS' command line, and the working directory set to whereever OpenTaiko was cloned/downloaded to.
