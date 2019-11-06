@@ -25,33 +25,79 @@ import derelict.sdl2.sdl : SDL_Keycode;
 
 import std.conv : to, ConvException;
 import std.algorithm.comparison : equal;
-//import std.algorithm.mutation : copy;
-import std.array : array, join;
+import std.array : array, join, split;
 import std.stdio;
-import std.file : exists, FileException;
+import std.file : exists, FileException, mkdir;
 import std.format : format;
+import std.getopt : getopt;
 import std.ascii : newline;
 import std.container.dlist : DList;
 import std.math : sin;
+import std.process : environment;
 import std.typecons : tuple, Tuple;
 
 void main(string[] args) {
-
+	string userDir;
+	string installDir;
+	bool forceInstall;
+	version (Posix) {
+		userDir = environment.get("HOME");
+		if (userDir.length > 0) {
+			userDir ~= "/" ~ USER_DIRECTORY;
+		}
+	} version (Windows) {
+		userDir = environment.get("LOCALAPPDATA");
+		if (userDir.length > 0) {
+			userDir ~= "\\" ~ USER_DIRECTORY;
+		}
+	} else {
+		userDir = "./";
+	}
+	userDir = environment.get(USER_DIRECTORY_ENVVAR, userDir);
+	installDir = environment.get(INSTALL_DIRECTORY_ENVVAR);
+	string cmdUserDir;
+	string cmdInstallDir;
+	getopt(args,
+		   USER_DIRECTORY_FLAG, &cmdUserDir,
+		   INSTALL_DIRECTORY_FLAG, &cmdInstallDir,
+		   FORCE_INSTALL_FLAG, &forceInstall);
+	if (cmdUserDir.length > 0) {
+		userDir = cmdUserDir;
+	}
+	if (cmdInstallDir.length > 0) {
+		installDir = cmdInstallDir;
+	}
+	foreach (string* s ; [&userDir, &cmdInstallDir]) {
+		version (Windows) {
+			const char trailing = '\\';
+		} else {
+			const char trailing = '/';
+		}
+		if ((*s).length > 0 && (*s)[s.length - 1] != trailing) {
+			*s ~= trailing;
+		}
+	}
+	if (!exists(userDir) || forceInstall) {
+		OpenTaiko.userInstall(userDir);
+	}
 	Engine.initialise();
-
-	OpenTaiko game = new OpenTaiko();
-
+	OpenTaiko game = new OpenTaiko(installDir, userDir);
 	try {
 		game.run();
 	} catch (Throwable e) {
 		Engine.notify(e.toString());
 		return;
 	}
-
 	game.destroy();
-
 	Engine.deInitialise();
 }
+
+enum USER_DIRECTORY_ENVVAR = "OPENTAIKO_USERDIR"; /// Environment variable for manually setting user directory
+enum INSTALL_DIRECTORY_ENVVAR = "OPENTAIKO_INSTALLDIR"; /// Environment variable for setting installation directory
+
+enum USER_DIRECTORY_FLAG = "user-directory"; /// Command line flag for manually setting user directory
+enum INSTALL_DIRECTORY_FLAG = "install-directory"; /// Command line flag for setting the installation directory
+enum FORCE_INSTALL_FLAG = "force-install"; /// Command line flag for forcing a user installation
 
 /// The possible inputs recognised by the game.
 /// 0-127 are generic commands,
@@ -97,6 +143,8 @@ enum GUIScale : double {
 enum DEFAULT_PLAYER_ID = 0; /// Id of "Player", should be guaranteed to exist
 
 enum SCORE_EXTENSION = ".scores";
+
+enum USER_DIRECTORY = ".opentaiko";
 
 enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
@@ -152,6 +200,9 @@ class OpenTaiko {
 	private Timer gameplayTimer;
 	private string assetDir = ASSET_DIR ~ ASSETS_DEFAULT;
 
+	private string userDirectory = "./";
+	private string installDirectory = "./";
+
 	private TimingVars initialTimingVars;
 	private GameVars options;
 	private bool titleMusicEnabled;
@@ -171,6 +222,31 @@ class OpenTaiko {
 	
 	static this() {
 		guiColors = standardPalette;
+	}
+
+	/// Initialises directory by making it if it does not exist, creating the
+	/// necessary tree and writing configuration files.
+	static void userInstall(const string directory) {
+		if (!exists(directory)) {
+			mkdir(directory);
+		}
+		MapGen.writeSongDatabaseTree(directory);
+		const string assetDir = directory ~ ASSET_DIR;
+		if (!exists(assetDir)) {
+			mkdir(assetDir);
+		}
+		OpenTaiko dummyGame = new OpenTaiko(null, directory);
+		dummyGame.loadSettings();
+		dummyGame.writeValues();
+	}
+
+	this(const string installDir, const string userDir) {
+		if (installDir.length > 0) {
+			installDirectory = installDir.split("\\").join("/");
+		}
+		if (userDir.length > 0) {
+			userDirectory = userDir.split("\\").join("/");
+		}
 	}
 
 	~this() {
@@ -238,7 +314,11 @@ class OpenTaiko {
 
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
-			Bashable[] map = MapGen.parseMapFromFile(song.directory ~ "/" ~ diff.name ~ ".otfm");
+			Bashable[] map = MapGen.parseMapFromFile(userDirectory
+													 ~ song.directory
+													 ~ "/"
+													 ~ diff.name
+													 ~ ".otfm");
 			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0, renderer.windowWidth);
 			playerAreas[i].setPerformance(currentPerformances[i]);
 			//playerAreas[i].setPlayer(players[i], i);
@@ -266,21 +346,26 @@ class OpenTaiko {
 	void writeValues() {
 		if (shouldWritePlayerList && !disablePlayerListWrite) {
 			shouldWritePlayerList = false;
-			MapGen.writePlayerList(players, activePlayers, PLAYER_DATA_FILE);
+			MapGen.writePlayerList(players,
+								   activePlayers,
+								   userDirectory ~ PLAYER_DATA_FILE);
 		}
 		if (shouldWriteKeybindsList && !disableKeybindsListWrite) {
 			shouldWriteKeybindsList = false;
-			MapGen.writeKeybindsFile(playerKeybinds, KEYBINDS_FILE_PATH);
+			MapGen.writeKeybindsFile(playerKeybinds,
+									 userDirectory ~ KEYBINDS_FILE_PATH);
 		}
 		if (shouldWriteSettings && !disableSettingsWrite) {
 			shouldWriteSettings = false;
-			MapGen.writeConfFile(options, CONFIG_FILE_PATH);
+			MapGen.writeConfFile(options, userDirectory ~ CONFIG_FILE_PATH);
 		}
 		if (activePlayers.length > 0) {
-			MapGen.writePlayerId(activePlayers[0].id, LASTPLAYER_FILE_PATH);
+			MapGen.writePlayerId(activePlayers[0].id,
+								 userDirectory ~ LASTPLAYER_FILE_PATH);
 		}
 		if (initialTimingVars != Bashable.timing) {
-			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
+			MapGen.writeTimings(Bashable.timing,
+								userDirectory ~ TIMINGS_FILE_PATH);
 		}
 	}
 
@@ -395,40 +480,49 @@ class OpenTaiko {
 	/// Loads options from settings.json into the options GameVars struct
 	void loadSettings() {
 		static int[][4] fallbackKeys = [[100], [102], [106], [107]]; // dfjk
-		try {
-			options = MapGen.readConfFile(CONFIG_FILE_PATH);
-		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.LOADING_SETTINGS), 
-			                     CONFIG_FILE_PATH ~ newline ~ e.msg ~ newline));
-						  
-			//options.defaultKeys = fallbackKeys;
-			options.resolution = [1280, 1024];
-			options.vsync = true;
-			options.language = Message.DEFAULT_LANGUAGE;
-			disableSettingsWrite = true;
-		}
-		
-		try {
-			playerKeybinds = MapGen.readKeybindsFile(KEYBINDS_FILE_PATH);
-		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.LOADING_KEYMAPS),
-			                     KEYBINDS_FILE_PATH ~ newline ~ e.msg ~ newline,
-			                     "d f j k"));
-			Keybinds bindings;
-			bindings.keyboard.drumKeys = fallbackKeys;
-			playerKeybinds ~= bindings;
-			disableKeybindsListWrite = true;
-		}
-		if (exists(TIMINGS_FILE_PATH)) {
+		options.resolution = [1280, 1024];
+		options.vsync = true;
+		options.language = Message.DEFAULT_LANGUAGE;
+		if (exists(userDirectory ~ CONFIG_FILE_PATH)) {
 			try {
-				initialTimingVars = MapGen.readTimings(TIMINGS_FILE_PATH);
+				options = MapGen.readConfFile(userDirectory ~ CONFIG_FILE_PATH);
+			} catch (Exception e) {
+				Engine.notify(format(phrase(Message.Error.LOADING_SETTINGS),
+									 CONFIG_FILE_PATH ~ newline ~ e.msg ~ newline));
+				disableSettingsWrite = true;
+			}
+		} else {
+			shouldWriteSettings = true;
+		}
+		Keybinds bindings;
+		bindings.keyboard.drumKeys = fallbackKeys;
+		if (exists(userDirectory ~ KEYBINDS_FILE_PATH)) {
+			try {
+				playerKeybinds = MapGen.readKeybindsFile(userDirectory
+														 ~ KEYBINDS_FILE_PATH);
+			} catch (Exception e) {
+				Engine.notify(format(phrase(Message.Error.LOADING_KEYMAPS),
+									 e.msg ~ newline,
+									 "d f j k"));
+				playerKeybinds ~= bindings;
+				disableKeybindsListWrite = true;
+			}
+		} else {
+			playerKeybinds ~= bindings;
+			shouldWriteKeybindsList = true;
+		}
+		if (exists(userDirectory ~ TIMINGS_FILE_PATH)) {
+			try {
+				initialTimingVars = MapGen.readTimings(userDirectory
+													   ~ TIMINGS_FILE_PATH);
 				Bashable.timing = initialTimingVars;
 			} catch (Exception e) {
 				Engine.notify(format(phrase(Message.Error.LOADING_TIMINGS),
 									 e.toString));
 			}
 		} else {
-			MapGen.writeTimings(Bashable.timing, TIMINGS_FILE_PATH);
+			MapGen.writeTimings(Bashable.timing,
+								userDirectory ~ TIMINGS_FILE_PATH);
 		}
 		try {
 			Message.setLanguage(options.language);
@@ -441,7 +535,7 @@ class OpenTaiko {
 	
 	void loadPlayers() {
 		try {
-			players = MapGen.readPlayerList(PLAYER_DATA_FILE);
+			players = MapGen.readPlayerList(userDirectory ~ PLAYER_DATA_FILE);
 		} catch (Exception e) {
 			Engine.notify(format(phrase(Message.Error.LOADING_PLAYERLIST)
 			                     ~ e.msg ~ newline));
@@ -453,7 +547,8 @@ class OpenTaiko {
 		}
 		int recentPlayerId;
 		try {
-			recentPlayerId = MapGen.getPlayerId(LASTPLAYER_FILE_PATH);
+			recentPlayerId = MapGen.getPlayerId(userDirectory
+												~ LASTPLAYER_FILE_PATH);
 		} catch (FileException e) {
 			recentPlayerId = DEFAULT_PLAYER_ID;
 		} catch (ConvException e) {
@@ -825,7 +920,7 @@ class OpenTaiko {
 	
 	/// Load songs and update song select menu
 	void loadSongs() {
-		songs = MapGen.readSongDatabase();
+		songs = MapGen.readSongDatabase(userDirectory);
 		scores = getScores(songs);
 		songSelectMenu = createSongSelectMenu();
 		playButton.subMenu = songSelectMenu;
@@ -870,7 +965,10 @@ class OpenTaiko {
 		Score[][Tuple!(Song, Difficulty)] scores;
 		foreach (Song song ; songList) {
 			foreach (Difficulty diff ; song.difficulties) {
-				const string filePath = song.directory ~ "/" ~ diff.name ~ SCORE_EXTENSION;
+				const string filePath = (song.directory
+										 ~ "/"
+										 ~ diff.name
+										 ~ SCORE_EXTENSION);
 				try {
 					scores[tuple(song, diff)] = MapGen.readScores(filePath);
 				} catch (Exception e) {
@@ -895,7 +993,11 @@ class OpenTaiko {
 	}
 
 	void postGameWriteScores() {
-		string scoreFilePath = activeSong.directory ~ "/" ~ activeDifficulty.name ~ SCORE_EXTENSION;
+		string scoreFilePath = (userDirectory
+								~ activeSong.directory
+								~ "/"
+								~ activeDifficulty.name
+								~ SCORE_EXTENSION);
 		foreach (size_t i, Performance p ; currentPerformances) {
 			if (p.finished) {
 				Score s = p.getScore(activePlayers[i].id);

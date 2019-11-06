@@ -471,10 +471,12 @@ class MapGen {
 		}
 	}
 
-	/// Reads the maps/ directory and returns an array of Song structs
-	static Song[] readSongDatabase() {
+	/// Reads the maps/ directory and returns an array of Song structs, where
+	/// userDir is the path to the directory where the maps/ directory is
+	/// contained.
+	static Song[] readSongDatabase(const string userDir) {
 		Song[] songs;
-		foreach (string dir ; dirEntries(MAP_DIR, SpanMode.shallow)) {
+		foreach (string dir ; dirEntries(userDir ~ MAP_DIR, SpanMode.shallow)) {
 			const string jsonFile = dir ~ "/meta.json";
 			if (isDir(dir) && exists(jsonFile) && isFile(jsonFile)) {
 				try {
@@ -506,6 +508,19 @@ class MapGen {
 			}
 		}
 		return songs;
+	}
+
+	/// Takes baseDir as the base user directory (with a trailing slash) and
+	/// creates the normal directory structure for the maps/ directory.
+	static void writeSongDatabaseTree(string baseDir) {
+		if (exists(baseDir) && isDir(baseDir)) {
+			const string p = (baseDir ~ MAP_DIR).split("\\").join("/");
+			if (!exists(p)) {
+				mkdir(p);
+			}
+		} else {
+			throw new FileException(baseDir ~ " does not exist.");
+		}
 	}
 	
 	/// Returns the path to an image file if it was found in directory, or null
