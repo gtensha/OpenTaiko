@@ -37,7 +37,7 @@ import std.process : environment;
 import std.typecons : tuple, Tuple;
 
 void main(string[] args) {
-	string userDir;
+	string userDir = "./";
 	string installDir;
 	bool forceInstall;
 	version (Posix) {
@@ -50,8 +50,6 @@ void main(string[] args) {
 		if (userDir.length > 0) {
 			userDir ~= "\\" ~ USER_DIRECTORY;
 		}
-	} else {
-		userDir = "./";
 	}
 	userDir = environment.get(USER_DIRECTORY_ENVVAR, userDir);
 	installDir = environment.get(INSTALL_DIRECTORY_ENVVAR);
