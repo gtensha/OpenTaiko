@@ -253,7 +253,7 @@ class MapGen {
 	/// It merges existing data.
 	/// It may register wrong filenames if the difficulties inside have
 	/// different ones (different audio files, backgrounds etc).
-	static void extractOSZ(string path) {
+	static void extractOSZ(string path, string userDir) {
 		Song newSong;
 		if (path.length < 5 || equal(path[path.length - 3 .. path.length],
 		                             ".osz")) {
@@ -267,7 +267,7 @@ class MapGen {
 		songTitle = songTitle[0 .. songTitle.length - 4];
 		ZipArchive archive = new ZipArchive(read(path));
 		
-		const string directory = MAP_DIR ~ songTitle;
+		const string directory = userDir ~ MAP_DIR ~ songTitle;
 		if (!exists(directory)) {
 			mkdir(directory);
 		}

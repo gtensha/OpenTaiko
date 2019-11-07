@@ -304,8 +304,7 @@ class OpenTaiko {
 
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
-			Bashable[] map = MapGen.parseMapFromFile(userDirectory
-													 ~ song.directory
+			Bashable[] map = MapGen.parseMapFromFile(song.directory
 													 ~ "/"
 													 ~ diff.name
 													 ~ ".otfm");
@@ -360,29 +359,24 @@ class OpenTaiko {
 	}
 
 	void loadAssets(Engine e) {
-
-		e.loadAssets(openTaikoAssets(), assetDir);
-
+		e.loadAssets(openTaikoAssets(), installDirectory ~ assetDir);
+		// Drum
 		renderer.colorTexture("DrumCoreRed",
 							  guiColors.redDrumColor.r,
 							  guiColors.redDrumColor.g,
 							  guiColors.redDrumColor.b);
-
 		renderer.colorTexture("LargeDrumCoreRed",
 							  guiColors.redDrumColor.r,
 							  guiColors.redDrumColor.g,
 							  guiColors.redDrumColor.b);
-							  
 		renderer.colorTexture("DrumCoreBlue",
 							  guiColors.blueDrumColor.r,
 							  guiColors.blueDrumColor.g,
 							  guiColors.blueDrumColor.b);
-
 		renderer.colorTexture("LargeDrumCoreBlue",
 							  guiColors.blueDrumColor.r,
 							  guiColors.blueDrumColor.g,
 							  guiColors.blueDrumColor.b);
-
 		Drum.renderer = renderer.renderer;
 		DrumRoll.centerColor = guiColors.redDrumColor;
 		DrumRoll.rimColor = guiColors.blueDrumColor;
@@ -393,64 +387,55 @@ class OpenTaiko {
 		LargeRedDrum.texture = renderer.getTexture("LargeDrumCoreRed");
 		NormalDrum.rimTexture = renderer.getTexture("DrumBorder");
 		LargeDrum.rimTexture = renderer.getTexture("LargeDrumBorder");
-
+		// DrumRoll
 		DrumRoll.startTextureBorder = renderer.getTexture("DrumRollStartBorder");
 		DrumRoll.startTextureCore = renderer.getTexture("DrumRollStartCore");
 		DrumRoll.bodyTextureBorder = renderer.getTexture("DrumRollBodyBorder");
 		DrumRoll.bodyTextureCore = renderer.getTexture("DrumRollBodyCore");
 		DrumRoll.endTextureBorder = renderer.getTexture("DrumRollEndBorder");
 		DrumRoll.endTextureCore = renderer.getTexture("DrumRollEndCore");
-		
+		// Hit indication effect
 		renderer.colorTexture("GoodHitKanji",
 		                      guiColors.goodNotifyColor.r,
 							  guiColors.goodNotifyColor.g,
 							  guiColors.goodNotifyColor.b);
-							  
 		renderer.colorTexture("GoodHitAlpha",
 		                      guiColors.goodNotifyColor.r,
 							  guiColors.goodNotifyColor.g,
 		                      guiColors.goodNotifyColor.b);
-							  
 		renderer.colorTexture("OkHitKanji",
 		                      guiColors.okNotifyColor.r,
 							  guiColors.okNotifyColor.g,
 		                      guiColors.okNotifyColor.b);
-		
 		renderer.colorTexture("OkHitAlpha",
 							  guiColors.okNotifyColor.r,
 							  guiColors.okNotifyColor.g,
 		                      guiColors.okNotifyColor.b);
-							  
 		renderer.colorTexture("BadHitKanji",
 							  guiColors.badNotifyColor.r,
 							  guiColors.badNotifyColor.g,
 							  guiColors.badNotifyColor.b);
-							  
 		renderer.colorTexture("BadHitAlpha",
 							  guiColors.badNotifyColor.r,
 							  guiColors.badNotifyColor.g,
 		                      guiColors.badNotifyColor.b);
-							  
+		// Drumming indicator
 		renderer.colorTexture("IndicatorLeftMid", 
 							guiColors.redDrumColor.r, 
 							guiColors.redDrumColor.g,
 							guiColors.redDrumColor.b);
-
 		renderer.colorTexture("IndicatorLeftRim", 
 		                      guiColors.blueDrumColor.r, 
 							  guiColors.blueDrumColor.g, 
 		                      guiColors.blueDrumColor.b);
-							  
 		renderer.colorTexture("IndicatorRightMid", 
 		                      guiColors.redDrumColor.r, 
 							  guiColors.redDrumColor.g,
 		                      guiColors.redDrumColor.b);
-							  
 		renderer.colorTexture("IndicatorRightRim", 
 		                      guiColors.blueDrumColor.r, 
 		                      guiColors.blueDrumColor.g, 
 		                      guiColors.blueDrumColor.b);
-
 		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE, 
 		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE]) {
 			if (exists(path)) {
@@ -792,7 +777,7 @@ class OpenTaiko {
 
 		void delegate(int) importCallback = (int mode) {
 			try {
-				MapGen.extractOSZ(inputFieldDest);
+				MapGen.extractOSZ(inputFieldDest, userDirectory);
 				loadSongs();
 			} catch (Exception e) {
 				Engine.notify(format(phrase(Message.Error.IMPORTING_MAP), e.toString()));
@@ -1433,7 +1418,7 @@ class OpenTaiko {
 		try {
 			gameplay(activeSong, activeDifficulty);
 		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.LOADING_DIFFICULTY), newline ~ e.msg));
+			Engine.notify(format(phrase(Message.Error.LOADING_DIFFICULTY), newline ~ e.toString()));
 		}
 	}
 
