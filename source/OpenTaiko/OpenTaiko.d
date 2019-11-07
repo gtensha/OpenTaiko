@@ -974,8 +974,7 @@ class OpenTaiko {
 	}
 
 	void postGameWriteScores() {
-		string scoreFilePath = (userDirectory
-								~ activeSong.directory
+		string scoreFilePath = (activeSong.directory
 								~ "/"
 								~ activeDifficulty.name
 								~ SCORE_EXTENSION);
