@@ -65,7 +65,7 @@ void main(string[] args) {
 	if (cmdInstallDir.length > 0) {
 		installDir = cmdInstallDir;
 	}
-	foreach (string* s ; [&userDir, &cmdInstallDir]) {
+	foreach (string* s ; [&userDir, &installDir]) {
 		version (Windows) {
 			const char trailing = '\\';
 		} else {
@@ -252,21 +252,17 @@ class OpenTaiko {
 	}
 
 	public void run() {
-
 		engine = new Engine("OpenTaiko");
-		
 		loadSettings();
-
+		loadLocales();
 		engine.start(options.resolution[0], 
 					 options.resolution[1], 
 					 options.vsync, 
 					 "OpenTaiko v0.2");
-
 		renderer = engine.gameRenderer();
 		audioMixer = engine.aMixer();
 		inputHandler = engine.iHandler();
 		inputHandler.stopTextEditing();
-
 		loadAssets(engine);
 		gameplayBinderIndex = inputHandler.addActionBinder();
 		bindKeys(engine.iHandler);
@@ -276,8 +272,6 @@ class OpenTaiko {
 		createGameplayScene();
 		loadSongs();
 		switchSceneToStartMenu();
-		//engine.gameRenderer.setScene(startMenuIndex);
-
 		int eventCode;
 		while (!quit) {
 			eventCode = engine.renderFrame();
@@ -285,9 +279,7 @@ class OpenTaiko {
 				quit = true;
 			}
 		}
-		
 		writeValues();
-
 	}
 
 	/// Initiates gameplay for the selected Song and Difficulty.
@@ -474,6 +466,19 @@ class OpenTaiko {
 			}
 		}
 	}
+
+	/// Calls loadLocales() in Message with the current installDirectory, making
+	/// localised messages available.
+	void loadLocales() {
+		Message.loadLocales(installDirectory);
+		try {
+			Message.setLanguage(options.language);
+		} catch (Exception e) {
+			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD),
+								 options.language,
+								 e.msg));
+		}
+	}
 	
 	/// Loads options from settings.json into the options GameVars struct
 	void loadSettings() {
@@ -521,13 +526,6 @@ class OpenTaiko {
 		} else {
 			MapGen.writeTimings(Bashable.timing,
 								userDirectory ~ TIMINGS_FILE_PATH);
-		}
-		try {
-			Message.setLanguage(options.language);
-		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.SET_LANGUAGE_LOAD),
-								 options.language,
-								 e.msg));
 		}
 	}
 	

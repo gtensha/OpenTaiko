@@ -195,9 +195,12 @@ static class Message {
 	unittest {
 		assert(equal(allMessageIDArrays.join(), allMessageIDs));
 	}
-	
-	static this() {
-		Tuple!(string[string], string[MESSAGE_AMOUNT][string]) retTuple = MapGen.readLocaleDir(allMessageIDs);
+
+	/// Loads all locale data found in the locales/ directory which should
+	/// be residing inside userDir.
+	public static void loadLocales(const string userDir) {
+		Tuple!(string[string], string[MESSAGE_AMOUNT][string]) retTuple = MapGen.readLocaleDir(userDir,
+																							   allMessageIDs);
 		availableLanguages = retTuple[1];
 		languageNames = retTuple[0];
 		setLanguage(DEFAULT_LANGUAGE);

@@ -729,10 +729,10 @@ class MapGen {
 		return tuple(languageName, ret);
 	}
 	
-	static Tuple!(string[string], string[Message.MESSAGE_AMOUNT][string]) readLocaleDir(immutable string[Message.MESSAGE_AMOUNT] messageIDs) {
+	static Tuple!(string[string], string[Message.MESSAGE_AMOUNT][string]) readLocaleDir(immutable string userDir, immutable string[Message.MESSAGE_AMOUNT] messageIDs) {
 		string[Message.MESSAGE_AMOUNT][string] languageBindings;
 		string[string] languageNameAssoc;
-		foreach (DirEntry filepath ; dirEntries(LOCALE_DIR, SpanMode.shallow)) {
+		foreach (DirEntry filepath ; dirEntries(userDir ~ LOCALE_DIR, SpanMode.shallow)) {
 			string[] splitPath = filepath.name.split("/");
 			const string filename = splitPath[splitPath.length - 1];
 			string[] splitName = filename.split(".");
