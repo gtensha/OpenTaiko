@@ -71,7 +71,11 @@
 		"error_loading_difficulty": "Kunne ikke laste inn vanskelighetsgrad: %s",
 		"error_no_maps_registered": "Du må legge til minst ett map før du kan spille!",
 		"error_loading_scores": "Feil ved innlasting av poengtavle for %s: %s",
-		"error_loading_timings": "Feil ved innlasting av tidsinnstillinger for treff: %s"
+		"error_loading_timings": "Feil ved innlasting av tidsinnstillinger for treff: %s",
+		"error_missing_assets": "Kunne ikke finne følgende ressurser: %s",
+		"error_loading_assets": "Feil under innlasting av funnede ressurser: %s",
+		"error_missing_custom_asset_dir": "Feil ved leting etter egendefinerte ressurser: %s",
+		"error_missing_default_asset_dir": "Kunne ikke finne de vanlige ressursene: %s"
 	}
 }
 	

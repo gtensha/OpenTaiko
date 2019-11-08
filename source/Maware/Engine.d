@@ -102,25 +102,26 @@ class Engine {
 		return inputHandler.listenHandleEvents();
 	}
 
+	/// Registers all texture, font and sound assets in assets, and navigates to
+	/// the directory extraPath to look for the filenames. Only call this if
+	/// you do not have full paths prepended in your Assets collection's values.
 	public void loadAssets(Assets assets, string extraPath) {
-		foreach (string key ; assets.textures.byKey()) {
-			if ((key in assets.textures) !is null) {
-				gameRenderer.registerTexture(key, extraPath ~ assets.textures[key]);
-			}
-		}
+		loadAssets(Assets.findAssets(assets, extraPath));
+	}
 
+	/// Registers all texture, font and sound assets in assets. Will register
+	/// by the raw file paths contained in the values.
+	public void loadAssets(Assets assets) {
+		foreach (string key ; assets.textures.keys) {
+			gameRenderer.registerTexture(key, assets.textures[key]);
+		}
 		foreach (string key ; assets.fonts.byKey()) {
-			if ((key in assets.fonts) !is null) {
-				gameRenderer.registerFont(key, extraPath ~ assets.fonts[key]);
-			}
+			gameRenderer.registerFont(key, assets.fonts[key]);
 		}
-
-		int i = 0;
-		foreach (string path ; assets.sounds) {
+		foreach (size_t i, string path ; assets.sounds) {
 			if (path !is null) {
-				audioMixer.registerSFX(i, extraPath ~ path);
+				audioMixer.registerSFX(cast(int)i, path);
 			}
-			i++;
 		}
 	}
 

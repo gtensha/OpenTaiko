@@ -170,7 +170,11 @@ static class Message {
 		"error_loading_difficulty",
 		"error_no_maps_registered",
 		"error_loading_scores",
-		"error_loading_timings"
+		"error_loading_timings",
+		"error_missing_assets",
+		"error_loading_assets",
+		"error_missing_custom_asset_dir",
+		"error_missing_default_asset_dir"
 	];
 	
 	private static immutable string[][] allMessageIDArrays = [

@@ -7,6 +7,7 @@ enum ASSETS_BGM = "bgm/"; /// Subfolder for background music
 enum ASSETS_BGM_TITLE = "title.ogg"; /// Filename for title music loop
 enum ASSETS_BGM_MENU = "menu.ogg"; /// Filename for menu music loop
 enum ASSETS_DEFAULT = "default/"; /// Default asset folder
+enum ASSETS_CUSTOM = "custom/"; /// Custom asset folder. Resides in userDir.
 
 static Assets openTaikoAssets() {
 	return immutable Assets(
@@ -44,5 +45,7 @@ static Assets openTaikoAssets() {
 
 		["red.wav", //0
 		 "blue.wav", //1
-		 "miss.wav"]); //2
+		 "miss.wav"], //2
+
+		"");
 }

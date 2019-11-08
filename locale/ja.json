@@ -71,7 +71,11 @@
 		"error_loading_difficulty": "譜面のロードに失敗: %s",
 		"error_no_maps_registered": "プレイする前にマップを登録しよう!",
 		"error_loading_scores": "%sのスコアのロード時にエラー: %s",
-		"error_loading_timings": "タイミング変数をロード時にエラー: %s"
+		"error_loading_timings": "タイミング変数をロード時にエラー: %s",
+		"error_missing_assets": "幾つかのリソースが見つかりませんでした: %s",
+		"error_loading_assets": "見つかったリソースをロード時にエラー: %s",
+		"error_missing_custom_asset_dir": "カスタムリソースを探す時にエラー: %s",
+		"error_missing_default_asset_dir": "デフォールトリソースを探す時にエラー: %s"
 	}
 }
 	

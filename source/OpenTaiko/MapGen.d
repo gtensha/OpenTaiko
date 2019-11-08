@@ -555,26 +555,38 @@ class MapGen {
 		return null;
 	}	
 	
-	/// Returns a GameVars struct reflecting the .json file from fileLoc
-	static GameVars readConfFile(string fileLoc) {
-
-		GameVars gameVars;
+	/// Returns a GameVars struct reflecting the .json file from fileLoc. If an
+	/// entry does not exist in the file, then the corresponding value from
+	/// defaultVals is loaded.
+	static GameVars readConfFile(string fileLoc, GameVars defaultVals) {
+		GameVars gameVars = defaultVals;
 		string input = cast(string)read(fileLoc);
-
 		JSONValue vars = parseJSON(input);
-
-		foreach (int i, JSONValue dimension ; vars["resolution"].array) {
-			gameVars.resolution[i] = to!int(dimension.integer);
+		const(JSONValue)* p = "resolution" in vars;
+		if (p) {
+			foreach (int i, JSONValue dimension ; (*p).array) {
+				gameVars.resolution[i] = to!int(dimension.integer);
+			}
 		}
-
-		if (vars["vsync"].type == JSON_TYPE.TRUE) {
-			gameVars.vsync = true;
-		} else {
-			gameVars.vsync = false;
+		p = "vsync" in vars;
+		if (p) {
+			gameVars.vsync = (*p).type == JSON_TYPE.TRUE;
 		}
-		
-		gameVars.language = vars["language"].str;
-
+		p = "assets" in vars;
+		if (p) {
+			gameVars.assets = (*p).str;
+		}
+		if (gameVars.assets.length > 0 && gameVars.assets[$ - 1] != '/') {
+			if (gameVars.assets[$ - 1] == '\\') {
+				gameVars.assets = gameVars.assets[0 .. $ - 1] ~ "/";
+			} else {
+				gameVars.assets ~= "/";
+			}
+		}
+		p = "language" in vars;
+		if (p) {
+			gameVars.language = (*p).str;
+		}
 		return gameVars;
 	}
 	
@@ -582,6 +594,7 @@ class MapGen {
 		JSONValue vars = JSONValue(["resolution": options.resolution]);
 		//vars.object["resolution"] = JSONValue(options.resolution);
 		vars.object["vsync"] = JSONValue(options.vsync);
+		vars.object["assets"] = JSONValue(options.assets);
 		vars.object["language"] = JSONValue(options.language);
 		std.file.write(dest, toJSON(vars, true));
 	}

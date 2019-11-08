@@ -71,7 +71,11 @@
 		"error_loading_difficulty": "Difficulty load failed: %s",
 		"error_no_maps_registered": "You need to add some maps before you can play!",
 		"error_loading_scores": "Error loading scores for %s: %s",
-		"error_loading_timings": "Error loading timing values: %s"
+		"error_loading_timings": "Error loading timing values: %s",
+		"error_missing_assets": "Error finding some required assets: %s",
+		"error_loading_assets": "Error loading the found assets into the game: %s",
+		"error_missing_custom_asset_dir": "Error finding custom assets; they will not be loaded: %s",
+		"error_missing_default_asset_dir": "Error finding default asset files: %s"
 	}
 }
 	

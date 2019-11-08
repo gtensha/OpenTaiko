@@ -184,7 +184,9 @@ class Renderer {
 	public void registerTexture(string key, string src) {
 		SDL_Surface* tempSurface = IMG_Load(toStringz(src));
 		if (tempSurface is null) {
-			throw new Exception(to!string(fromStringz(SDL_GetError())));
+			throw new Exception(cast(string)(src
+											 ~ ": "
+											 ~ fromStringz(SDL_GetError())));
 		}
 		registerTexture(key, tempSurface);
 		SDL_FreeSurface(tempSurface);
@@ -196,7 +198,9 @@ class Renderer {
 		SDL_Texture* tempTexture = SDL_CreateTextureFromSurface(this.renderer,
 																surface);
 		if (tempTexture is null) {
-			throw new Exception(to!string(fromStringz(SDL_GetError())));
+			throw new Exception(cast(string)(key
+											 ~ ": "
+											 ~ fromStringz(SDL_GetError())));
 		}
 		SDL_Texture** possibleTexture = key in textures;
 		if (possibleTexture !is null) {

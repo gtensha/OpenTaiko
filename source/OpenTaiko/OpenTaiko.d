@@ -150,6 +150,7 @@ enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
 enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 enum LASTPLAYER_FILE_PATH = "last.player"; /// File path storing last used player
 
+/// The game.
 class OpenTaiko {
 
 	private Engine engine;
@@ -196,7 +197,6 @@ class OpenTaiko {
 	private Performance[] currentPerformances;
 	private GameplayArea[] playerAreas;
 	private Timer gameplayTimer;
-	private string assetDir = ASSET_DIR ~ ASSETS_DEFAULT;
 
 	private string userDirectory = "./";
 	private string installDirectory = "./";
@@ -231,7 +231,11 @@ class OpenTaiko {
 		MapGen.writeSongDatabaseTree(directory);
 		const string assetDir = directory ~ ASSET_DIR;
 		if (!exists(assetDir)) {
-			mkdir(assetDir);
+			mkdir(assetDir);	
+		}
+		const string customDir = assetDir ~ ASSETS_CUSTOM;
+		if (!exists(customDir)) {
+			mkdir(customDir);
 		}
 		OpenTaiko dummyGame = new OpenTaiko(null, directory);
 		dummyGame.loadSettings();
@@ -263,7 +267,13 @@ class OpenTaiko {
 		audioMixer = engine.aMixer();
 		inputHandler = engine.iHandler();
 		inputHandler.stopTextEditing();
-		loadAssets(engine);
+		try {
+			loadAssets(engine);
+		} catch (Exception e) {
+			Engine.notify(format(phrase(Message.Error.LOADING_ASSETS),
+								 newline ~ e.toString()));
+			return;
+		}
 		gameplayBinderIndex = inputHandler.addActionBinder();
 		bindKeys(engine.iHandler);
 		loadPlayers();
@@ -359,7 +369,39 @@ class OpenTaiko {
 	}
 
 	void loadAssets(Engine e) {
-		e.loadAssets(openTaikoAssets(), installDirectory ~ assetDir);
+		immutable Assets getDefaultAssetsOrThrow() {
+			try {
+				return Assets.findAssets(openTaikoAssets(),
+										 getDefaultAssetDir());
+			} catch (Exception exception) {
+				Engine.notify(format(phrase(Message.Error.MISSING_DEFAULT_ASSET_DIR),
+									 newline ~ exception.msg));
+				throw exception;
+			}
+		}
+		immutable Assets defaultAssets = getDefaultAssetsOrThrow();
+		immutable Assets getCustomMergedAssetsOrThrow() {
+			immutable Assets customAssets = Assets.findAssets(openTaikoAssets(),
+															  getCustomAssetDir());
+			immutable Assets mergedAssets = Assets.combineAssetCollections([defaultAssets,
+																			customAssets]);
+			const string[] missing = Assets.findMissing(openTaikoAssets(),
+														mergedAssets);
+			if (missing.length > 0) {
+				const errorMsg = format(phrase(Message.Error.MISSING_ASSETS),
+										newline ~ missing.join(newline));
+				throw new Exception(errorMsg);
+			}
+			return mergedAssets;
+		}
+		try {
+			immutable Assets mergedAssets = getCustomMergedAssetsOrThrow();
+			e.loadAssets(mergedAssets);
+		} catch (Exception exception) {
+			Engine.notify(format(phrase(Message.Error.MISSING_CUSTOM_ASSET_DIR),
+								 newline ~ exception.toString()));
+			e.loadAssets(defaultAssets);
+		}
 		// Drum
 		renderer.colorTexture("DrumCoreRed",
 							  guiColors.redDrumColor.r,
@@ -436,15 +478,19 @@ class OpenTaiko {
 		                      guiColors.blueDrumColor.r, 
 		                      guiColors.blueDrumColor.g, 
 		                      guiColors.blueDrumColor.b);
-		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_TITLE, 
-		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_TITLE]) {
+		foreach (string path ; [(getCustomAssetDir()
+								 ~ ASSETS_BGM ~ ASSETS_BGM_TITLE),
+		                        (getDefaultAssetDir()
+								 ~ ASSETS_BGM ~ ASSETS_BGM_TITLE)]) {
 			if (exists(path)) {
 				audioMixer.registerMusic("title-loop", path);
 				titleMusicEnabled = true;
 			}
 		}
-		foreach (string path ; [assetDir ~ ASSETS_BGM ~ ASSETS_BGM_MENU, 
-		                        ASSET_DIR ~ ASSETS_DEFAULT ~ ASSETS_BGM ~ ASSETS_BGM_MENU]) {
+		foreach (string path ; [(getCustomAssetDir()
+								 ~ ASSETS_BGM ~ ASSETS_BGM_MENU),
+		                        (getDefaultAssetDir()
+								 ~ ASSETS_BGM ~ ASSETS_BGM_MENU)]) {
 			if (exists(path)) {
 				audioMixer.registerMusic("menu-loop", path);
 				menuMusicEnabled = true;
@@ -470,10 +516,12 @@ class OpenTaiko {
 		static int[][4] fallbackKeys = [[100], [102], [106], [107]]; // dfjk
 		options.resolution = [1280, 1024];
 		options.vsync = true;
+		options.assets = ASSETS_CUSTOM;
 		options.language = Message.DEFAULT_LANGUAGE;
 		if (exists(userDirectory ~ CONFIG_FILE_PATH)) {
 			try {
-				options = MapGen.readConfFile(userDirectory ~ CONFIG_FILE_PATH);
+				options = MapGen.readConfFile(userDirectory ~ CONFIG_FILE_PATH,
+											  options);
 			} catch (Exception e) {
 				Engine.notify(format(phrase(Message.Error.LOADING_SETTINGS),
 									 CONFIG_FILE_PATH ~ newline ~ e.msg ~ newline));
@@ -1144,6 +1192,14 @@ class OpenTaiko {
 
 	static int getCenterPos(int maxWidth, int width) {
 		return (maxWidth - width) / 2;
+	}
+
+	string getCustomAssetDir() {
+		return userDirectory ~ ASSET_DIR ~ options.assets;
+	}
+
+	string getDefaultAssetDir() {
+		return installDirectory ~ ASSET_DIR ~ ASSETS_DEFAULT;
 	}
 	
 	/* --- Various callback functions go under here --- */

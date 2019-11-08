@@ -4,5 +4,6 @@
         1600,
         900
     ],
+    "assets": "custom",
     "vsync": false
 }
