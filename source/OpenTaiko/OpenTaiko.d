@@ -2,39 +2,37 @@ module opentaiko.game;
 
 import maware;
 import opentaiko.assets;
-import opentaiko.renderable.menus.songselectmenu;
-import opentaiko.score;
-import opentaiko.song;
-import opentaiko.difficulty;
-import opentaiko.mapgen;
 import opentaiko.bashable;
-import opentaiko.performance;
+import opentaiko.difficulty;
 import opentaiko.gamevars;
-import opentaiko.renderable.gameplayarea;
+import opentaiko.keybinds;
+import opentaiko.languagehandler : Message, phrase;
+import opentaiko.mapgen;
 import opentaiko.palette;
+import opentaiko.performance;
 import opentaiko.player;
+import opentaiko.renderable.gameplayarea;
+import opentaiko.renderable.inputbox;
+import opentaiko.renderable.menus.browsablelist : BrowsableList;
+import opentaiko.renderable.menus.songselectmenu;
 import opentaiko.renderable.playerdisplay;
 import opentaiko.renderable.textinputfield;
-import opentaiko.renderable.menus.browsablelist : BrowsableList;
-import opentaiko.keybinds;
-import opentaiko.renderable.inputbox;
-import opentaiko.languagehandler : Message, phrase;
+import opentaiko.score;
+import opentaiko.song;
 import opentaiko.timingvars;
 
-import derelict.sdl2.sdl : SDL_Keycode;
-
-import std.conv : to, ConvException;
 import std.algorithm.comparison : equal;
 import std.array : array, join, split;
-import std.stdio;
-import std.string : leftJustify;
+import std.ascii : newline;
+import std.container.dlist : DList;
+import std.conv : to, ConvException;
 import std.file : exists, FileException, mkdir;
 import std.format : format;
 import std.getopt : GetOptException, getopt;
-import std.ascii : newline;
-import std.container.dlist : DList;
 import std.math : sin;
 import std.process : environment;
+import std.stdio;
+import std.string : leftJustify;
 import std.typecons : tuple, Tuple;
 
 int main(string[] args) {
@@ -103,7 +101,7 @@ int main(string[] args) {
 	return 0;
 }
 
-/// Returns the string to return on the command line.
+/// Returns the usage message to return on the command line.
 private string getUsage(const string binaryName) {
 	const size_t padding = INSTALL_DIRECTORY_FLAG.length + 1;
 	const string[] flags = [(HELP_FLAG.leftJustify(padding, ' ')
@@ -124,13 +122,13 @@ private string getUsage(const string binaryName) {
 				  binaryName);
 }
 
-enum INSTALL_DIRECTORY_ENVVAR = "OPENTAIKO_INSTALLDIR"; /// Environment variable for setting installation directory
-enum USER_DIRECTORY_ENVVAR = "OPENTAIKO_USERDIR"; /// Environment variable for manually setting user directory
+enum INSTALL_DIRECTORY_ENVVAR = "OPENTAIKO_INSTALLDIR"; /// Environment variable for setting installation directory.
+enum USER_DIRECTORY_ENVVAR = "OPENTAIKO_USERDIR"; /// Environment variable for manually setting user directory.
 
-enum FORCE_INSTALL_FLAG = "force-install"; /// Command line flag for forcing a user installation
+enum FORCE_INSTALL_FLAG = "force-install"; /// Command line flag for forcing a user installation.
 enum HELP_FLAG = "help"; /// Flag for displaying help and quitting.
-enum INSTALL_DIRECTORY_FLAG = "install-directory"; /// Command line flag for setting the installation directory
-enum USER_DIRECTORY_FLAG = "user-directory"; /// Command line flag for manually setting user directory
+enum INSTALL_DIRECTORY_FLAG = "install-directory"; /// Command line flag for setting the installation directory.
+enum USER_DIRECTORY_FLAG = "user-directory"; /// Command line flag for manually setting user directory.
 
 /// The possible inputs recognised by the game.
 /// 0-127 are generic commands,
@@ -159,12 +157,12 @@ enum DRUM_ACTION_OFFSET = 4;
 
 /// Various size dimensions for GUI elements
 enum GUIDimensions {
+	BROWSABLELIST_DESC_TEXT_SIZE = 24,
+	BROWSABLELIST_ELM_HEIGHT = 30,
+	PLAYER_PICKER_LIST_WIDTH = 300,
+	TEXT_SPACING = 10,
 	TOP_BAR_HEIGHT = 80,
 	UNDERLINE_HEIGHT = 8,
-	PLAYER_PICKER_LIST_WIDTH = 300,
-	BROWSABLELIST_ELM_HEIGHT = 30,
-	BROWSABLELIST_DESC_TEXT_SIZE = 24,
-	TEXT_SPACING = 10,
 	VALUEDIAL_HEIGHT = 20
 }
 
@@ -179,11 +177,11 @@ enum SCORE_EXTENSION = ".scores";
 
 enum USER_DIRECTORY = ".opentaiko";
 
-enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
 enum CONFIG_FILE_PATH = "settings.json"; /// File path for settings file
 enum KEYBINDS_FILE_PATH = "keybinds.json"; /// File path for the keybinds file
-enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 enum LASTPLAYER_FILE_PATH = "last.player"; /// File path storing last used player
+enum PLAYER_DATA_FILE = "players.json"; /// Filename for the player data file
+enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 
 /// The game.
 class OpenTaiko {
@@ -290,6 +288,9 @@ class OpenTaiko {
 		engine.destroy();
 	}
 
+	/// Runs the game. Loads settings and resources, and draws content on screen
+	/// until a quit event code is detected, before writing any altered settings
+	/// to disk before returning.
 	public void run() {
 		engine = new Engine("OpenTaiko");
 		loadSettings();
@@ -355,7 +356,6 @@ class OpenTaiko {
 													 ~ ".otfm");
 			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0, renderer.windowWidth);
 			playerAreas[i].setPerformance(currentPerformances[i]);
-			//playerAreas[i].setPlayer(players[i], i);
 		}
 		int titleMaxWidth = (playerAreas[0].getScoreDisplayX()
 							 - GUIDimensions.TEXT_SPACING);
@@ -403,6 +403,7 @@ class OpenTaiko {
 		}
 	}
 
+	/// Loads all the assets required by the game into e.
 	void loadAssets(Engine e) {
 		immutable Assets getDefaultAssetsOrThrow() {
 			try {
@@ -596,7 +597,9 @@ class OpenTaiko {
 								userDirectory ~ TIMINGS_FILE_PATH);
 		}
 	}
-	
+
+	/// Read players.json and load them into the game, as well as setting the
+	/// last active player from last.player as active.
 	void loadPlayers() {
 		try {
 			players = MapGen.readPlayerList(userDirectory ~ PLAYER_DATA_FILE);
@@ -626,6 +629,8 @@ class OpenTaiko {
 		}
 	}
 
+	/// Creates the Start Menu (press any key greeter screen), adds it to the
+	/// Renderer and copies the index of its Scene into menuIndex.
 	void createStartMenu(int* menuIndex) {
 		Renderer r = engine.gameRenderer;
 		*menuIndex = r.addScene("Start", 1);
@@ -703,6 +708,8 @@ class OpenTaiko {
 
 	}
 
+	/// Populates the main menu and adds itself as a scene to the Renderer, then
+	/// copying the index of the menu into menuIndex.
 	void createMainMenu(int* menuIndex) {
 		Renderer r = engine.gameRenderer;
 		*menuIndex = r.addScene("Main Menu", 3);
@@ -743,26 +750,6 @@ class OpenTaiko {
 
 		playersMenu = makeStandardMenu("Players");
 
-		BrowsableList testList = new BrowsableList(r.getFont("Noto-Light"),
-												   300, 30, 200, 100, 100);
-		
-		testField = new InputBox("TestBox",
-								 r.getFont("Noto-Bold"),
-								 {
-									inputHandler.stopTextEditing(); 
-									renderer.getScene(mainMenuIndex).clearLayer(extraMenuLayer);
-								 },
-								 &hideTextInputField,
-								 null,
-								 r.windowWidth - 20, 80,
-								 10, r.windowHeight / 2);
-													 
-		testList.addButton("List option 1", 0, null, null);
-		testList.addButton("List option 2", 1, null, null);
-		testList.addButton("List option 3", 2, null, null);
-		testList.addButton("List option 4", 3, null, null);
-		testList.addButton("List option 5", 4, null, null);
-
 		const void delegate() songSelectPreCheck = (){
 			if (songSelectMenu is null) {
 				Engine.notify(phrase(Message.Error.NO_MAPS_REGISTERED));
@@ -773,8 +760,6 @@ class OpenTaiko {
 		
 		playButton = playMenu.addButton(phrase(Message.Menus.PLAY_ARCADEMODE), 0, null, songSelectPreCheck);
 		playMenu.addButton(phrase(Message.Menus.PLAY_HIGHSCORES), 1, null, null);
-		//playMenu.addButton("Test text input", 3, null, {popupTextInputField(testField);});
-		//playMenu.addButton("Test BrowseableList", 4, testList, null);
 		const void delegate() playerKeybindPreCheck = (){
 			if (activePlayers.length < 1) {
 				Engine.notify(phrase(Message.Menus.PLAYERS_REMOVEPLAYER_ADDPLAYERFIRST));
@@ -801,11 +786,6 @@ class OpenTaiko {
 			keybindWipeButton.subMenu = wipeMenu;
 		};
 		keybindWipeButton.instruction = makeKeybindWipeMenu;
-		
-		//s.addRenderable(0, testField);
-
-		//engine.iHandler.setInputBinder(testField.inputField.getBindings());
-		//playMenu.addButton("TestPopup", 2, null, &notifyMe);
 
 		settingsMenu = makeStandardMenu("Settings");
 		VerticalMenu importMenu = makeStandardMenu("Import...");
@@ -933,7 +913,6 @@ class OpenTaiko {
 		inputHandler.bindAction(mainMenuBinderIndex, Action.LEFT, &moveLeftMenu);
 		inputHandler.bindAction(mainMenuBinderIndex, Action.UP, &moveLeftMenu);
 		inputHandler.bindAction(mainMenuBinderIndex, Action.MODESEL, &navigateTopBarRight);
-
 	}
 	
 	/// Create and register playerNum's hit delegates
@@ -990,6 +969,8 @@ class OpenTaiko {
 		playButton.subMenu = songSelectMenu;
 	}
 
+	/// Create a song select menu from the available Songs, find and load
+	/// thumnails and return a reference to the menu.
 	SongSelectMenu createSongSelectMenu() {
 		int w = 250;
 		int h = 325;
@@ -1025,6 +1006,9 @@ class OpenTaiko {
 		return newMenu;
 	}
 
+	/// Returns an associative array of arrays of Score structs for each
+	/// combination of Song and Difficulty (as the key). Scans the maps/
+	/// directory.
 	static Score[][Tuple!(Song, Difficulty)] getScores(Song[] songList) {
 		Score[][Tuple!(Song, Difficulty)] scores;
 		foreach (Song song ; songList) {
@@ -1045,6 +1029,7 @@ class OpenTaiko {
 		return scores;
 	}
 
+	/// Returns an associative array of Score structs, filtering list by song.
 	static Score[][Difficulty] getSongSpecificScoreList(Score[][Tuple!(Song, Difficulty)] list, Song song) {
 		Score[][Difficulty] scoreList;
 		foreach (Difficulty diff ; song.difficulties) {
@@ -1056,6 +1041,7 @@ class OpenTaiko {
 		return scoreList;
 	}
 
+	/// Write scores from the previously active game session to disk.
 	void postGameWriteScores() {
 		string scoreFilePath = (activeSong.directory
 								~ "/"
@@ -1069,6 +1055,8 @@ class OpenTaiko {
 		}
 	}
 
+	/// Create a play area for every registered player and add them to
+	/// playerAreas, and set the gameplayScene with these playerAreas.
 	void createGameplayScene() {
 
 		if (activePlayers.length < 1) {
@@ -1110,7 +1098,9 @@ class OpenTaiko {
 		}
 
 	}
-	
+
+	/// Method to create a BrowsableList with standard dimensions and
+	/// properties.
 	BrowsableList createList() {
 		int w = GUIDimensions.PLAYER_PICKER_LIST_WIDTH;
 		int h = cast(int)(GUIScale.BROWSABLELIST_MAX_HEIGHT * renderer.windowHeight);
@@ -1133,7 +1123,7 @@ class OpenTaiko {
 		return playerList;
 	}
 	
-	/// Makes a selection list and puts it in the active menu stack
+	/// Makes a selection list and puts it in the active menu stack.
 	void makeSelectionList(string description) {
 		Text makeText(string desc, BrowsableList playerList) {
 			Text descriptionText;
@@ -1166,7 +1156,7 @@ class OpenTaiko {
 		
 	}
 	
-	/// Returns a standard VerticalMenu suitable for the main menu
+	/// Returns a standard VerticalMenu suitable for the main menu.
 	VerticalMenu makeStandardMenu(string title) {
 		int maxHeight = (renderer.windowHeight
 						 - GUIDimensions.TOP_BAR_HEIGHT
@@ -1181,13 +1171,16 @@ class OpenTaiko {
 		                        guiColors.activeButtonColor,
 		                        guiColors.buttonTextColor);
 	}
-	
+
+	/// Sets the language to use in game to id, and enables saving this setting
+	/// on quit. id must be a valid language ID defined and loaded in Message.
 	void changeLanguage(string id) {
 		options.language = id;
 		Message.setLanguage(id);
 		shouldWriteSettings = true;
 	}
-	
+
+	/// Make a button title for the vsync settings button.
 	string makeVsyncButtonTitle(bool value) {
 		return format(phrase(Message.Menus.SETTINGS_VSYNC), getLocalisedOnOff(value));
 	}
@@ -1229,10 +1222,12 @@ class OpenTaiko {
 		return (maxWidth - width) / 2;
 	}
 
+	/// Return the absolute path to the active custom asset directory.
 	string getCustomAssetDir() {
 		return userDirectory ~ ASSET_DIR ~ options.assets;
 	}
 
+	/// Return the absolute path to the default asset directory.
 	string getDefaultAssetDir() {
 		return installDirectory ~ ASSET_DIR ~ ASSETS_DEFAULT;
 	}
@@ -1345,11 +1340,9 @@ class OpenTaiko {
 	}
 	
 	void popupPlayerKeybindSelection() {
-		//makeSelectionList("Select a player to change keybinds");
 		Menu list = makeStandardMenu("Player select");
 		activeMenuStack.insertFront(list);
 		updateMainMenu();
-		//Text keyDescription = makeSelectionList.makeText("Select key", keySelect);
 		int playerNum = 0;
 		int keyNum = 0;
 		void delegate() selectPlayer = (){
@@ -1459,15 +1452,6 @@ class OpenTaiko {
 										 80,
 										 GUIDimensions.TEXT_SPACING,
 										 renderer.windowHeight / 2));
-		/*TextInputField f = new TextInputField(renderer.getFont("Noto-Light"),
-											  &addPlayer,
-											  &inputFieldDest,
-											  400, 30, 0, 0);
-
-		renderer.getScene(mainMenuIndex).addRenderable(extraMenuLayer, f);
-		inputHandler.setInputBinder(f.getBindings());
-		f.activate();
-		inputHandler.enableTextEditing();*/
 	}
 	
 	/// Show the box on screen and activate it
