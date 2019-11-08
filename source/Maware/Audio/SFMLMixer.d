@@ -1,6 +1,6 @@
 module maware.audio.sfmlmixer;
 
-version (SFMLMixer) {
+version (SFMLMixer):
 
 import maware.engine;
 import maware.audio.mixer;
@@ -147,7 +147,5 @@ class SFMLMixer : AudioMixer {
 	void playSFX(int id) {
 		sfSound_play(effects[id]);
 	}
-
-}
 
 }

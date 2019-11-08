@@ -8,11 +8,11 @@ dependency "derelict-sdl2" version="~>2.1.4"
 targetName "OpenTaiko"
 targetType "executable"
 
-configuration "SDLMixer" {
-	versions "SDLMixer"
-}
-
 configuration "SFMLMixer" {
 	dependency "derelict-sfml2" version="~>3.0.2"
 	versions "SFMLMixer"
+}
+
+configuration "SDLMixer" {
+	versions "SDLMixer"
 }

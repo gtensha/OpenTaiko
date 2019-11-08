@@ -11,12 +11,6 @@ import maware.util.timer;
 import maware.assets;
 import std.conv : to;
 
-version (SFMLMixer) {
-	
-} else {
-	version = SDLMixer;
-}
-
 /// A class for handling rendering and audio playback
 class Engine {
 
