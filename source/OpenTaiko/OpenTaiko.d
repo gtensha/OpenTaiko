@@ -94,7 +94,7 @@ int main(string[] args) {
 	OpenTaiko game = new OpenTaiko(installDir, userDir);
 	try {
 		game.run();
-	} catch (Throwable e) {
+	} catch (Exception e) {
 		Engine.notify(e.toString());
 		return 1;
 	}
