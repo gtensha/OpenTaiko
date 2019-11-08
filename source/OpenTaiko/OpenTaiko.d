@@ -27,19 +27,21 @@ import std.conv : to, ConvException;
 import std.algorithm.comparison : equal;
 import std.array : array, join, split;
 import std.stdio;
+import std.string : leftJustify;
 import std.file : exists, FileException, mkdir;
 import std.format : format;
-import std.getopt : getopt;
+import std.getopt : GetOptException, getopt;
 import std.ascii : newline;
 import std.container.dlist : DList;
 import std.math : sin;
 import std.process : environment;
 import std.typecons : tuple, Tuple;
 
-void main(string[] args) {
+int main(string[] args) {
 	string userDir = "./";
 	string installDir;
 	bool forceInstall;
+	bool help;
 	version (Posix) {
 		userDir = environment.get("HOME");
 		if (userDir.length > 0) {
@@ -55,10 +57,20 @@ void main(string[] args) {
 	installDir = environment.get(INSTALL_DIRECTORY_ENVVAR);
 	string cmdUserDir;
 	string cmdInstallDir;
-	getopt(args,
-		   USER_DIRECTORY_FLAG, &cmdUserDir,
-		   INSTALL_DIRECTORY_FLAG, &cmdInstallDir,
-		   FORCE_INSTALL_FLAG, &forceInstall);
+	try {
+		getopt(args,
+			   USER_DIRECTORY_FLAG, &cmdUserDir,
+			   INSTALL_DIRECTORY_FLAG, &cmdInstallDir,
+			   FORCE_INSTALL_FLAG, &forceInstall,
+			   HELP_FLAG, &help);
+	} catch (GetOptException e) {
+		writeln(e.msg ~ newline ~ getUsage(args[0]));
+		return 1;
+	}
+	if (help) {
+		writeln(getUsage(args[0]));
+		return 0;
+	}
 	if (cmdUserDir.length > 0) {
 		userDir = cmdUserDir;
 	}
@@ -84,18 +96,41 @@ void main(string[] args) {
 		game.run();
 	} catch (Throwable e) {
 		Engine.notify(e.toString());
-		return;
+		return 1;
 	}
 	game.destroy();
 	Engine.deInitialise();
+	return 0;
 }
 
-enum USER_DIRECTORY_ENVVAR = "OPENTAIKO_USERDIR"; /// Environment variable for manually setting user directory
-enum INSTALL_DIRECTORY_ENVVAR = "OPENTAIKO_INSTALLDIR"; /// Environment variable for setting installation directory
+/// Returns the string to return on the command line.
+private string getUsage(const string binaryName) {
+	const size_t padding = INSTALL_DIRECTORY_FLAG.length + 1;
+	const string[] flags = [(HELP_FLAG.leftJustify(padding, ' ')
+							 ~ "Display this help and quit."),
+							(FORCE_INSTALL_FLAG.leftJustify(padding, ' ')
+							 ~ "Force writing directory tree to user "
+							 ~ "directory (useful after an update)"),
+							(INSTALL_DIRECTORY_FLAG
+							 ~ " Set the location of the installation "
+							 ~ "directory"),
+							(USER_DIRECTORY_FLAG.leftJustify(padding, ' ')
+							 ~ "Set the location of the user directory")];
+	enum FLAG_PREFIX = "  --";
+	return format("Usage: %s [OPTIONS...]" ~ newline
+				  ~ "Available flags:" ~ newline
+				  ~ FLAG_PREFIX
+				  ~ flags.join(newline ~ FLAG_PREFIX),
+				  binaryName);
+}
 
-enum USER_DIRECTORY_FLAG = "user-directory"; /// Command line flag for manually setting user directory
-enum INSTALL_DIRECTORY_FLAG = "install-directory"; /// Command line flag for setting the installation directory
+enum INSTALL_DIRECTORY_ENVVAR = "OPENTAIKO_INSTALLDIR"; /// Environment variable for setting installation directory
+enum USER_DIRECTORY_ENVVAR = "OPENTAIKO_USERDIR"; /// Environment variable for manually setting user directory
+
 enum FORCE_INSTALL_FLAG = "force-install"; /// Command line flag for forcing a user installation
+enum HELP_FLAG = "help"; /// Flag for displaying help and quitting.
+enum INSTALL_DIRECTORY_FLAG = "install-directory"; /// Command line flag for setting the installation directory
+enum USER_DIRECTORY_FLAG = "user-directory"; /// Command line flag for manually setting user directory
 
 /// The possible inputs recognised by the game.
 /// 0-127 are generic commands,
