@@ -1,7 +1,7 @@
 name "opentaiko"
 description "A familiar drum rhythm game"
 authors "gtensha"
-copyright "Copyright © 2017-2018, gtensha"
+copyright "Copyright © 2017-2019, gtensha"
 license "GNU GPLv3"
 
 dependency "derelict-sdl2" version="~>2.1.4"
