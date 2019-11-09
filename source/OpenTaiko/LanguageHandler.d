@@ -157,7 +157,8 @@ static class Message {
 	];
 	
 	static immutable string[] terminology = [
-		"terminology_player"
+		"terminology_player",
+		"terminology_version"
 	];
 	
 	static immutable string[] error = [

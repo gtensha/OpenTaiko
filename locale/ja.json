@@ -61,6 +61,7 @@
 		"values_off": "オフ",
 		
 		"terminology_player": "プレイヤー",
+		"terminology_version": "バージョン",
 		
 		"error_no_player_registered": "演奏の開始に失敗: プレイヤーが未登録です。",
 		"error_loading_settings": "%s から設定のロードに失敗しました。デフォルト設定を利用します。",

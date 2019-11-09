@@ -61,6 +61,7 @@
 		"values_off": "Av",
 		
 		"terminology_player": "Spiller",
+		"terminology_version": "Versjon",
 		
 		"error_no_player_registered": "Kunne ikke spille sang: Ingen spillere er registrert",
 		"error_loading_settings": "Kunne ikke laste inn instillinger fra %sBruker trygge instillinger.",

@@ -61,6 +61,7 @@
 		"values_off": "Off",
 		
 		"terminology_player": "Player",
+		"terminology_version": "Version",
 		
 		"error_no_player_registered": "Failed to play song: No players registered",
 		"error_loading_settings": "Failed to load settings from %s Using fallback settings",

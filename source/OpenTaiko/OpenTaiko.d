@@ -186,6 +186,9 @@ enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 /// The game.
 class OpenTaiko {
 
+	enum GAME_TITLE = "OpenTaiko";
+	enum VERSION = "0.2.0";
+
 	static struct Copyright {
 		enum YEAR_START = 2017;
 		enum YEAR_END = 2019;
@@ -298,13 +301,15 @@ class OpenTaiko {
 	/// until a quit event code is detected, before writing any altered settings
 	/// to disk before returning.
 	public void run() {
-		engine = new Engine("OpenTaiko");
+		engine = new Engine(GAME_TITLE);
 		loadSettings();
 		loadLocales();
 		engine.start(options.resolution[0], 
 					 options.resolution[1], 
 					 options.vsync, 
-					 "OpenTaiko v0.2");
+					 format("%s %s",
+							GAME_TITLE,
+							VERSION));
 		renderer = engine.gameRenderer();
 		audioMixer = engine.aMixer();
 		inputHandler = engine.iHandler();
@@ -678,6 +683,15 @@ class OpenTaiko {
 		copyright.rect.x = (getCenterPos(r.windowWidth, copyright.rect.w));
 		copyright.rect.y = (r.windowHeight
 							- (lineCenter.rect.y + lineCenter.rect.h) / 2);
+
+		const string versionText = phrase(Message.Terminology.VERSION);
+		Text versionInfo = new Text(format("%s %s", versionText, VERSION),
+									r.getFont("Noto-Light").get(18),
+									true,
+									titleHeader.rect.x,
+									titleHeader.rect.y + titleHeader.rect.h + 1,
+									guiColors.buttonTextColor);
+		startScene.addRenderable(0, versionInfo);
 
 		Text centerInfo = new Text(phrase(Message.Title.GAME_GREETING),
 								   r.getFont("Noto-Light").get(24),
