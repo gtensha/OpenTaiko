@@ -186,6 +186,12 @@ enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 /// The game.
 class OpenTaiko {
 
+	static struct Copyright {
+		enum YEAR_START = 2017;
+		enum YEAR_END = 2019;
+		enum AUTHORS = ["gtensha"];
+	}
+
 	private Engine engine;
 	private Renderer renderer;
 	private AudioMixer audioMixer;
@@ -634,8 +640,8 @@ class OpenTaiko {
 	void createStartMenu(int* menuIndex) {
 		Renderer r = engine.gameRenderer;
 		*menuIndex = r.addScene("Start", 1);
-		
-		r.getScene(*menuIndex).backgroundColor = guiColors.backgroundColor;
+		Scene startScene = r.getScene(*menuIndex);
+		startScene.backgroundColor = guiColors.backgroundColor;
 
 		Text titleHeader = new Text(phrase(Message.Title.GAME),
 									r.getFont("Noto-Regular").get(36),
@@ -647,7 +653,17 @@ class OpenTaiko {
 									guiColors.buttonTextColor.a);
 
 		titleHeader.rect.x = (getCenterPos(r.windowWidth, titleHeader.rect.w));
-		r.getScene(*menuIndex).addRenderable(0, titleHeader);
+		startScene.addRenderable(0, titleHeader);
+
+		Text copyright = new Text(format("© %d–%d  %s",
+										 Copyright.YEAR_START,
+										 Copyright.YEAR_END,
+										 Copyright.AUTHORS.join(", ")),
+								  r.getFont("Noto-Light").get(18),
+								  true,
+								  0, 0,
+								  guiColors.buttonTextColor);
+		startScene.addRenderable(0, copyright);
 
 		Solid lineCenter = new Solid(r.windowWidth, 80, 0, 0,
 									 guiColors.uiColorSecondary.r, 
@@ -656,13 +672,18 @@ class OpenTaiko {
 									 guiColors.uiColorSecondary.a);
 
 		lineCenter.rect.y = (getCenterPos(r.windowHeight, lineCenter.rect.h));
-		r.getScene(*menuIndex).addRenderable(0, lineCenter);
+		startScene.addRenderable(0, lineCenter);
+
+		titleHeader.rect.y = (lineCenter.rect.y / 2) - (titleHeader.rect.h / 2);
+		copyright.rect.x = (getCenterPos(r.windowWidth, copyright.rect.w));
+		copyright.rect.y = (r.windowHeight
+							- (lineCenter.rect.y + lineCenter.rect.h) / 2);
 
 		Text centerInfo = new Text(phrase(Message.Title.GAME_GREETING),
 								   r.getFont("Noto-Light").get(24),
 								   true,
 								   0, 0,
-								   240, 240, 240, 255);
+								   guiColors.buttonTextColor);
 
 		IntervalTimer infoTimer = new IntervalTimer();
 		infoTimer.setInterval(1000);
@@ -679,33 +700,19 @@ class OpenTaiko {
 			}
 		};
 		
-		r.getScene(*menuIndex).addAnimatable(new Animation(infoTimer,
-														   centerInfo,
-														   infoRule));
-								   
+		startScene.addAnimatable(new Animation(infoTimer,
+											   centerInfo,
+											   infoRule));
+
 		centerInfo.rect.x = (getCenterPos(r.windowWidth, centerInfo.rect.w));
 		centerInfo.rect.y = (getCenterPos(r.windowHeight, centerInfo.rect.h));
-		r.getScene(*menuIndex).addRenderable(0, centerInfo);
-		
-		Textured soul = new Textured(r.getTexture("Soul"), 0, 0);
-		IntervalTimer soulTimer = new IntervalTimer();
-		soulTimer.setInterval(1000);
-		void delegate(Timer, Solid) soulRule = (Timer timer, Solid solid){
-			const double percentage = timer.getPercentagePassed();
-			solid.rect.y = cast(int)(20 + (100 * sin(0.03142 * percentage)));
-		};
-		r.getScene(*menuIndex).addAnimatable(new Animation(soulTimer,
-														   soul,
-														   soulRule));
-		
-		r.getScene(*menuIndex).addRenderable(0, soul);
+		startScene.addRenderable(0, centerInfo);
 		
 		startMenuBinderIndex = engine.iHandler.addActionBinder();
 		engine.iHandler.setActive(startMenuBinderIndex);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.SELECT, &switchSceneToMainMenu);
 		engine.iHandler.bindAction(startMenuBinderIndex, Action.PAUSE, &quitGame);
 		engine.iHandler.setAnyKeyAction(startMenuBinderIndex, (int code){if (code == '\033') {quit = true;} else {switchSceneToMainMenu();}});
-
 	}
 
 	/// Populates the main menu and adds itself as a scene to the Renderer, then
