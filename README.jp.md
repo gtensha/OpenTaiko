@@ -29,7 +29,7 @@ OpenTaiko を使う前に、コンパイラとその他の必要なものを準�
 利用しているプラットフォームに csfml がない場合は SDL\_mixer も使えますが、音楽再生のタイミングが合わずに、正しく実行できない場合があります。なお、音質が悪くなる可能性もありますので、できれば csfml を使ってください。
 
 ## DUB dependencies
-dub.sdl をご覧ください。
+[dub.sdl](dub.sdl) をご覧ください。
 
 ## OS 固有のセットアップ手順
 利用している OS 手順がここに記載されていない場合は、一般的な手順を実施してください。成功したらこのリストを更新して、ぜひ PR をください。
@@ -42,7 +42,7 @@ dub.sdl をご覧ください。
 
 #### Debian/Devuan (stable)
 Debian buster のリポジトリーに ldc のバージョン1.12がありますので、dmd よりこのバージョンをお勧めします。
-stretch や ascii を利用している方は未だに dmd をインストールする必要があります。その場合は依存パッケージをインストールの上もっと下の stretch/ascii 節をご覧ください。
+stretch や ascii を利用している方は未だに dmd をインストールする必要があります。その場合は依存パッケージをインストールの上、以下の stretch/ascii 節をご覧ください。
 apt を使って、これらのパッケージをインストールします。
 
 * gcc (buster のみ)
@@ -55,7 +55,7 @@ apt を使って、これらのパッケージをインストールします。
 * ffmpeg
 
 ##### buster
-下のコマンドは buster のみ対応しています。ldc と dub は Debian の公式リポジトリーからインストールされます。
+以下のコマンドは buster のみ対応しています。ldc と dub は Debian の公式リポジトリーからインストールされます。
 
 ```
 apt install gcc ldc dub libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0 libcsfml-audio2.5 ffmpeg
@@ -68,7 +68,7 @@ ln --symbolic $(find /usr -name libcsfml-audio.so.2.5 | head -n 1) libcsfml-audi
 ```
 
 ##### stretch/ascii
-dub とdmd が公式のリポジトリにはないので、dlang.org の [official installer](https://dlang.org/download.html) を使用してください。下のコマンドはバージョン 2.084 をダウンロードしますが、ダウンロードページからの最新のバージョンをお勧めします。
+dub とdmd が公式のリポジトリにはないので、dlang.org の [official installer](https://dlang.org/download.html) を使用してください。以下のコマンドはバージョン 2.084 をダウンロードしますが、ダウンロードページからの最新のバージョンをお勧めします。
 
 ```
 wget http://downloads.dlang.org/releases/2.x/2.084.0/dmd_2.084.0-0_amd64.deb
@@ -97,13 +97,13 @@ sudo dpkg -i dmd_2.084.0-0_amd64.deb
 guix install ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
 ```
 
-で、environment に追加するだけには下のコマンドを実行します。
+で、environment に追加するだけには以下のコマンドを実行します。
 
 ```
 guix environment --ad-hoc ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
 ```
 
-CSFML は公式リポジトリからインストール出来ませんが、[このパッケージ製法](https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2)を使えば自動的にダウンロードおよびビルドが行い、インストール出来ます。下のコマンドの風になります。
+CSFML は公式リポジトリからインストール出来ませんが、[このパッケージ製法](https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2)を使えば自動的にダウンロードおよびビルドが行い、インストール出来ます。以下のコマンドの風になります。
 
 ```
 wget https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2/raw/3530f5ddf95281513c3bfcb7d964f31af5a19de5/csfml-guix.scm
@@ -163,26 +163,30 @@ dub run
 dub build
 ```
 
-ならビルドだけを行います。まだ SFML サポートに必要なので
+ならビルドだけを行います。SDLMixerのサポートはあんまりよくなくてお勧めしませんが、利用しているプラットフォームに SFML サポートがない場合は
+
 ```
---config=SFMLMixer
+--config=SDLMixer
 ```
-フラグも忘れないようにしてください。
+
+フラグを使えます。DerelictSFML ソースをダウンロードせずSDL_Mixerとリンクされるビルドとなります。
 
 どちらのコマンドを実行してもワーキングディレクトリに OpenTaiko の実行ファイルが出てきます。ほかのディレクトリに移動せずに、そのまま実行できます。
 
 一般的に、コンパイル時にアーキテクチャを意識する必要はありません。ただし、64-bit の Windows のみ、フラグを指定しないと 32-bit バイナリになり、64-bit の dll を利用できなくなります。
 そのため以下のフラグをつけてください。
+
 ```
 --arch=x86_64
 ```
+
 これで 64-bit のビルドを行います。また、複数のフラグを組み合わせることができます。
 
 ```
 dub build --config=SFMLMixer --arch=x86
 ```
 
-上のコマンドは SFML サポート付きの 32-bit x86 ビルドとなります。
+上のコマンドは SFML サポート付きの 32-bit x86 ビルドとなります。※SFMLMixer の値は冗長です
 
 初回ビルド時はインターネットから依存ファイルのダウンロードによって少々時間がかかるかもしれません。この時はネットワーク接続が必要なので気をつけてください。その後は自由にオフラインでも作業を続けても平気です。手動で依存ファイルを手に入れる方法に関して知りたい場合は、dub のドキュメントをご覧ください。
 

@@ -27,10 +27,10 @@ Both dmd and ldc are supported compilers, provided their version is rather recen
 * ffmpeg, the command line tool (optional, but highly recommended with csfml-audio-2 to automatically convert mp3 files in game)
 * csfml-audio-2
 
-csfml-audio-2 is available on all major platforms, and most of the minor platforms too. In case csfml-audio-2 is not available on your current platform, support with SDL2\_mixer is still implemented. You will need this library instead. Please note that music timing is not supported in this case, so the game may not function properly, and audio quality will be reduced (depending on the platform's implementation)
+csfml-audio-2 is available on all major platforms, and most of the minor platforms too. In case csfml-audio-2 is not available on your current platform, support with SDL2\_mixer is still implemented. You will need this library instead. Please note that music timing is not supported in this case, so the game may not function properly, and audio quality will be reduced (depending on the platform's implementation.)
 
 ## DUB dependencies
-See dub.sdl.
+See [dub.sdl](dub.sdl).
 
 ## Platform-specific instructions
 Feel free to add your own operating system specific instructions to this list.
@@ -131,10 +131,10 @@ If you have successfully completed all the steps above, you may now compile Open
 cd C:\Users\gtensha\Projects\OpenTaiko-0.2
 ```
 
-Finally, to build OpenTaiko, run dub build with --config="SFMLMixer" and --arch=x86 (for 32-bit) or --arch=x86\_64 (for 64-bit), like so:
+Finally, to build OpenTaiko, run dub build with --arch=x86 (for 32-bit) or --arch=x86\_64 (for 64-bit), like so:
 
 ```
-dub build --config=SFMLMixer --arch=x86_64
+dub build --arch=x86_64
 ```
 
 You may have to wait a couple of seconds the first time as dub fetches dependencies from the package archives; make sure you have a working internet connection during this time.
@@ -160,15 +160,15 @@ dub run
 dub build
 ```
 
-...will build only. Don't forget the
+...will build only. If you wish to build with SDLMixer support (not recommended unless SFML libraries are unavailable) you need to use the --config=SDLMixer flag:
 
 ```
---config=SFMLMixer
+--config=SDLMixer
 ```
 
-flag which is currently still required to build with SFML2 audio support (although that requirement will probably be removed in the near future.)
+Adding this flag builds the game without SFML support, does not pull the DerelictSFML sources from dub and links against SDL_Mixer.
 
-Running either of these commands will place a binary in the current working directory, which can be run directly afterwards.
+Running any of these commands will place a binary in the current working directory, which can be run directly afterwards. Without installing or setting the correct environment variables/command line flags, the binary must be run from the project directory or else it will fail to find assets and other essential files and directories.
 
 In general, you do not need to specify the processor architecture you are building on, if you plan to compile for your current machine only. An exception is when building on 64-bit x86 Windows, where this must be specified.
 
@@ -182,7 +182,7 @@ will build for 64-bit x86. You may combine these as you please:
 dub build --config=SFMLMixer --arch=x86
 ```
 
-...will build OpenTaiko with SFML2 audio support for 32-bit x86.
+...will build OpenTaiko with SFML2 audio support for 32-bit x86 (note that the --config=SFMLMixer option is redundant in this case.)
 
 An internet connection is required when building for the first time, as dub dependencies must be downloaded. After that you may work offline as you please. It is also possible to download the code manually, see the links at the top of this document and the dub documentation for more details.
 
