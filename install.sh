@@ -10,50 +10,56 @@ binary_install_dir=/usr/local/games
 real_binary_name=OpenTaiko-real
 launch_script_name=OpenTaiko
 
-if [[ $real_binary_name == $launch_script_name ]] ; then
+if [ "$real_binary_name" = "$launch_script_name" ]
+then
 	echo "\$real_binary_name and \$launch_script_name cannot be equal; "\
-		 "refusing to make fork bomb."
-	exit 1;
+	     "refusing to make fork bomb."
+	exit 1
 fi
-if [[ -v OPENTAIKO_BINARY_INSTALLDIR ]] ; then
-	binary_install_dir=$OPENTAIKO_BINARY_INSTALLDIR;
+if [ -n "$OPENTAIKO_BINARY_INSTALLDIR" ]
+then
+	binary_install_dir="$OPENTAIKO_BINARY_INSTALLDIR"
 fi
-if [[ -v OPENTAIKO_RESOURCE_INSTALLDIR ]] ; then
-	resource_install_dir=$OPENTAIKO_RESOURCE_INSTALLDIR;
+if [ -n "$OPENTAIKO_RESOURCE_INSTALLDIR" ]
+then
+	resource_install_dir="$OPENTAIKO_RESOURCE_INSTALLDIR"
 fi
 
 # If game binary can be found, copy it to $binary_install_dir as
 # $real_binary_name, and create a start script based on the current environment
 # in the same directory as $launch_script_name, and copy assets/ and locale/ to
 # $resource_install_dir, creating it if necessary.
-function install_game {
-	if ! [[ -f "OpenTaiko" ]] ; then
+install_game () {
+	if ! [ -f "OpenTaiko" ]
+	then
 		echo "You must compile the game before it can be installed. See"\
 		     "README.md for instructions."
-		exit 1;
+		exit 1
 	fi
-	if ! [[ -a $resource_install_dir ]] ; then
-		mkdir $resource_install_dir || exit 1;
+	if ! [ -d "$resource_install_dir" ]
+	then
+		mkdir "$resource_install_dir" || exit 1
 	fi
-	cp -r assets/ $resource_install_dir || exit 1
-	cp -r locale/ $resource_install_dir || exit 1
-	cp OpenTaiko $binary_install_dir/$real_binary_name || exit 1
-	echo "#!"$(which sh) > $binary_install_dir/$launch_script_name || exit 1
-	echo "export OPENTAIKO_INSTALLDIR="$resource_install_dir >> $binary_install_dir/$launch_script_name || exit 1
-	echo $real_binary_name \"\$\@\" >> $binary_install_dir/$launch_script_name || exit 1
+	cp -r assets/ "$resource_install_dir" &&
+	cp -r locale/ "$resource_install_dir" &&
+	cp OpenTaiko "$binary_install_dir"/"$real_binary_name" &&
+	echo "#!"$(which sh) > "$binary_install_dir"/"$launch_script_name" &&
+	echo "export OPENTAIKO_INSTALLDIR=""$resource_install_dir" >> "$binary_install_dir"/"$launch_script_name" &&
+	echo "$real_binary_name" \"\$\@\" >> "$binary_install_dir"/"$launch_script_name" &&
+	chmod 755 "$binary_install_dir"/"$launch_script_name" &&
 	echo "Installation complete."
 	printf "If \"%s\" is on your PATH, you can run the game as \"%s\".\n"\
-	       $binary_install_dir $launch_script_name
+	       "$binary_install_dir" "$launch_script_name"
 }
 
 # Delete the start script and real binary from the binary install directory, and
 # delete the asset and locale directories from the resource install directory.
 # Deliberately does not delete the $resource_install_dir itself.
-function uninstall_game {
-	rm $binary_install_dir/$real_binary_name || exit 1
-	rm $binary_install_dir/$launch_script_name || exit 1
-	rm -r $resource_install_dir/assets || exit 1
-	rm -r $resource_install_dir/locale || exit 1
+uninstall_game () {
+	rm "$binary_install_dir"/"$real_binary_name" &&
+	rm "$binary_install_dir"/"$launch_script_name" &&
+	rm -r "$resource_install_dir"/assets &&
+	rm -r "$resource_install_dir"/locale &&
 	echo "Uninstallation complete."
 }
 
