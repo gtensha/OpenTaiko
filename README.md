@@ -186,6 +186,35 @@ dub build --config=SFMLMixer --arch=x86
 
 An internet connection is required when building for the first time, as dub dependencies must be downloaded. After that you may work offline as you please. It is also possible to download the code manually, see the links at the top of this document and the dub documentation for more details.
 
+## Installing
+If you have already built the game (or you got a prebuilt version) you can install the game on your machine by setting the appropriate environment variables and running the designated install script for your OS.
+
+### Unix-like (install.sh)
+By default, the game is installed with binaries in /usr/local/games and resource files in /usr/local/share/OpenTaiko. To change this behavior, you can set the following two environment variables before running the script. It is recommended that you store these environment variables in case you wish to uninstall later, for example by creating a "install-variables" file:
+
+```
+echo "export OPENTAIKO_BINARY_INSTALLDIR=/home/gtensha/bin" > install-variables
+echo "export OPENTAIKO_RESOURCE_INSTALLDIR=/home/gtensha/share/OpenTaiko" >> install-variables
+source install-variables
+./install.sh
+```
+
+The series of commands above are examples of how one would perform a personal install in one's home directory. Make sure you install the binaries somewhere available on your PATH, and that the directories exist (the last directory only, OpenTaiko in this case, will be created if it does not exist.)
+
+To uninstall, run the script again with the same environment variables and the --uninstall flag set:
+
+```
+source install-variables
+./install.sh --uninstall
+```
+
+### Windows (install.bat)
+Before installing, verify that the game runs and you have either installed the required .dll's globally or that they are present in the project directory. After that, you can run the script directly to install the game in %APPDATA%\Local\.opentaiko. You will get a shortcut to run the game in your start menu.
+
+If you wish to change the install location, edit the script to reflect your preferred locations. You can find instructions in the comments of the file.
+
+It is currently not possible to uninstall with this script, but all it takes is to delete the installation directory and the entry in the start menu.
+
 ## Playing the game
 OpenTaiko is currently played with a keyboard. Game controller support is planned. You can play alone or with several other players, using the same keyboard (or different ones connected to the same computer.)
 
