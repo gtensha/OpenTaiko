@@ -85,7 +85,7 @@ int main(string[] args) {
 			*s ~= trailing;
 		}
 	}
-	if (!exists(userDir) || forceInstall) {
+	if (!exists(userDir ~ CONFIG_FILE_PATH) || forceInstall) {
 		OpenTaiko.userInstall(userDir);
 	}
 	Engine.initialise();
