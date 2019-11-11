@@ -104,7 +104,7 @@ guix environment --ad-hoc ldc dub sdl2 sdl2-ttf sdl2-image sfml ffmpeg
 CSFML is not included in the official repositories, but you can easily download and build it automatically using [this package definition](https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2). Download and install it like so:
 
 ```
-wget https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2/raw/3530f5ddf95281513c3bfcb7d964f31af5a19de5/csfml-guix.scm
+wget https://gist.github.com/gtensha/d42f34e5276e2267c086cc8bd5bb82b2/raw/3530f5ddf95281513c3bfcb7d964f31af5a19de5/csfml-guix.scm  
 guix package --install-from-file=csfml-guix.scm
 ```
 
@@ -190,12 +190,14 @@ An internet connection is required when building for the first time, as dub depe
 If you have already built the game (or you got a prebuilt version) you can install the game on your machine by setting the appropriate environment variables and running the designated install script for your OS.
 
 ### Unix-like (install.sh)
+The install script for Unix should work on any platform that has full or partial POSIX compliance and the Bourne Shell. To install, run install.sh while in the project directory.
+
 By default, the game is installed with binaries in /usr/local/games and resource files in /usr/local/share/OpenTaiko. To change this behavior, you can set the following two environment variables before running the script. It is recommended that you store these environment variables in case you wish to uninstall later, for example by creating a "install-variables" file:
 
 ```
-echo "export OPENTAIKO_BINARY_INSTALLDIR=/home/gtensha/bin" > install-variables
-echo "export OPENTAIKO_RESOURCE_INSTALLDIR=/home/gtensha/share/OpenTaiko" >> install-variables
-source install-variables
+echo "export OPENTAIKO_BINARY_INSTALLDIR=/home/gtensha/bin" > install-variables  
+echo "export OPENTAIKO_RESOURCE_INSTALLDIR=/home/gtensha/share/OpenTaiko" >> install-variables  
+source install-variables  
 ./install.sh
 ```
 
@@ -204,12 +206,12 @@ The series of commands above are examples of how one would perform a personal in
 To uninstall, run the script again with the same environment variables and the --uninstall flag set:
 
 ```
-source install-variables
+source install-variables  
 ./install.sh --uninstall
 ```
 
 ### Windows (install.bat)
-Before installing, verify that the game runs and you have either installed the required .dll's globally or that they are present in the project directory. After that, you can run the script directly to install the game in %APPDATA%\Local\.opentaiko. You will get a shortcut to run the game in your start menu.
+Before installing, verify that the game runs and you have either installed the required .dll's globally or that they are present in the project directory. After that, you can run the script directly to install the game in %LOCALAPPDATA%\\Local\\.opentaiko. You will get a shortcut to run the game in your start menu.
 
 If you wish to change the install location, edit the script to reflect your preferred locations. You can find instructions in the comments of the file.
 
