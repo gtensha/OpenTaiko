@@ -225,6 +225,8 @@ Use a keyboard to navigate menus and play the game. Using a mouse is not support
 
 Use the arrow keys to select menu options. Use the ENTER key to select a menu option, and ESCAPE will take you back to the previous menu or quit the game if pressed at the start screen. Use the TAB key when in the main menu to cycle the different menu sections.
 
+To adjust a numeric value when presented, use the right arrow key to increase the value, the left to decrease the value, and press ENTER to switch between incremental values. To finish, press ESCAPE as you would go back from a menu normally.
+
 By default, gameplay keys for player 1 are bound to the [D F J K] keys, where D is the left rim, F is the left center, and so on. Player 2 may use [End PageDown Numpad8 Numpad9].
 
 #### Binding controls
@@ -255,7 +257,15 @@ You can import a map from a .osz archive if you have one. It will convert the be
 To import a map, navigate to the _Settings_ menu, and select _Import map_.
 
 ### Configuring the game
-In the _Settings_ menu you may change the language and set the vsync mode. To change resolution, edit the value in _settings.json_ to match your preferred value. Changing any option currently requires you to restart the game for them to take effect.
+In the _Settings_ menu you may change the language, set the vsync mode, and change timing variables. To change resolution, edit the value in _settings.json_ to match your preferred value. Changing any option apart from timing variables currently requires you to restart the game for them to take effect.
+
+#### Timing variables
+There are four different timing variables you can adjust (all values are in milliseconds):
+
+* **Timing/music offset** - sets the offset relative to music playback.
+* **Normal hit window** - sets how late or early you may hit to get points. This value is applicable to both sides of the hit window, so a value of 100 for instance will give a total hit window of 200 milliseconds.
+* **Good hit window** - as normal hit window, but for attaining the best judgement.
+* **Pre-hit dead window** - within this window _before_ normal hit window, the hit will be registered as a miss. Useful for preventing the ability to mash keys to attain a score.
 
 ### Gameplay
 Hit the drum circles as they approach the reception area. Hit the red circles with your left or right middle keys, and likewise, the green circles with your rim keys. The better the timing, the better the score. Following the music is the key!
