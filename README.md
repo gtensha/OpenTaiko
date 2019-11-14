@@ -267,6 +267,11 @@ There are four different timing variables you can adjust (all values are in mill
 * **Good hit window** - as normal hit window, but for attaining the best judgement.
 * **Pre-hit dead window** - within this window _before_ normal hit window, the hit will be registered as a miss. Useful for preventing the ability to mash keys to attain a score.
 
+### Customising the game
+You can customise the assets that are loaded by the game by placing files with the same names as the default ones in your active user's assets folder (assets/custom by default.) They will be loaded as present, so you can customise only parts of the assets and default ones will be loaded for those that are missing.
+
+To switch between different asset folders, you can set the "assets" setting in _settings.json_.
+
 ### Gameplay
 Hit the drum circles as they approach the reception area. Hit the red circles with your left or right middle keys, and likewise, the green circles with your rim keys. The better the timing, the better the score. Following the music is the key!
 
