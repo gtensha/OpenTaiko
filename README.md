@@ -285,11 +285,11 @@ OpenTaiko is free software licensed under the GNU GPLv3. Therefore the component
 # Copyright notice
 These files are included in the repository and subject to copyright by their respective owners:
 
+
 ## Noto fonts
 **Copyright © 2010-2015, Google Corporation**
 
 ### Files
-
 * assets/default/NotoSansCJK-Bold.ttc
 * assets/default/NotoSansCJK-Light.ttc
 * assets/default/NotoSansCJK-Regular.ttc
@@ -299,6 +299,25 @@ These files are included in the repository and subject to copyright by their res
 
 ### Project link
 [GitHub repository](https://github.com/googlei18n/noto-cjk)
+
+
+## 124-Taiko-Rim.wav and 123-Taiko-Open.wav
+**Published by [klemmy](https://freesound.org/people/klemmy/) on freesound.org**
+
+### Files
+* [red.wav](assets/default/red.wav) (123-Taiko-Open.wav)
+* [blue.wav](assets/default/blue.wav) (124-Taiko-Rim.wav)
+
+### License
+[Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/legalcode)
+
+### Source link
+* [123-Taiko-Open.wav](https://freesound.org/people/klemmy/sounds/203344/) at freesound.org
+* [124-Taiko-Rim.wav](https://freesound.org/people/klemmy/sounds/203343/) at freesound.org
+
+### Changes
+* Amplified
+* Silence was truncated to function better as game assets
 
 [3]: https://github.com/DerelictOrg/DerelictSDL2
 [4]: https://github.com/DerelictOrg/DerelictSFML2

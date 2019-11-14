@@ -292,11 +292,11 @@ OpenTaiko は GNU GPLv3 のフリーソフトため、すべてをフリーソ�
 # コピーライト知らせ
 こちらのリポジトリに付いているファイルは、作者よりコピーライトされたものです。
 
+
 ## Noto fonts
 **© 2010-2015, Google Corporation**
 
 ### ファイル
-
 * assets/default/NotoSansCJK-Bold.ttc
 * assets/default/NotoSansCJK-Light.ttc
 * assets/default/NotoSansCJK-Regular.ttc
@@ -306,6 +306,25 @@ OpenTaiko は GNU GPLv3 のフリーソフトため、すべてをフリーソ�
 
 ### ホームページ
 [GitHub リポジトリ](https://github.com/googlei18n/noto-cjk)
+
+
+## 124-Taiko-Rim.wav と 123-Taiko-Open.wav
+**freesound.org にて [klemmy](https://freesound.org/people/klemmy/) が投稿した録音**
+
+### ファイル
+* [red.wav](assets/default/red.wav) (123-Taiko-Open.wav)
+* [blue.wav](assets/default/blue.wav) (124-Taiko-Rim.wav)
+
+### ライセンス
+[Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/legalcode)
+
+### 基ページ
+* freesound.org にて [123-Taiko-Open.wav](https://freesound.org/people/klemmy/sounds/203344/)
+* freesound.org にて [124-Taiko-Rim.wav](https://freesound.org/people/klemmy/sounds/203343/)
+
+### 変更
+* アンプリファイしました
+* 無音の部分を抜きました
 
 [3]: https://github.com/DerelictOrg/DerelictSDL2
 [4]: https://github.com/DerelictOrg/DerelictSFML2
