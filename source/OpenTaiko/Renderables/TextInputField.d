@@ -1,3 +1,16 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Implements a transparent text field. It is used in TextInputBox, but can
+/// also be used anywhere else text should be possible to input.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2018-2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module opentaiko.renderable.textinputfield;
 
 import maware.inputhandler : TextInputBinder;

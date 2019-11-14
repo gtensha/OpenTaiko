@@ -1,3 +1,17 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// A square with position, height and width plus colour. The most basic
+/// renderable object, and should implement features that can be shared with
+/// subclasses. This is the base for the Textured object.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2018 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.renderable.solid;
 
 import maware.renderable.renderable;

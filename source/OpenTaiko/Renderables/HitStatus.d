@@ -1,3 +1,16 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Gives visual feedback to the player about their drum hits and how well
+/// things are going.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2018 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module opentaiko.renderable.hitstatus;
 
 import maware.renderable.renderable;

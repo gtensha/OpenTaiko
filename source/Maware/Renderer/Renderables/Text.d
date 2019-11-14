@@ -1,3 +1,15 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Rendering and manipulating text with different fonts and sizes.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.renderable.text;
 
 import maware.renderable.renderable;

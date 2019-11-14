@@ -1,3 +1,16 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Loading, storing and serving TTF fonts of different sizes from font files
+/// using SDL_ttf.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.font;
 
 import derelict.sdl2.ttf : TTF_CloseFont, TTF_Font, TTF_GetError, TTF_OpenFont;

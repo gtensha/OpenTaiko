@@ -1,3 +1,19 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Localisation tools. Contains some functions for creating enumeration values
+/// to use for fetching localised strings, and the Message class for defining
+/// available values. Anything related to localisation should go in this file.
+/// This file should probably be split up and functionality put in Maware as a
+/// base, instead.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module opentaiko.languagehandler;
 
 import opentaiko.mapgen;

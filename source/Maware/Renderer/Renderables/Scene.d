@@ -1,3 +1,18 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Game scene management. The Scene is a way to group renderable
+/// objects together without creating a new class. It is used in Renderer as
+/// the means to switch contexts on screen, as different scenes can be made and
+/// swapped with minimal boilerplate.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2018 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.renderable.scene;
 
 import maware.renderable.renderable;

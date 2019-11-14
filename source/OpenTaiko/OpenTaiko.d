@@ -1,3 +1,18 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// This module contains the heart of the game as well as the main() function.
+/// A lot of the functionality here can be taken out and put elsewhere for use
+/// in other games, and should be done in the future, lest this file become even
+/// larger than it already is.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module opentaiko.game;
 
 import maware;

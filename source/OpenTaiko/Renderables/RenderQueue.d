@@ -1,3 +1,16 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Makes rendering hit objects more efficient by only rendering objects based
+/// on their time of approach.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module opentaiko.renderable.renderqueue;
 
 import maware.renderable.renderable;

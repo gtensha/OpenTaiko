@@ -1,3 +1,16 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// GUI element for displaying position among "pages" of a vertically expanding
+/// menu.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.renderable.menus.scrollbar;
 
 import maware.font;

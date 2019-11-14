@@ -1,3 +1,17 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// The primary method of putting textures on the screen, as well as being the
+/// superclass for Text. Functionality that can be shared by other derived
+/// classes should be implemented here.
+//
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2018 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.renderable.textured;
 
 import maware.renderable.solid;

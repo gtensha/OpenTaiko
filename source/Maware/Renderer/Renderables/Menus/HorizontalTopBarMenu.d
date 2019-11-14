@@ -1,3 +1,16 @@
+//  This file is part of the OpenTaiko project.
+//  <https://github.com/gtensha/OpenTaiko>
+//
+/// Menu sitting at the top of the screen with text labels, to switch between
+/// different menu or game contexts.
+///
+/// Authors: gtensha (@skyhvelv.net)
+/// Copyright: 2017-2019 gtensha
+/// License: GNU GPLv3 (no later versions)
+//
+//  You should have received a copy of the GNU General Public License
+//  along with OpenTaiko. If not, see <https://www.gnu.org/licenses/>.
+
 module maware.renderable.menus.horizontaltopbarmenu;
 
 import maware.renderable.menus.menu;
