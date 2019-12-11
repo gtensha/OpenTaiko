@@ -14,30 +14,30 @@
 
 module opentaiko.mapgen;
 
-import std.conv;
-import std.stdio : writeln;
-import std.file;
-import std.algorithm.searching;
 import std.algorithm.comparison;
 import std.algorithm.iteration;
+import std.algorithm.searching;
 import std.array;
-import std.string;
 import std.ascii;
+import std.conv;
+import std.file;
 import std.json;
-import std.zip;
 import std.process : execute, ProcessException;
+import std.stdio : writeln;
+import std.string;
 import std.typecons : tuple, Tuple;
+import std.zip;
 
-import opentaiko.drum;
 import opentaiko.bashable;
-import opentaiko.score;
-import opentaiko.song;
-import opentaiko.gamevars;
 import opentaiko.difficulty;
-import opentaiko.performance;
-import opentaiko.player;
+import opentaiko.drum;
+import opentaiko.gamevars;
 import opentaiko.keybinds;
 import opentaiko.languagehandler : Message;
+import opentaiko.performance;
+import opentaiko.player;
+import opentaiko.score;
+import opentaiko.song;
 import opentaiko.timingvars;
 
 enum {
@@ -69,14 +69,6 @@ struct MappedDifficulty {
 /// Class with static methods to handle OpenTaiko map and settings
 /// loading/writing
 class MapGen {
-
-	/*
-	Map structure (one line): e.g "ddk|d|d|kkd"
-	or with spaces and small letters: "ddkd  d d kkdk"
-	any character that isn't designated acts as empty space
-	see default map.conf file for template and attribute
-	specification
-	*/
 	
 	private static ffmpegStatusChecked = false;
 	private static ffmpegAvailability = false;
@@ -87,119 +79,119 @@ class MapGen {
 	
 	/// Returns array of drum objects with desired properties
 	static Bashable[] parseMapFromFile(string file) {
-		int bpm = 140;
-		int zoom = 4;
+		const string map = cast(string)(read(file));
+		const string[] lines = map.split("\n");
+		int bpm = 60;
+		int zoom = 1;
 		double scroll = 1;
-		string map = cast(string)(std.file.read(file));
-		string[] lines = split(map, "\n");
 		Bashable[] drumArray;
-
-		int i;
+		int index;
 		int offset;
-		bool processAttrs = true;
-		bool processMap = false;
-		foreach (string line ; lines) {
 
-			// Ignore lines starting with '#' (comments)
-			if (!line.equal("") && line[0] != '#') {
+		void setBPM(const string[] line) {
+			if (line.length > 0) {
+				bpm = to!int(line[0]);
+			}
+		}
 
-				bool foundTag = false;
-				string[] formattedLine = split(line);
-				// Check if should still/again check attributes
-				switch (formattedLine[0]) {
-					case "!attrs":
-						processAttrs = true;
-						processMap = false;
-						foundTag = true;
-						break;
+		void setZoom(const string[] line) {
+			if (line.length > 0) {
+				zoom = to!int(line[0]);
+			}
+		}
 
-					case "!endattrs":
-						processAttrs = false;
-						bpm = bpm * zoom;
-						foundTag = true;
-						break;
+		void setScroll(const string[] line) {
+			if (line.length > 0) {
+				scroll = to!double(line[0]);
+			}
+		}
 
-					case "!mapend":
-						processMap = false;
-						foundTag = true;
-						break;
+		void setOffset(const string[] line) {
+			if (line.length > 0) {
+				offset = to!int(line[0]);
+				index = 0;
+			}
+		}
 
-					case "!mapstart":
-						processAttrs = false;
-						processMap = true;
-						foundTag = true;
-						break;
+		void parseHitObjects(const string line) {
+			Tuple!(Bashable[], int) ret = readMapSection(line,
+														 bpm * zoom,
+														 scroll,
+														 index,
+														 offset);
+			drumArray ~= ret[0];
+			index = ret[1];
+		}
 
-					case "!offset":
-						// This has no mercy, you MUST make sure your
-						// offset is behind all circles placed so far
-						offset = to!int(formattedLine[1]);
-						i = 0;
-						foundTag = true;
-						break;
-
-					case "!scroll":
-						scroll = to!double(formattedLine[1]);
-						foundTag = true;
-						break;
-
-					default:
-						// Quit early if funky situation occurs
-						if (processAttrs == processMap) {
-							writeln("Map file error, no map was produced");
-							return null;
-						}
-						break;
-				}
-
-				// Check for BPM or Zoom attributes
-				if (!foundTag && processAttrs) {
-					string[] vars = split(line);
-					if (line[0] == 'B' || line[0] == 'b') {
-						bpm = to!int(vars[1]);
-					} else if (line[0] == 'Z' || line[0] == 'z') {
-						zoom = to!int(vars[1]);
+		alias delegateAA = immutable void delegate(const string[])[string];
+		delegateAA handlers = ["!bpm": &setBPM,
+							   "!zoom": &setZoom,
+							   "!scroll": &setScroll,
+							   "!offset": &setOffset];
+		foreach (const string line ; lines) {
+			const char first = line.length > 0 ? line[0] : '#';
+			switch (first) {
+				case '!':
+					const string[] split = line.split(" ");
+					immutable void delegate(const string[])* fn = (split[0]
+																   in handlers);
+					if (fn) {
+						const string[] args = (split.length > 1
+											   ? split[1 .. $] : []);
+						(*fn)(args);
 					}
-				} else if (!foundTag && processMap) { // else process as map data
-					drumArray ~= readMapSection(line, bpm, scroll, &i, offset);
-				}
+					break;
+
+				case '#':
+					break;
+
+				default:
+					parseHitObjects(line);
+					break;
 			}
 		}
 		return drumArray;
 	}
 
-	/// Calculate circle's position in milliseconds
-	static int calculatePosition(int i, int offset, int bpm) {
-		return cast(int)(((60 / (to!double(bpm))) * to!double(i)) * 1000.0) + offset;
+	/// Calculate a hit object's position in milliseconds from its index
+	/// relative to offset, using bpm (use the real bpm value, bpm * scroll).
+	static pure int calculatePosition(const int index, const int offset, const int bpm) {
+		return cast(int)((60000.0 / bpm) * index) + offset;
 	}
 
-	/// Return array of Bashable from a map in string form from section with
-	/// given attributes
-	static Bashable[] readMapSection(string section,
-									 int bpm,
-									 double scroll,
-									 int* i,
-									 int offset) {
-		int index = *i;
+	/// Return a tuple with array of Bashable and index modified according to
+	/// new hit objects. section is a line (without a newline) containing hit
+	/// objects in the otfm format, and offset is the value of the last !offset
+	/// command.
+	static Tuple!(Bashable[], int) readMapSection(const string section,
+												  const int bpm,
+												  const double scroll,
+												  int index,
+												  const int offset) {
+		Bashable[] drumArray;
 		bool processingDrumRoll = false;
 		int drumRollLength = 0;
-		Bashable[] drumArray;
-		foreach (char type ; section) {
+		void addDrumRoll() {
+			int startTime = calculatePosition(index - drumRollLength,
+											  offset,
+											  bpm);
+			int length = calculatePosition(index,
+										   offset,
+										   bpm) - startTime;
+			drumArray ~= new DrumRoll(0,
+									  0,
+									  startTime,
+									  scroll,
+									  length);
+			processingDrumRoll = false;
+		}
+		foreach (const char type ; section) {
 			if (type == 'O' || type == 'o') {
 				drumRollLength++;
+				processingDrumRoll = true;
 			} else {
 				if (drumRollLength > 0) {
-					int startTime = calculatePosition(index - drumRollLength,
-													  offset,
-													  bpm);
-					int length = calculatePosition(index,
-												   offset,
-												   bpm) - startTime;
-					drumArray ~= new DrumRoll(0,
-											  0,
-											  startTime,
-											  scroll,
-											  length);
+					addDrumRoll();
 				}
 				drumRollLength = 0;
 				if (type == 'd') {
@@ -236,8 +228,10 @@ class MapGen {
 			}
 			index++;
 		}
-		*i = index;
-		return drumArray;
+		if (processingDrumRoll) {
+			addDrumRoll();
+		}
+		return tuple(drumArray, index);
 	}
 
 	/// Returns a JSONValue representing the Song struct song as JSON
@@ -314,8 +308,6 @@ class MapGen {
 			}
 			outside:
 		}
-		
-		//newSong.title = songTitle;
 
 		if (ffmpegAvailable()) {
 			string[] splitAudioPath = newSong.src.split(".");
@@ -332,9 +324,8 @@ class MapGen {
 		
 		JSONValue metadata;
 		string metaPath = directory ~ "/" ~ "meta.json";
-		metadata = songToJSON(newSong);		
+		metadata = songToJSON(newSong);
 		std.file.write(metaPath, toJSON(metadata, true));
-		
 	}
 
 	/// Reads the string data as a .osu file, parses it and returns a
@@ -353,7 +344,6 @@ class MapGen {
 		bool metaSection = false;
 
 		openTaikoMap ~= "# Map converted from .osu format" ~ "\n\n";
-		openTaikoMap ~= "!mapstart" ~ "\n";
 
 		foreach (string line ; lines) {
 
@@ -433,8 +423,6 @@ class MapGen {
 				}
 			}
 		}
-
-		openTaikoMap ~= "!mapend";
 
 		diff.mapper = song.maintainer;
 		MappedDifficulty ret;
