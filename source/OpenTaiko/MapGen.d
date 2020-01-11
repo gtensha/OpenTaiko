@@ -6,7 +6,7 @@
 /// this file.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -16,6 +16,7 @@ module opentaiko.mapgen;
 
 import std.algorithm.comparison;
 import std.algorithm.iteration;
+import std.algorithm.mutation : reverse;
 import std.algorithm.searching;
 import std.array;
 import std.ascii;
@@ -69,6 +70,12 @@ struct MappedDifficulty {
 /// Class with static methods to handle OpenTaiko map and settings
 /// loading/writing
 class MapGen {
+
+	/// Different ways to group hit objects (displaying separators).
+	enum GroupBy : byte {
+		VALUE, /// Group every n objects, dictated by index.
+		ZOOM /// As VALUE, where n is always equal to zoom.
+	}
 	
 	private static ffmpegStatusChecked = false;
 	private static ffmpegAvailability = false;
@@ -77,14 +84,18 @@ class MapGen {
 	/// message is stored as the value for reading in here.
 	public static string[string] languageLoadErrors;
 	
-	/// Returns array of drum objects with desired properties
-	static Bashable[] parseMapFromFile(string file) {
+	/// Reads file as a map in the otfm format and returns a Bashable array
+	/// from the read contents.
+	static Bashable[] parseMapFromFile(const string file) {
 		const string map = cast(string)(read(file));
 		const string[] lines = map.split("\n");
 		int bpm = 60;
 		int zoom = 1;
+		int group = 0;
+		byte groupMode = GroupBy.VALUE;
 		double scroll = 1;
 		Bashable[] drumArray;
+		int[] separatorTimes;
 		int index;
 		int offset;
 
@@ -97,12 +108,30 @@ class MapGen {
 		void setZoom(const string[] line) {
 			if (line.length > 0) {
 				zoom = to!int(line[0]);
+				if (groupMode == GroupBy.ZOOM) {
+					group = zoom;
+				}
 			}
 		}
 
 		void setScroll(const string[] line) {
 			if (line.length > 0) {
 				scroll = to!double(line[0]);
+			}
+		}
+
+		void setGroup(const string[] line) {
+			if (line.length > 0) {
+				if (line[0].isNumeric()) {
+					group = to!int(line[0]);
+				    groupMode = GroupBy.VALUE;
+				} else if (line[0].equal("zoom")) {
+					group = zoom;
+					groupMode = GroupBy.ZOOM;
+				} else {
+					throw new Exception("Invalid value for command \"group\": "
+										~ line[0]);
+				}
 			}
 		}
 
@@ -114,19 +143,23 @@ class MapGen {
 		}
 
 		void parseHitObjects(const string line) {
-			Tuple!(Bashable[], int) ret = readMapSection(line,
-														 bpm * zoom,
-														 scroll,
-														 index,
-														 offset);
+			Tuple!(Bashable[], int, int[]) ret = readMapSection(line,
+																bpm * zoom,
+																scroll,
+																index,
+																offset,
+																group,
+																separatorTimes);
 			drumArray ~= ret[0];
 			index = ret[1];
+			separatorTimes = ret[2];
 		}
 
 		alias delegateAA = immutable void delegate(const string[])[string];
 		delegateAA handlers = ["!bpm": &setBPM,
 							   "!zoom": &setZoom,
 							   "!scroll": &setScroll,
+							   "!group": &setGroup,
 							   "!offset": &setOffset];
 		foreach (const string line ; lines) {
 			const char first = line.length > 0 ? line[0] : '#';
@@ -163,75 +196,73 @@ class MapGen {
 	/// new hit objects. section is a line (without a newline) containing hit
 	/// objects in the otfm format, and offset is the value of the last !offset
 	/// command.
-	static Tuple!(Bashable[], int) readMapSection(const string section,
-												  const int bpm,
-												  const double scroll,
-												  int index,
-												  const int offset) {
+	static Tuple!(Bashable[], int, int[]) readMapSection(const string section,
+														 const int bpm,
+														 const double scroll,
+														 int index,
+														 const int offset,
+														 const int group,
+														 int[] separatorTimes) {
 		Bashable[] drumArray;
-		bool processingDrumRoll = false;
 		int drumRollLength = 0;
-		void addDrumRoll() {
+		DrumRoll makeDrumRoll() {
 			int startTime = calculatePosition(index - drumRollLength,
 											  offset,
 											  bpm);
 			int length = calculatePosition(index,
 										   offset,
 										   bpm) - startTime;
-			drumArray ~= new DrumRoll(0,
-									  0,
-									  startTime,
-									  scroll,
-									  length);
-			processingDrumRoll = false;
+			return new DrumRoll(0, 0, startTime, scroll, length);
+		}
+		Bashable insertSeparators(Bashable root, int[] separatorTimes) {
+			Bashable next = root;
+			foreach (int t ; separatorTimes.reverse()) {
+				next = new Separator(t, root.scroll, root);
+			}
+			return next;
 		}
 		foreach (const char type ; section) {
+			int currentOffset = calculatePosition(index, offset, bpm);
+			if (group > 0 && index % group == 0) {
+				separatorTimes ~= currentOffset;
+			}
 			if (type == 'O' || type == 'o') {
 				drumRollLength++;
-				processingDrumRoll = true;
 			} else {
 				if (drumRollLength > 0) {
-					addDrumRoll();
+					DrumRoll d = makeDrumRoll();
+					drumArray ~= insertSeparators(d, separatorTimes);
+					separatorTimes = [];
 				}
 				drumRollLength = 0;
+				Bashable next;
 				if (type == 'd') {
-					drumArray ~= new RedDrum(0,
-											 0,
-											 calculatePosition(index,
-															   offset,
-															   bpm),
-											 scroll);
+				    next = new RedDrum(0, 0, currentOffset, scroll);
 				} else if (type == 'D') {
-					drumArray ~= new LargeRedDrum(0,
-												  0,
-												  calculatePosition(index,
-																	offset,
-																	bpm),
-												  scroll);
+				    next = new LargeRedDrum(0, 0, currentOffset, scroll);
 				} else if (type == 'k') {
-					drumArray ~= new BlueDrum(0,
-											  0,
-											  calculatePosition(index,
-																offset,
-																bpm),
-											  scroll);
+					next = new BlueDrum(0, 0, currentOffset, scroll);
 				} else if (type == 'K') {
-					drumArray ~= new LargeBlueDrum(0,
-												   0,
-												   calculatePosition(index,
-																	 offset,
-																	 bpm),
-												   scroll);
+					next = new LargeBlueDrum(0, 0, currentOffset, scroll);
 				} else if (type == '\r') { // ignore Windows' carriage return
 					continue;
+				}
+				if (next) {
+				    if (separatorTimes.length > 0) {
+						drumArray ~= insertSeparators(next, separatorTimes);
+						separatorTimes = [];
+					} else {
+						drumArray ~= next;
+					}
 				}
 			}
 			index++;
 		}
-		if (processingDrumRoll) {
-			addDrumRoll();
+		if (drumRollLength > 0) {
+			drumArray ~= insertSeparators(makeDrumRoll(), separatorTimes);
+			separatorTimes = [];
 		}
-		return tuple(drumArray, index);
+		return tuple(drumArray, index, separatorTimes);
 	}
 
 	/// Returns a JSONValue representing the Song struct song as JSON

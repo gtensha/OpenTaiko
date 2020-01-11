@@ -1,19 +1,58 @@
-# BPM - base number of circles per minute
-# ZOOM - actual number of circles per minute (BPM * ZOOM)
-# You can use newlines for map creation as long as they're
-# Inside the !mapstart and !mapend tags, but remember to put
-# the proper amount of characters before a line break so
-# the circles get properly spaced
+# This is a sample map to showcase the features of the mapping system.
+#
+# Here is a brief explanation of what the different commands do:
+#
+# !bpm - start by setting this value to the bpm of the music you're creating a
+#        map for. This can be set multiple times in a map file and the hit
+#        objects will take the value of the last specified bpm value.
+#
+# !zoom - this value is multiplied by the bpm to set how far apart hit objects
+#         appear. For example, a bpm value of 60 and a zoom value of 1 means
+#         every character will input a hit object every second. Change zoom to
+#         4, and there's a hit object every quarter of a second, 8 every 1/8
+#         second and so on.
+#
+# !offset - this explicitly sets the offset value of the following hit objects.
+#           This is particularly useful at the beginning of the song, as you are
+#           able to perfectly align the first hit object with the start of the
+#           beat.
+#
+# !scroll - this sets the approach speed of the following hit objects. By
+#           default, hit objects move one pixel per millisecond, and this
+#           value multiplies this - so "!scroll 2" means 2 pixels per
+#           millisecond, "!scroll 0.5" one pixel every two milliseconds, and so
+#           on.
+#
+# !group - defines the length per stanza; in other words, for every n hit
+#          objects a cosmetic separator will be displayed on screen. This is
+#          generally set according to the beat of the song, but if not declared,
+#          separators will not be added. Setting this to 0 disables it
+#          explicitly. If set to "zoom", then the value will reflect the current
+#          zoom value.
+#
+# Every character, except for the newline, corresponds to one beat unit. Any
+# input character that isn't reserved inserts empty space between the hit
+# objects.
+#
+# Any line beginning with a # is treated as a comment and will not be parsed.
+#
+# Lines beginning with an ! are commands, and this character should only be used
+# for that purpose. Any extranous characters after a command are ignored.
+#
+# Here is a list of the different hit objects:
+#
+#  * d - normal inner drum hit
+#  * k - normal rim hit
+#  * D - large inner drum hit
+#  * K - large rim hit
+#  * O/o - drum roll, length specified through chaining, like "Oooooooo"
 
-!attrs
-BPM 160
-ZOOM 4
-!endattrs
-
-!mapstart
-#   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   
+!bpm 160
+!zoom 4
+!scroll 1
 !offset 2000
-ddk d   d   kkk d  kk   d   k   ddkdk k d   d   ddkkddkkddkkd   dd  kk  dd  kk  dkd kkd|
-#   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   
-d   d   kkdkk   d   kdkdk   d           kddk
-!mapend
+!group zoom
+#   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+ddk d   d   kkk d  kk   d   k   ddkdk k d   d   ddkkddkkddkkd   dd  kk  dd  kk--
+dkd kkd d   d   kkdkk   d   kdkdk   d           kddk    Ooooooooooooo   D   D---
+K   DDKD    ddddddddd
