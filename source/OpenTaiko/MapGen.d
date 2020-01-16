@@ -67,6 +67,56 @@ struct MappedDifficulty {
 	string map;
 }
 
+/// Exception thrown on error parsing an otfm file. This is the only exception
+/// regarding OTFM parsing meant to be thrown (and catched) by outside modules
+/// calling parseMapFromFile.
+class OTFMException : Exception {
+
+	this(Exception reason,
+		 const size_t lineNum,
+		 const size_t charIndex,
+		 const string line,
+		 const string fileName) {
+
+		immutable msg = format("Error parsing otfm file \"%s\" on line %d:\n\n",
+							   fileName,
+							   lineNum);
+		immutable pointer = line ~ "\n" ~ rightJustify("^", charIndex) ~ "\n";
+		version (Debug) {
+			immutable remainder = reason.toString();
+		} else {
+			immutable remainder = reason.msg;
+		}
+		this.next = reason;
+		super(msg ~ pointer ~ remainder);
+	}
+
+}
+
+/// Exception thrown on internal errors parsing an otfm file. Generally, this
+/// should not be thrown for functions meant to be called outside this module.
+class OTFMInternalException : Exception {
+
+	/// Error occured parsing the character at this index in the line.
+	immutable size_t charIndex;
+
+	this(string msg, const size_t charIndex) {
+		this.charIndex = charIndex;
+		super(msg);
+	}
+
+}
+
+/// Exception thrown on failure to parse a line of an otfm file.
+class OTFMParseException : OTFMInternalException {
+
+	this(string msg, const size_t charIndex, Exception next) {
+		this.next = next;
+		super(msg, charIndex);
+	}
+
+}
+
 /// Class with static methods to handle OpenTaiko map and settings
 /// loading/writing
 class MapGen {
@@ -129,8 +179,9 @@ class MapGen {
 					group = zoom;
 					groupMode = GroupBy.ZOOM;
 				} else {
-					throw new Exception("Invalid value for command \"group\": "
-										~ line[0]);
+					string msg = ("Invalid value for command \"group\": "
+								  ~ line[0]);
+					throw new OTFMInternalException(msg, 0);
 				}
 			}
 		}
@@ -161,7 +212,7 @@ class MapGen {
 							   "!scroll": &setScroll,
 							   "!group": &setGroup,
 							   "!offset": &setOffset];
-		foreach (const string line ; lines) {
+		foreach (size_t i, const string line ; lines) {
 			const char first = line.length > 0 ? line[0] : '#';
 			switch (first) {
 				case '!':
@@ -171,7 +222,27 @@ class MapGen {
 					if (fn) {
 						const string[] args = (split.length > 1
 											   ? split[1 .. $] : []);
-						(*fn)(args);
+						try {
+							(*fn)(args);
+						} catch (ConvException e) {
+							size_t charIndex = split[0].length + 2;
+							if (charIndex >= line.length) {
+								charIndex = 0;
+							}
+							throw new OTFMException(e, i, charIndex, line, file);
+						} catch (OTFMInternalException e) {
+							size_t charIndex = split[0].length + 2 + e.charIndex;
+							if (charIndex >= line.length) {
+								charIndex = 0;
+							}
+							throw new OTFMException(e, i, charIndex, line, file);
+						}
+					} else {
+						immutable msg = format("Unrecognised command \"%s\"",
+											   split[0]);
+						OTFMInternalException e;
+						e = new OTFMInternalException(msg, 0);
+						throw new OTFMException(e, i, e.charIndex, line, file);
 					}
 					break;
 

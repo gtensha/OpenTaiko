@@ -7,7 +7,7 @@
 /// larger than it already is.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -1527,8 +1527,9 @@ class OpenTaiko {
 		activeDifficulty = songSelectMenu.getSelectedDifficulty();
 		try {
 			gameplay(activeSong, activeDifficulty);
-		} catch (Exception e) {
-			Engine.notify(format(phrase(Message.Error.LOADING_DIFFICULTY), newline ~ e.toString()));
+		} catch (OTFMException e) {
+			Engine.notify(format(phrase(Message.Error.LOADING_DIFFICULTY),
+								 newline ~ e.msg));
 		}
 	}
 
