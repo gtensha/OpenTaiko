@@ -68,7 +68,7 @@ struct MappedDifficulty {
 }
 
 /// Exception thrown on error parsing an otfm file. This is the only exception
-/// regarding OTFM parsing meant to be thrown (and catched) by outside modules
+/// regarding OTFM parsing meant to be thrown (and caught) by outside modules
 /// calling parseMapFromFile.
 class OTFMException : Exception {
 
