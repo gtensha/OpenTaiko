@@ -82,7 +82,7 @@ class OTFMException : Exception {
 							   fileName,
 							   lineNum);
 		immutable pointer = line ~ "\n" ~ rightJustify("^", charIndex) ~ "\n";
-		version (Debug) {
+		debug {
 			immutable remainder = reason.toString();
 		} else {
 			immutable remainder = reason.msg;
