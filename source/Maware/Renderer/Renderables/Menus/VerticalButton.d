@@ -4,7 +4,7 @@
 /// Ready to use vertical button for generic menus.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -61,8 +61,7 @@ class VerticalButton : Button {
 
 		invertedText.setColor(r, g, b, a);
 
-		int timerIndex = Timer.addTimer();
-		timer = Timer.timers[timerIndex];
+		timer = new Timer();
 	}
 
 	override public void render() {

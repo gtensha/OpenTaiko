@@ -5,7 +5,7 @@
 /// subcomponents of the engine.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -69,7 +69,7 @@ class Engine {
 	// Starts the engine
 	public void start(int w, int h, bool vsync, string title) {
 
-		timer = Timer.timers[Timer.addTimer()];
+		timer = new Timer();
 
 		try {
 			renderer = new Renderer(this);

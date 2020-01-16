@@ -5,7 +5,7 @@
 /// things are going.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2018 gtensha
+/// Copyright: 2018, 2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -45,7 +45,7 @@ class HitStatus : Renderable {
 			idleY[i] = effect.rect.y;
 			expandedHeight[i] = effect.rect.h;
 		}
-		effectTimer = Timer.timers[Timer.addTimer()];
+		effectTimer = new Timer();
 	}
 	
 	void render() {

@@ -4,7 +4,7 @@
 /// Effortlessly manage timing of different gameplay and GUI elements.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -14,36 +14,41 @@ module maware.util.timer;
 
 import std.conv : to;
 
-// Simple timer class for sharing timing data across objects
+/// Simple timer class for sharing timing data across objects. The time is
+/// stored as milliseconds, and is not intended for precise measurement of time.
 class Timer {
 
-	public static Timer[] timers;
-
-	// Creates a timer object and adds it to the static list
-	public static int addTimer() {
-		timers ~= new Timer();
-		return to!int(timers.length - 1);
-	}
-
-	/// The raw time in ms
+	/// The raw time in milliseconds. This value must be incremented regularly
+	/// (every frame, for instance) and must never be decremented, as such an
+	/// operation will result in undefined behavior. As the value is 64-bit,
+	/// it is assumed that the program never will run long enough for it to ever
+	/// wrap.
 	public shared static long libInitPassed;
 
-	/// The current ms value to calculate from
+	/// The time in milliseconds this timer was set to measure from. It is set
+	/// relative to libInitPassed, so that (libInitPassed - measureFrom) gives
+	/// the amount of milliseconds passed.
 	protected long measureFrom;
-	/// The current ms value to calculate to
+	/// When this value is set greater than measureFrom, getPercentagePassed
+	/// is able to calculate how many percent of the time interval between
+	/// measureFrom and measureTo has passed.
 	protected long measureTo;
 
-	/// Refresh time and recalculate
-	public static void refresh(long currentTime) {
+	/// Sets libInitPassed to currentTime. currentTime must be greater than the
+	/// previous value in libInitPassed, lest undefined behavior be encountered.
+	public static void refresh(const long currentTime) {
 		libInitPassed = currentTime;
 	}
 
-	// Calculate time passed and return
+	/// Return the time passed in milliseconds since the timer was set. If the
+	/// time previously set hasn't been reached yet, the value will be negative,
+	/// how many milliseconds remain until the target time has been reached.
 	public long getTimerPassed() {
 		return libInitPassed - measureFrom;
 	}
 	
-	/// Returns percentage value of how much of the time has passed
+	/// Returns percentage value of how much of the time has passed. Implies
+	/// measureTo being set.
 	public double getPercentagePassed() {
 		if (libInitPassed >= measureTo) {
 			return 100;
@@ -54,12 +59,17 @@ class Timer {
 		}
 	}
 
-	// Set new value to measure from
-	public void set(long newTime) {
+	/// Sets the timer to measure from newTime, a value in milliseconds. After
+	/// this getTimerPassed() can be called to get the amount of milliseconds
+	/// passed since newTime.
+	public void set(const long newTime) {
 		this.measureFrom = newTime;
 	}
 
-	public void set(long newTime, long newTimeTo) {
+	/// Sets the timer to measure from newTime, a value in milliseconds. Also,
+	/// sets the time to measure to, making it possible to call
+	/// getPercentagePassed. newTimeTo must be greater than newTime.
+	public void set(const long newTime, const long newTimeTo) {
 		this.measureFrom = newTime;
 		this.measureTo = newTimeTo;
 	}

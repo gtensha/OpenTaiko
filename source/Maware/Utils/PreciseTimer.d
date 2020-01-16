@@ -4,7 +4,7 @@
 /// Stay synced with a differently timed resource (music playback, etc.)
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2018-2019 gtensha
+/// Copyright: 2018-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -52,12 +52,12 @@ class PreciseTimer : Timer {
 		return libInitPassed - measureFrom + regardlessOffset;
 	}
 	
-	override void set(long newTime) {
+	override void set(const long newTime) {
 		measureFrom = newTime;
 		originalFrom = newTime;
 	}
 	
-	override void set(long newTime, long newTimeTo) {
+	override void set(const long newTime, const long newTimeTo) {
 		set(newTime);
 		measureTo = newTimeTo;
 	}

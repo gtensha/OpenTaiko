@@ -4,7 +4,7 @@
 /// Timing things that occur in intervals.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2018-2019 gtensha
+/// Copyright: 2018-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License

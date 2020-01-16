@@ -4,7 +4,7 @@
 /// Button object for the HorizontalTopBarMenu.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2018 gtensha
+/// Copyright: 2017-2018, 2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -29,7 +29,6 @@ import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect, SDL_UnionRect, SDL_Color;
 
 class HorizontalTopBarButton : Button {
 
-	private uint timerIndex;
 	private Timer timer;
 	private Solid bottomLine;
 	private Text invertedText;
@@ -63,8 +62,7 @@ class HorizontalTopBarButton : Button {
 									complementColor.b, 
 									complementColor.a);
 
-		timerIndex = Timer.addTimer();
-		timer = Timer.timers[timerIndex];
+		timer = new Timer();
 	}
 
 	override public void render() {
