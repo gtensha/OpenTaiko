@@ -376,12 +376,22 @@ class OpenTaiko {
 
 		currentPerformances = null;
 		for (int i = 0; i < playerAreas.length; i++) {
-			Bashable[] map = MapGen.parseMapFromFile(song.directory
-													 ~ "/"
-													 ~ diff.name
-													 ~ ".otfm");
-			currentPerformances ~= new Performance(song.title, map, gameplayTimer, 0, 0, renderer.windowWidth);
-			playerAreas[i].setPerformance(currentPerformances[i]);
+			Bashable[][2] bashablePair;
+			bashablePair = MapGen.parseMapFromFile(song.directory
+												   ~ "/"
+												   ~ diff.name
+												   ~ ".otfm");
+			Bashable[] map = bashablePair[0];
+			Bashable[] cosmetics = bashablePair[1];
+			Performance p = new Performance(song.title,
+											map,
+											cosmetics,
+											gameplayTimer,
+											0,
+											0,
+											renderer.windowWidth);
+			currentPerformances ~= p;
+			playerAreas[i].setPerformance(p);
 		}
 		int titleMaxWidth = (playerAreas[0].getScoreDisplayX()
 							 - GUIDimensions.TEXT_SPACING);

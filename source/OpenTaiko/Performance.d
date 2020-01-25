@@ -5,7 +5,7 @@
 /// map and difficulty.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -13,15 +13,17 @@
 
 module opentaiko.performance;
 
-import std.array : array;
-import std.datetime.date : DateTime;
-import std.datetime.systime : Clock;
-import opentaiko.bashable;
 import maware.renderable.renderable;
 import maware.util.timer;
+
+import opentaiko.bashable;
 import opentaiko.mapgen : MapGen;
 import opentaiko.renderable.renderqueue;
 import opentaiko.score;
+
+import std.array : array;
+import std.datetime.date : DateTime;
+import std.datetime.systime : Clock;
 
 class Performance : Renderable {
 
@@ -51,7 +53,9 @@ class Performance : Renderable {
 
 	string mapTitle;
 	Bashable[] drums;
+	Bashable[] visuals;
 	RenderQueue renderQueue;
+	RenderQueue visualObjectQueue;
 	Timer timer;
 	InternalScore score;
 	int i;
@@ -67,22 +71,27 @@ class Performance : Renderable {
 		int highestCombo;
 	}
 
-	this(string title, Bashable[] hitObjects, Timer timer, int xOffset, int yOffset, int areaWidth) {
+	this(string title,
+		 Bashable[] hitObjects,
+		 Bashable[] visuals,
+		 Timer timer,
+		 int xOffset,
+		 int yOffset,
+		 int areaWidth) {
 
 		mapTitle = title;
-		drums = array(hitObjects);
-		this.timer = timer;
-
-		foreach (Bashable bashable ; drums) {
+		foreach (Bashable bashable ; hitObjects ~ visuals) {
 			bashable.adjustX(xOffset);
 			bashable.adjustY(yOffset);
 		}
-
+		drums = array(hitObjects);
+		this.visuals = visuals;
+		this.timer = timer;
 		renderQueue = new RenderQueue(drums, timer, areaWidth);
-
+		visualObjectQueue = new RenderQueue(visuals, timer, areaWidth);
 	}
 
-	/// Attempt to hit current drum circle and return Success value.
+	/// Attempt to hit current hit object and return Success value.
 	/// Possible success values are defined in the Bashable.Success enum.
 	int hit(int key) {
 		hit_next:
@@ -210,10 +219,11 @@ class Performance : Renderable {
 	public void render() {
 		Bashable.currentOffset = timer.getTimerPassed();
 		renderQueue.render();
+	    visualObjectQueue.render();
 	}
 
 	public void setRenderableOffset(int xOffset, int yOffset, int maxHeight) {
-		foreach (Bashable bashable ; drums) {
+		foreach (Bashable bashable ; drums ~ visuals) {
 			bashable.adjustX(xOffset);
 			bashable.adjustY(yOffset + (maxHeight - bashable.getObjectMaxHeight) / 2);
 		}

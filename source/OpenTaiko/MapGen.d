@@ -136,7 +136,7 @@ class MapGen {
 	
 	/// Reads file as a map in the otfm format and returns a Bashable array
 	/// from the read contents.
-	static Bashable[] parseMapFromFile(const string file) {
+	static Bashable[][2] parseMapFromFile(const string file) {
 		const string map = cast(string)(read(file));
 		const string[] lines = map.split("\n");
 		int bpm = 60;
@@ -145,7 +145,7 @@ class MapGen {
 		byte groupMode = GroupBy.VALUE;
 		double scroll = 1;
 		Bashable[] drumArray;
-		int[] separatorTimes;
+		Bashable[] cosmeticArray;
 		int index;
 		int offset;
 
@@ -194,16 +194,15 @@ class MapGen {
 		}
 
 		void parseHitObjects(const string line) {
-			Tuple!(Bashable[], int, int[]) ret = readMapSection(line,
-																bpm * zoom,
-																scroll,
-																index,
-																offset,
-																group,
-																separatorTimes);
-			drumArray ~= ret[0];
+			Tuple!(Bashable[][2], int) ret = readMapSection(line,
+															bpm * zoom,
+															scroll,
+															index,
+															offset,
+															group);
+			drumArray ~= ret[0][0];
+			cosmeticArray ~= ret[0][1];
 			index = ret[1];
-			separatorTimes = ret[2];
 		}
 
 		alias delegateAA = immutable void delegate(const string[])[string];
@@ -254,7 +253,7 @@ class MapGen {
 					break;
 			}
 		}
-		return drumArray;
+		return [drumArray, cosmeticArray];
 	}
 
 	/// Calculate a hit object's position in milliseconds from its index
@@ -267,14 +266,14 @@ class MapGen {
 	/// new hit objects. section is a line (without a newline) containing hit
 	/// objects in the otfm format, and offset is the value of the last !offset
 	/// command.
-	static Tuple!(Bashable[], int, int[]) readMapSection(const string section,
-														 const int bpm,
-														 const double scroll,
-														 int index,
-														 const int offset,
-														 const int group,
-														 int[] separatorTimes) {
+	static Tuple!(Bashable[][2], int) readMapSection(const string section,
+													 const int bpm,
+													 const double scroll,
+													 int index,
+													 const int offset,
+													 const int group) {
 		Bashable[] drumArray;
+		Bashable[] cosmeticArray;
 		int drumRollLength = 0;
 		DrumRoll makeDrumRoll() {
 			int startTime = calculatePosition(index - drumRollLength,
@@ -285,25 +284,16 @@ class MapGen {
 										   bpm) - startTime;
 			return new DrumRoll(0, 0, startTime, scroll, length);
 		}
-		Bashable insertSeparators(Bashable root, int[] separatorTimes) {
-			Bashable next = root;
-			foreach (int t ; separatorTimes.reverse()) {
-				next = new Separator(t, root.scroll, root);
-			}
-			return next;
-		}
 		foreach (const char type ; section) {
 			int currentOffset = calculatePosition(index, offset, bpm);
 			if (group > 0 && index % group == 0) {
-				separatorTimes ~= currentOffset;
+				cosmeticArray ~= new Separator(currentOffset, scroll);
 			}
 			if (type == 'O' || type == 'o') {
 				drumRollLength++;
 			} else {
 				if (drumRollLength > 0) {
-					DrumRoll d = makeDrumRoll();
-					drumArray ~= insertSeparators(d, separatorTimes);
-					separatorTimes = [];
+					drumArray ~= makeDrumRoll();
 				}
 				drumRollLength = 0;
 				Bashable next;
@@ -319,21 +309,16 @@ class MapGen {
 					continue;
 				}
 				if (next) {
-				    if (separatorTimes.length > 0) {
-						drumArray ~= insertSeparators(next, separatorTimes);
-						separatorTimes = [];
-					} else {
-						drumArray ~= next;
-					}
+					drumArray ~= next;
 				}
 			}
 			index++;
 		}
 		if (drumRollLength > 0) {
-			drumArray ~= insertSeparators(makeDrumRoll(), separatorTimes);
-			separatorTimes = [];
+			drumArray ~= makeDrumRoll();
 		}
-		return tuple(drumArray, index, separatorTimes);
+		Bashable[][2] arr = [drumArray, cosmeticArray];
+		return tuple(arr, index);
 	}
 
 	/// Returns a JSONValue representing the Song struct song as JSON
