@@ -193,7 +193,7 @@ class MapGen {
 			}
 		}
 
-		void parseHitObjects(const string line) {
+		void parseHitObjects(const dstring line) {
 			Tuple!(Bashable[][2], int) ret = readMapSection(line,
 															bpm * zoom,
 															scroll,
@@ -249,7 +249,7 @@ class MapGen {
 					break;
 
 				default:
-					parseHitObjects(line);
+					parseHitObjects(to!dstring(line));
 					break;
 			}
 		}
@@ -266,7 +266,7 @@ class MapGen {
 	/// new hit objects. section is a line (without a newline) containing hit
 	/// objects in the otfm format, and offset is the value of the last !offset
 	/// command.
-	static Tuple!(Bashable[][2], int) readMapSection(const string section,
+	static Tuple!(Bashable[][2], int) readMapSection(const dstring section,
 													 const int bpm,
 													 const double scroll,
 													 int index,
@@ -284,7 +284,7 @@ class MapGen {
 										   bpm) - startTime;
 			return new DrumRoll(0, 0, startTime, scroll, length);
 		}
-		foreach (const char type ; section) {
+		foreach (const dchar type ; section) {
 			int currentOffset = calculatePosition(index, offset, bpm);
 			if (group > 0 && index % group == 0) {
 				cosmeticArray ~= new Separator(currentOffset, scroll);
