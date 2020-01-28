@@ -4,7 +4,7 @@
 /// Hit object that rewards mashing during the set time period.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2019 gtensha
+/// Copyright: 2019-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -125,7 +125,7 @@ class DrumRoll : Bashable {
 	}
 
 	override int hit(int keyType) {
-		if (currentOffset >= actualPosition()) {
+		if (currentOffset >= position) {
 			animationTimer.set(Timer.libInitPassed,
 							   Timer.libInitPassed + EFFECT_LEN);
 			activeEffectIndex = cast(byte)keyType;
@@ -138,7 +138,7 @@ class DrumRoll : Bashable {
 	}
 
 	override bool expired() {
-		return currentOffset > actualPosition() + length / scroll;
+		return currentOffset > position + length / scroll;
 	}
 
 	override bool isFinished() {

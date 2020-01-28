@@ -25,6 +25,9 @@ class Cosmetic : Bashable {
 	this(Solid[] renderables, uint position, double scroll) {
 		super(renderables, position, scroll);
 		width = getObjectLength();
+		foreach (Solid r ; renderables) {
+			r.rect.x = cast(int)(r.rect.x * scroll);
+		}
 	}
 
 	override int hit(int keyType) {
@@ -36,7 +39,7 @@ class Cosmetic : Bashable {
 	}
 
 	override bool expired() {
-		return currentOffset > actualPosition() + width / scroll;
+		return (currentPosition + width / scroll) < 0;
 	}
 
 	override bool isFinished() {

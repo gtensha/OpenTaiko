@@ -5,7 +5,7 @@
 /// on their time of approach.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2019 gtensha
+/// Copyright: 2019-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -37,7 +37,7 @@ class RenderQueue : Renderable {
 			int first = int.max;
 			int last = 0;
 			foreach (Bashable object ; hitObjects) {
-				int basePosition = object.actualPosition();
+				int basePosition = object.position;
 				int firstPosition = basePosition + cast(int)(maxOffset / scroll);
 				if (firstPosition < first) {
 					first = firstPosition;
@@ -59,7 +59,7 @@ class RenderQueue : Renderable {
 			foreach (Bashable hitObject ; hitObjects[hitObjectIndex
 													 ..
 													 hitObjects.length]) {
-				if (hitObject.currentPosition > largestOffset) {
+				if (hitObject.currentPosition * hitObject.scroll > largestOffset) {
 					break;
 				} else if (hitObject.isFinished) {
 					hitObjectIndex++;

@@ -5,7 +5,7 @@
 /// drums should be in this module.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -44,7 +44,7 @@ abstract class Drum : Bashable {
 	}
 	
 	override public int hit(int key) {
-		const int lateValue = actualPosition() - timing.hitWindow;
+		const int lateValue = position - timing.hitWindow;
 		if (currentOffset < lateValue) {
 			if (currentOffset >= lateValue - timing.preHitDeadWindow) {
 				wasHit = true;
@@ -54,14 +54,14 @@ abstract class Drum : Bashable {
 		}
 		int successType = Success.BAD;
 		if (key == this.keyType) {
-			if (currentOffset < actualPosition() + timing.goodHitWindow
+			if (currentOffset < position + timing.goodHitWindow
 				&& 
-				currentOffset > actualPosition() - timing.goodHitWindow) {
+				currentOffset > position - timing.goodHitWindow) {
 
 				successType = Success.GOOD;
-			} else if (currentOffset < actualPosition() + timing.hitWindow
+			} else if (currentOffset < position + timing.hitWindow
 					   && 
-					   currentOffset > actualPosition() - timing.hitWindow) {
+					   currentOffset > position - timing.hitWindow) {
 
 				successType = Success.OK;
 			}

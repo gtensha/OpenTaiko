@@ -4,7 +4,7 @@
 /// Building blocks for drum-like hit objects, that have timing and key values.
 ///
 /// Authors: gtensha (@skyhvelv.net)
-/// Copyright: 2017-2019 gtensha
+/// Copyright: 2017-2020 gtensha
 /// License: GNU GPLv3 (no later versions)
 //
 //  You should have received a copy of the GNU General Public License
@@ -53,7 +53,7 @@ abstract class Bashable : Renderable {
 
 	this(Solid[] renderables, uint position, double scroll) {
 		this.renderables ~= renderables;
-		this.position = cast(int)(position * scroll);
+		this.position = position;
 		this.scroll = scroll;
 	}
 
@@ -66,7 +66,7 @@ abstract class Bashable : Renderable {
 	public void adjustX(int xOffset) {
 		foreach (Solid renderable ; renderables) {
 			if (renderable !is null) {
-				renderable.rect.x = (renderable.rect.x + xOffset);
+				renderable.rect.x += xOffset;
 			}
 		}
 	}
@@ -74,7 +74,7 @@ abstract class Bashable : Renderable {
 	public void adjustY(int yOffset) {
 		foreach (Solid renderable ; renderables) {
 			if (renderable !is null) {
-				renderable.rect.y = (renderable.rect.y + yOffset);
+				renderable.rect.y += yOffset;
 			}
 		}
 	}
@@ -88,14 +88,9 @@ abstract class Bashable : Renderable {
 	/// Return the value of this object, from which we can infer type
 	public int value();
 
-	/// Return this object's actual (relative) position on the timeline
-	public int actualPosition() {
-		return cast(int)(position / scroll);
-	}
-
 	/// Return this object's current position on the timeline
 	public int currentPosition() {
-		return cast(int)(position - currentOffset * scroll);
+		return cast(int)(position - currentOffset);
 	}
 
 	/// Return true if this object was hit and should no longer be rendered
