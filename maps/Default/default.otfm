@@ -12,10 +12,40 @@
 #         4, and there's a hit object every quarter of a second, 8 every 1/8
 #         second and so on.
 #
+#         When you change this value, any remaining beats in your stanza will be
+#         filled out with blanks before the next stanza can begin. To override
+#         this behavior, insert a !reset before !zoom. This sets the offset to
+#         the previous hit object's position.
+#
 # !offset - this explicitly sets the offset value of the following hit objects.
 #           This is particularly useful at the beginning of the song, as you are
 #           able to perfectly align the first hit object with the start of the
 #           beat.
+#
+# !reset - resets the hit object index and sets the offset to the position of
+#          the previous hypothetical hit object. Might be useful for changing
+#          zoom value between different beat patterns. Note: if you start adding
+#          hit objects immediately on the following line and the last character
+#          in the previous line represented a hit object, you will create two
+#          hit objects with the same position, so use caution:
+#
+#          BAD:
+#          !zoom 4
+#          #   |   |   |
+#          ddk ddk ddk d
+#          !reset
+#          !zoom 3
+#          #  |  |  |  |
+#          dk dk dk dk
+#
+#          GOOD:
+#          !zoom 4
+#          #   |   |   |
+#          ddk ddk ddk -
+#          !reset
+#          !zoom 3
+#          #  |  |  |  |
+#          dk dk dk dk
 #
 # !scroll - this sets the approach speed of the following hit objects. By
 #           default, hit objects move one pixel per millisecond, and this
@@ -53,6 +83,22 @@
 !offset 2000
 !group zoom
 #   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-ddk d   d   kkk d  kk   d   k   ddkdk k d   d   ddkkddkkddkkd   dd  kk  dd  kk--
-dkd kkd d   d   kkdkk   d   kdkdk   d           kddk    Ooooooooooooo   D   D---
-K   DDKD    ddddddddd
+ddk d   d   kkk d  kk   d   k   ddkdk k d   d   ddkkddkkddkkd   dd  kk  dd  kk -
+dkd kkd d   d   kkdkk   d   kdkdk   d           kddk   -
+!scroll 1.5
+Ooooooooooooo   D   D   K   DDKD   -
+!scroll 0.8
+!zoom 1
+#|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+dkk-
+!reset
+!zoom 2
+# | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+d k k -
+!reset
+!zoom 4
+#   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+d   k   k   d -
+!zoom 8
+#       |       |       |       |       |       |       |       |       |
+k       k       d       d

@@ -157,10 +157,25 @@ class MapGen {
 
 		void setZoom(const string[] line) {
 			if (line.length > 0) {
+				if (index > 0) {
+					index--;
+					const int remainingBeats = zoom - index % zoom;
+					offset = calculatePosition(index + remainingBeats,
+											   offset,
+											   bpm * zoom);
+				}
 				zoom = to!int(line[0]);
+				index = 0;
 				if (groupMode == GroupBy.ZOOM) {
 					group = zoom;
 				}
+			}
+		}
+
+		void reset(const string[]) {
+			if (index > 0) {
+				offset = calculatePosition(index - 1, offset, bpm * zoom);
+				index = 0;
 			}
 		}
 
@@ -208,6 +223,7 @@ class MapGen {
 		alias delegateAA = immutable void delegate(const string[])[string];
 		delegateAA handlers = ["!bpm": &setBPM,
 							   "!zoom": &setZoom,
+							   "!reset": &reset,
 							   "!scroll": &setScroll,
 							   "!group": &setGroup,
 							   "!offset": &setOffset];
