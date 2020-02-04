@@ -366,10 +366,6 @@ class MapGen {
 	/// different ones (different audio files, backgrounds etc).
 	static void extractOSZ(string path, string userDir) {
 		Song newSong;
-		if (path.length < 5 || equal(path[path.length - 3 .. path.length],
-		                             ".osz")) {
-			throw new Exception("Bad file extension");
-		}
 		version (Windows) {
 			path = path.split("\\").join("/");
 		}
@@ -432,108 +428,244 @@ class MapGen {
 	}
 
 	/// Reads the string data as a .osu file, parses it and returns a
-	/// MappedDifficulty struct with song, difficulty and map data from the file
-	static MappedDifficulty fromOSU(string data) {
+	/// MappedDifficulty struct with song, difficulty and map data from the
+	/// file.
+	static MappedDifficulty fromOSU(const string data) {
 
 		string openTaikoMap;
-		string[] lines = split(data, "\r\n");
+		openTaikoMap ~= "# Map converted from .osu format" ~ "\n\n";
+		const dstring[] lines = split(to!dstring(data), "\r\n");
 
-		//writeln(lines);
 		Song song;
 		Difficulty diff;
 
-		bool objectSection = false;
-		bool generalSection = false;
-		bool metaSection = false;
+		void delegate(const dstring)[string] sectionParsers;
+		void delegate(const dstring) activeParser;
 
-		openTaikoMap ~= "# Map converted from .osu format" ~ "\n\n";
-
-		foreach (string line ; lines) {
-
-			if (line.canFind("[HitObjects]")) {
-				objectSection = true;
-				generalSection = false;
-				metaSection = false;
-			} else if (line.canFind("[General]")) {
-				generalSection = true;
-				objectSection = false;
-				metaSection = false;
-			} else if (line.canFind("[Metadata]")) {
-				metaSection = true;
-				objectSection = false;
-				generalSection = false;
-
-			} else if (generalSection) {
-				if (canFind(line, "AudioFilename:")) {
-					song.src = findSplitAfter(line, "AudioFilename: ")[1];
-				}				
-
-			} else if (metaSection) {
-				string[] identifier = split(line, ":");
-				if (identifier.length > 1) {
-					switch (identifier[0]) {
-						case "Title":
-							song.title = findSplitAfter(line, "Title:")[1];
-							break;
-
-						case "Artist":
-							song.artist = findSplitAfter(line, "Artist:")[1];
-							break;
-
-						case "Creator":
-							song.maintainer = findSplitAfter(line, "Creator:")[1];
-							break;
-							
-						case "Tags":
-							song.tags = findSplitAfter(line, "Tags:")[1].split();
-							break;
-
-						case "Version":
-							diff.name = findSplitAfter(line, "Version:")[1];
-							diff.difficulty = 0;
-							song.difficulties ~= diff;
-							break;
-
-						default:
-							break;
-					}					
-				}					
-			} else if (objectSection) {
-				string[] properties = split(line, ',');
-				if (properties.length >= 5) {
-					if (properties[3].equal("1")) {
-						openTaikoMap ~= "!offset " ~ properties[2] ~ "\n";
-						switch (properties[4]) {
-
-							case "0":
-								openTaikoMap ~= "d" ~ "\n";
-								break;
-
-							case "2":
-								openTaikoMap ~= "k" ~ "\n";
-								break;
-
-							case "8":
-								goto case "2";
-
-							case "6":
-								goto case "2";
-
-							default:
-								break;
-						}
-					}
+		const void delegate(dstring)[string] attributeCallbacks = [
+			// [General]
+			"AudioFilename": (dstring s){
+				song.src = to!string(s);
+			},
+			// [Metadata]
+			"Title": (dstring s){
+				song.title = to!string(s);
+			},
+			"Artist": (dstring s){
+				song.artist = to!string(s);
+			},
+			"Creator": (dstring s){
+				song.maintainer = to!string(s);
+				diff.mapper = to!string(s);
+			},
+			"Version": (dstring s){
+				diff.name = to!string(s);
+			},
+			"Tags": (dstring s){
+				song.tags = to!string(s).split(" ");
+			},
+			// [Difficulty]
+			"OverallDifficulty": (dstring s){
+				if (s.isNumeric()) {
+					diff.difficulty = cast(int)(to!double(s));
 				}
+			}
+		];
+
+		struct KVPair {
+			dstring key;
+			dstring value;
+		}
+
+		struct TimingSection {
+			int startTime;
+			int bpm;
+			int group;
+			Tuple!(int, double)[] scrollChanges;
+		}
+
+		TimingSection[] timingSections;
+		Tuple!(int, int, char)[] hitObjects; // time, length, type
+
+		/// Returns the key and value from line, split using delim. Only splits
+		/// on the first occurence of delim.
+		KVPair keyValueSplitter(const dstring line, const string delim) {
+			const dstring[] split = line.split(delim);
+			KVPair ret;
+			ret.key = split[0];
+			if (split.length >= 2) {
+			    ret.value = split[1 .. $].join(delim);
+			}
+			return ret;
+		}
+
+		void applyAttribute(const KVPair pair,
+							const void delegate(dstring)[string] cb) {
+
+			const void delegate(dstring)* fn = to!string(pair.key) in cb;
+			if (fn) {
+				(*fn)(pair.value);
 			}
 		}
 
-		diff.mapper = song.maintainer;
+		// [General]
+		void generalParser(const dstring line) {
+			applyAttribute(keyValueSplitter(line, ": "), attributeCallbacks);
+		}
+
+		// [Editor]
+		void editorParser(const dstring line) {}
+
+		// [Metadata]
+		void metadataParser(const dstring line) {
+			applyAttribute(keyValueSplitter(line, ":"), attributeCallbacks);
+		}
+
+		// [Difficulty]
+		void difficultyParser(const dstring line) {
+			applyAttribute(keyValueSplitter(line, ":"), attributeCallbacks);
+		}
+
+		// [Events]
+		void eventsParser(const dstring line) {}
+
+		// [TimingPoints]
+		void timingPointsParser(const dstring line) {
+			if (line.length < 1) {
+				return;
+			}
+			const dstring[] split = line.split(",");
+			if (split.length > 0 && split.length != 8) {
+				// TODO: Proper error handling
+				throw new Exception("Malformed .osu file: TimingPoints");
+			}
+			const int time = cast(int)(to!real(split[0]));
+			const double beatLength = to!double(split[1]);
+			const int meter = cast(int)(to!real(split[2]));
+			if (beatLength > 0) {
+				TimingSection newSection;
+				const int bpm = cast(int)((1 / beatLength) * 60000.0);
+				newSection.startTime = time;
+				newSection.bpm = bpm;
+				newSection.group = meter;
+				timingSections ~= newSection;
+			} else if (timingSections.length > 0) {
+				const double scroll = beatLength / -100;
+				timingSections[$ - 1].scrollChanges ~= tuple(time + 0,
+															 scroll + 0);
+			}
+		}
+
+		// [Colours]
+		void coloursParser(const dstring line) {}
+
+		// [HitObjects]
+		void hitObjectsParser(const dstring line) {
+			if (line.length < 1) {
+				return;
+			}
+			const dstring[] split = line.split(",");
+			if (split.length < 6) {
+				// TODO: Proper error handling
+				throw new Exception("Malformed .osu file: HitObjects");
+			}
+			const int time = to!int(split[2]);
+			const byte type = to!byte(split[3]);
+			if (type & 0b0001) { // regular drum
+				const byte soundType = to!ubyte(split[4]);
+				char variant;
+				if ((soundType & 0b0010) || (soundType & 0b1000)) { // kat
+					variant = 'k';
+				} else { // don
+					variant = 'd';
+				}
+				if (soundType & 0b0100) { // enlarge
+					variant -= 'a' - 'A';
+				}
+				hitObjects ~= tuple(time + 0, 0, cast(char)variant);
+			} else if (type & 0b0010) { // slider
+				// TODO: implement sliders
+			} else if (type & 0b1000) { // spinner (converts to slider)
+				const char variant = 'O';
+				const int duration = to!int(split[5]) - time;
+				hitObjects ~= tuple(time + 0, duration + 0, cast(char)variant);
+			}
+		}
+
+		sectionParsers = ["[General]": &generalParser,
+						  "[Editor]": &editorParser,
+						  "[Metadata]": &metadataParser,
+						  "[Difficulty]": &difficultyParser,
+						  "[Events]": &eventsParser,
+						  "[TimingPoints]": &timingPointsParser,
+						  "[Colours]": &coloursParser,
+						  "[HitObjects]": &hitObjectsParser];
+
+		foreach (const dstring line ; lines) {
+			if (line.length < 1) {
+				continue;
+			}
+			void delegate(const dstring)* fn = (to!string(line)
+												in sectionParsers);
+			if (fn) {
+				activeParser = *fn;
+			} else if (activeParser) {
+				activeParser(line);
+			}
+		}
+
+		int hitObjectIndex;
+		for (int i = 0; i < timingSections.length; i++) {
+			TimingSection section = timingSections[i];
+			openTaikoMap ~= format("!bpm %d\n", section.bpm);
+			int scrollChangeIndex;
+			int nextSectionStart;
+			if (i + 1 < timingSections.length) {
+				nextSectionStart = timingSections[i + 1].startTime;
+			} else {
+				nextSectionStart = int.max;
+			}
+			while (hitObjectIndex < hitObjects.length
+				   && hitObjects[hitObjectIndex][0] < nextSectionStart) {
+
+				Tuple!(int, int, char) object = hitObjects[hitObjectIndex];
+				Tuple!(int, double) scrollChange;
+				if (scrollChangeIndex < section.scrollChanges.length) {
+					scrollChange = section.scrollChanges[scrollChangeIndex];
+				} else {
+					scrollChange = tuple(int.max, 1.0);
+				}
+				if (scrollChange[0] <= object[0]) {
+					openTaikoMap ~= format("!scroll %f\n", scrollChange[1]);
+					scrollChangeIndex++;
+				}
+				if (object[2] == 'O') { // TODO: proper drum roll length
+					static immutable int zoom = 16;
+					openTaikoMap ~= format("!zoom %d\n", zoom);
+					openTaikoMap ~= format("!offset %d\n", object[0]);
+					int accumulatedTime = object[0];
+					int objectsAdded;
+					while (accumulatedTime < object[0] + object[1]) {
+						openTaikoMap ~= 'o';
+						accumulatedTime = calculatePosition(objectsAdded,
+															object[0],
+															section.bpm * zoom);
+						objectsAdded++;
+					}
+					openTaikoMap ~= '\n';
+				} else {
+					openTaikoMap ~= format("!offset %d\n", object[0]);
+					openTaikoMap ~= object[2] ~ "\n";
+				}
+				hitObjectIndex++;
+			}
+		}
+
 		MappedDifficulty ret;
 		ret.map = openTaikoMap;
 		ret.diff = diff;
 		ret.metadata = song;
 		return ret;
-
 	}
 
 	abstract string fromTJAFile(string file);
