@@ -150,7 +150,7 @@ dub build --config=SFMLMixer --arch=x86_64
 CSFML を除いて、コンパイラー・必要なライブラリはすでに ports から利用可能なので、以下のパッケージをインストールします。
 
 ```
-pkg install ldc dub sdl2 sfml sdl2_image sdl2_ttf
+pkg install ldc dub sdl2 sfml sdl2_image sdl2_ttf ffmpeg
 ```
 
 実行できる前に、[CSFML](https://www.sfml-dev.org/download/csfml/) をソースからコンパイル必要があります。sfml、gcc、cmake をもったら問題なくコンパイルおよびインストールを行えるはずです。

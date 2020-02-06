@@ -147,7 +147,7 @@ If the command succeeds, you will find OpenTaiko.exe has appeared in the directo
 All dependencies save for CSFML are available in the ports tree. Install the following packages:
 
 ```
-pkg install ldc dub sdl2 sfml sdl2_image sdl2_ttf
+pkg install ldc dub sdl2 sfml sdl2_image sdl2_ttf ffmpeg
 ```
 
 Before you can run the game, you need to compile [CSFML](https://www.sfml-dev.org/download/csfml/) from source. It should compile and install without issue if you have sfml, gcc and cmake installed:
