@@ -145,7 +145,27 @@ dub build --config=SFMLMixer --arch=x86_64
 ビルドに成功したら OpenTaiko.exe がディレクトリに作られます。OpenTaiko の実行時にエラーが出たら、もう一度、手順を確認してください。特に、PC のアーキテクチャにあった dll が含まれることを確認してください。
 
 ### BSD
-BSD の動作確認はしていませんが、ほとんどの BSD は必要なライブラリが利用可能なので、できるかもしれません。
+
+#### FreeBSD
+CSFML を除いて、コンパイラー・必要なライブラリはすでに ports から利用可能なので、以下のパッケージをインストールします。
+
+```
+pkg install ldc dub sdl2 sfml sdl2_image sdl2_ttf
+```
+
+実行できる前に、[CSFML](https://www.sfml-dev.org/download/csfml/) をソースからコンパイル必要があります。sfml、gcc、cmake をもったら問題なくコンパイルおよびインストールを行えるはずです。
+
+```
+doas pkg install cmake gcc
+curl -O https://www.sfml-dev.org/files/CSFML-2.5-sources.zip
+unzip CSFML-2.5-sources.zip
+cd CSFML-2.5
+mkdir build
+cd build
+cmake ..
+make
+doas make install
+```
 
 ### MacOS
 [homebrew](https://brew.sh/) を使って必要なパッケージをインストールします。

@@ -142,7 +142,27 @@ You may have to wait a couple of seconds the first time as dub fetches dependenc
 If the command succeeds, you will find OpenTaiko.exe has appeared in the directory. You may now run it, and hopefully you'll be able to play. If it crashes, go through the steps above once more, and check that you did everything correctly, especially note whether you downloaded 32-bit .dll files or 64-bit ones, as they must match your system architecture.
 
 ### BSD
-BSD has not been tested but assuming you can get dmd working, it could work, as most BSDs supply the necessary libraries. Apply the same ideas as with Linux.
+
+#### FreeBSD
+All dependencies save for CSFML are available in the ports tree. Install the following packages:
+
+```
+pkg install ldc dub sdl2 sfml sdl2_image sdl2_ttf
+```
+
+Before you can run the game, you need to compile [CSFML](https://www.sfml-dev.org/download/csfml/) from source. It should compile and install without issue if you have sfml, gcc and cmake installed:
+
+```
+doas pkg install cmake gcc
+curl -O https://www.sfml-dev.org/files/CSFML-2.5-sources.zip
+unzip CSFML-2.5-sources.zip
+cd CSFML-2.5
+mkdir build
+cd build
+cmake ..
+make
+doas make install
+```
 
 ### MacOS
 Use [homebrew](https://brew.sh/) and install the required packages.
