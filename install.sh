@@ -40,8 +40,8 @@ install_game () {
 	then
 		mkdir "$resource_install_dir" || exit 1
 	fi
-	cp -r assets/ "$resource_install_dir" &&
-	cp -r locale/ "$resource_install_dir" &&
+	cp -r assets "$resource_install_dir" &&
+	cp -r locale "$resource_install_dir" &&
 	cp OpenTaiko "$binary_install_dir"/"$real_binary_name" &&
 	echo "#!"$(which sh) > "$binary_install_dir"/"$launch_script_name" &&
 	echo "export OPENTAIKO_INSTALLDIR=""$resource_install_dir" >> "$binary_install_dir"/"$launch_script_name" &&
