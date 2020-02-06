@@ -123,8 +123,7 @@ class MapGen {
 
 	/// Different ways to group hit objects (displaying separators).
 	enum GroupBy : byte {
-		VALUE, /// Group every n objects, dictated by index.
-		ZOOM /// As VALUE, where n is always equal to zoom.
+		VALUE /// Group every n objects, where n is group * zoom
 	}
 	
 	private static ffmpegStatusChecked = false;
@@ -166,9 +165,6 @@ class MapGen {
 				}
 				zoom = to!int(line[0]);
 				index = 0;
-				if (groupMode == GroupBy.ZOOM) {
-					group = zoom;
-				}
 			}
 		}
 
@@ -190,9 +186,6 @@ class MapGen {
 				if (line[0].isNumeric()) {
 					group = to!int(line[0]);
 				    groupMode = GroupBy.VALUE;
-				} else if (line[0].equal("zoom")) {
-					group = zoom;
-					groupMode = GroupBy.ZOOM;
 				} else {
 					string msg = ("Invalid value for command \"group\": "
 								  ~ line[0]);
@@ -210,7 +203,8 @@ class MapGen {
 
 		void parseHitObjects(const dstring line) {
 			Tuple!(Bashable[][2], int) ret = readMapSection(line,
-															bpm * zoom,
+															bpm,
+															zoom,
 															scroll,
 															index,
 															offset,
@@ -284,25 +278,27 @@ class MapGen {
 	/// command.
 	static Tuple!(Bashable[][2], int) readMapSection(const dstring section,
 													 const int bpm,
+													 const int zoom,
 													 const double scroll,
 													 int index,
 													 const int offset,
 													 const int group) {
+		const int realBPM = bpm * zoom;
 		Bashable[] drumArray;
 		Bashable[] cosmeticArray;
 		int drumRollLength = 0;
 		DrumRoll makeDrumRoll() {
 			int startTime = calculatePosition(index - drumRollLength,
 											  offset,
-											  bpm);
+											  realBPM);
 			int length = calculatePosition(index,
 										   offset,
-										   bpm) - startTime;
+										   realBPM) - startTime;
 			return new DrumRoll(0, 0, startTime, scroll, length);
 		}
 		foreach (const dchar type ; section) {
-			int currentOffset = calculatePosition(index, offset, bpm);
-			if (group > 0 && index % group == 0) {
+			int currentOffset = calculatePosition(index, offset, realBPM);
+			if (group > 0 && index % (zoom * group) == 0) {
 				cosmeticArray ~= new Separator(currentOffset, scroll);
 			}
 			if (type == 'O' || type == 'o') {

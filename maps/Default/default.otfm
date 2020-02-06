@@ -53,7 +53,7 @@
 #           millisecond, "!scroll 0.5" one pixel every two milliseconds, and so
 #           on.
 #
-# !group - defines the length per stanza; in other words, for every n hit
+# !group - defines the length per stanza; in other words, for every n * zoom hit
 #          objects a cosmetic separator will be displayed on screen. This is
 #          generally set according to the beat of the song, but if not declared,
 #          separators will not be added. Setting this to 0 disables it
@@ -76,17 +76,59 @@
 #  * D - large inner drum hit
 #  * K - large rim hit
 #  * O/o - drum roll, length specified through chaining, like "Oooooooo"
+#
+# To make it more clear how to set the proper variables according to the beat,
+# it could make sense to use actual musical terminology.
+#
+# Consider standard musical notation. The length of a bar and the length of
+# individual notes is usually set using a time signature like 3/4. The otfm
+# format takes some liberties to better reflect the technical implementation
+# instead of representing a musical score. To users familiar with the latter,
+# it might seem a bit confusing at first.
+#
+# If we look at the most basic example - both zoom and group values of 1 - we
+# can imagine that we have a 1/1 time signature. One character input means one
+# whole note (𝅝), and we have 1 notes per stanza.
+#
+# But when we expand to 4/4, the analogy breaks down because the "score" as it
+# is displayed in a text editor does not deal with notes of different lengths,
+# as the note length is dictated by the zoom value.
+#
+# It could make sense to imagine that the lower numeral, the zoom value, instead
+# indicates the only type of note available, in this case the quarter note (♩).
+# If it was 2, then it would've been a half note (𝅗𝅥). 3 would mean
+# (approximately) a dotted quarter note (♩.), and so on.
+#
+# Now, the group value would then represent how many whole notes (𝅝) are in a
+# "stanza", in this case, 4.
+#
+# It is worth noting that "stanzas" are only cosmetic and purely dictate when
+# the separators are displayed on screen, they do not affect the mapping in any
+# other way. Whether or not it makes sense to bring music analogy into this is
+# entirely up to the user.
 
 !bpm 160
 !zoom 4
 !scroll 1
 !offset 2000
-!group zoom
+!group 4
+# Below you see a series of vertical bars, preceded by a comment mark (#) as
+# used in this very comment. It is good practice to have some visual aid to help
+# discern the beat. In this example, we simply have the bars reflect the zoom
+# value (4): Bar two three four, bar two three four...
+
 #   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
 ddk d   d   kkk d  kk   d   k   ddkdk k d   d   ddkkddkkddkkd   dd  kk  dd  kk -
 dkd kkd d   d   kkdkk   d   kdkdk   d           kddk   -
 !scroll 1.5
 Ooooooooooooo   D   D   K   DDKD   -
+# It is good practice to end lines with a visible character at the end if the
+# last character is not a hit object, otherwise it might not be so obvious in
+# case one forgot to end a line with the proper spacing. An otherwise good way
+# to test if your lines are aligned properly is to move to the previous line
+# and pressing END followed by DELETE. It should be easy to see if the patterns
+# are misaligned.
+
 !scroll 0.8
 !zoom 1
 #|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
