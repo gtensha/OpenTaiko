@@ -138,7 +138,7 @@ class MapGen {
 	static Bashable[][2] parseMapFromFile(const string file) {
 		const string map = cast(string)(read(file));
 		const string[] lines = map.split("\n");
-		int bpm = 60;
+		real bpm = 60;
 		int zoom = 1;
 		int group = 0;
 		byte groupMode = GroupBy.VALUE;
@@ -150,7 +150,7 @@ class MapGen {
 
 		void setBPM(const string[] line) {
 			if (line.length > 0) {
-				bpm = to!int(line[0]);
+				bpm = to!real(line[0]);
 			}
 		}
 
@@ -275,7 +275,10 @@ class MapGen {
 
 	/// Calculate a hit object's position in milliseconds from its index
 	/// relative to offset, using bpm (use the real bpm value, bpm * scroll).
-	static pure int calculatePosition(const int index, const int offset, const int bpm) {
+	static pure int calculatePosition(const int index,
+									  const int offset,
+									  const real bpm) {
+
 		return cast(int)((60000.0 / bpm) * index) + offset;
 	}
 
@@ -284,13 +287,13 @@ class MapGen {
 	/// objects in the otfm format, and offset is the value of the last !offset
 	/// command.
 	static Tuple!(Bashable[][2], int) readMapSection(const dstring section,
-													 const int bpm,
+													 const real bpm,
 													 const int zoom,
 													 const double scroll,
 													 int index,
 													 const int offset,
 													 const int group) {
-		const int realBPM = bpm * zoom;
+		const real realBPM = bpm * zoom;
 		Bashable[] drumArray;
 		Bashable[] cosmeticArray;
 		int drumRollLength = 0;
@@ -482,7 +485,7 @@ class MapGen {
 
 		struct TimingSection {
 			int startTime;
-			int bpm;
+			real bpm;
 			int group;
 			Tuple!(int, double)[] scrollChanges;
 		}
@@ -543,11 +546,11 @@ class MapGen {
 				throw new Exception("Malformed .osu file: TimingPoints");
 			}
 			const int time = cast(int)(to!real(split[0]));
-			const double beatLength = to!double(split[1]);
+			const real beatLength = to!real(split[1]);
 			const int meter = cast(int)(to!real(split[2]));
 			if (beatLength > 0) {
 				TimingSection newSection;
-				const int bpm = cast(int)((1 / beatLength) * 60000.0);
+				const real bpm = (1 / beatLength) * 60000.0;
 				newSection.startTime = time;
 				newSection.bpm = bpm;
 				newSection.group = meter;
@@ -620,7 +623,7 @@ class MapGen {
 		int hitObjectIndex;
 		for (int i = 0; i < timingSections.length; i++) {
 			TimingSection section = timingSections[i];
-			openTaikoMap ~= format("!bpm %d\n", section.bpm);
+			openTaikoMap ~= format("!bpm %f\n", section.bpm);
 			int scrollChangeIndex;
 			int nextSectionStart;
 			int lastObjectPosition = section.startTime;
