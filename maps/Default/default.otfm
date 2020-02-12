@@ -57,8 +57,7 @@
 #          objects a cosmetic separator will be displayed on screen. This is
 #          generally set according to the beat of the song, but if not declared,
 #          separators will not be added. Setting this to 0 disables it
-#          explicitly. If set to "zoom", then the value will reflect the current
-#          zoom value.
+#          explicitly.
 #
 # !separator - inserts a separator at the given position. This is only meant to
 #              be used with timestamp-based maps, so when mapping normally there
