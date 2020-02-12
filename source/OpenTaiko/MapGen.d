@@ -194,6 +194,12 @@ class MapGen {
 			}
 		}
 
+		void addSeparator(const string[] line) {
+			if (line.length > 0) {
+				cosmeticArray ~= new Separator(to!int(line[0]), scroll);
+			}
+		}
+
 		void setOffset(const string[] line) {
 			if (line.length > 0) {
 				offset = to!int(line[0]);
@@ -220,6 +226,7 @@ class MapGen {
 							   "!reset": &reset,
 							   "!scroll": &setScroll,
 							   "!group": &setGroup,
+							   "!separator": &addSeparator,
 							   "!offset": &setOffset];
 		foreach (size_t i, const string line ; lines) {
 			const char first = line.length > 0 ? line[0] : '#';
@@ -616,6 +623,7 @@ class MapGen {
 			openTaikoMap ~= format("!bpm %d\n", section.bpm);
 			int scrollChangeIndex;
 			int nextSectionStart;
+			int lastObjectPosition = section.startTime;
 			if (i + 1 < timingSections.length) {
 				nextSectionStart = timingSections[i + 1].startTime;
 			} else {
@@ -648,12 +656,36 @@ class MapGen {
 															section.bpm * zoom);
 						objectsAdded++;
 					}
+					lastObjectPosition = accumulatedTime;
 					openTaikoMap ~= '\n';
 				} else {
 					openTaikoMap ~= format("!offset %d\n", object[0]);
 					openTaikoMap ~= object[2] ~ "\n";
+					lastObjectPosition = object[0];
 				}
 				hitObjectIndex++;
+			}
+			scrollChangeIndex = 0;
+			int firstSeparator = section.startTime;
+			int separatorIndex = 0;
+			int currentTimeStamp = firstSeparator;
+			while (currentTimeStamp <= lastObjectPosition) {
+				Tuple!(int, double) scrollChange;
+				if (scrollChangeIndex < section.scrollChanges.length) {
+					scrollChange = section.scrollChanges[scrollChangeIndex];
+				} else {
+					scrollChange = tuple(int.max, 1.0);
+				}
+				if (scrollChange[0] <= currentTimeStamp) {
+					openTaikoMap ~= format("!scroll %f\n", scrollChange[1]);
+					scrollChangeIndex++;
+				}
+				openTaikoMap ~= format("!separator %d\n", currentTimeStamp);
+				currentTimeStamp = calculatePosition(separatorIndex,
+													 firstSeparator,
+													 (section.bpm
+													  / section.group));
+				separatorIndex++;
 			}
 		}
 

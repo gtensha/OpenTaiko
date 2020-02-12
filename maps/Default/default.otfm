@@ -60,6 +60,10 @@
 #          explicitly. If set to "zoom", then the value will reflect the current
 #          zoom value.
 #
+# !separator - inserts a separator at the given position. This is only meant to
+#              be used with timestamp-based maps, so when mapping normally there
+#              shouldn't be any reason to use this.
+#
 # Every character, except for the newline, corresponds to one beat unit. Any
 # input character that isn't reserved inserts empty space between the hit
 # objects.
