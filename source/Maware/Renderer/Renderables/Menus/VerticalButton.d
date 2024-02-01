@@ -23,7 +23,7 @@ import maware.util.math.ezmath;
 
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect;
+import bindbc.sdl : SDL_Renderer, SDL_Rect;
 
 class VerticalButton : Button {
 

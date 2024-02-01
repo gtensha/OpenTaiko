@@ -16,7 +16,7 @@ module opentaiko.bashable.drum;
 import maware.renderable : Solid, Textured, Renderable;
 import opentaiko.bashable.bashable;
 
-import derelict.sdl2.sdl : SDL_Texture, SDL_Renderer;
+import bindbc.sdl : SDL_Texture, SDL_Renderer;
 
 /// A subclass of Bashable that acts as a small drum in the game
 abstract class Drum : Bashable {

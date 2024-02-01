@@ -19,11 +19,11 @@ import maware.renderer;
 
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Rect,
-						   SDL_Color,
-						   SDL_Renderer,
-						   SDL_SetRenderDrawColor,
-						   SDL_RenderFillRect;
+import bindbc.sdl : SDL_Rect,
+	                SDL_Color,
+	                SDL_Renderer,
+	                SDL_SetRenderDrawColor,
+	                SDL_RenderFillRect;
 
 class Solid : Renderable {
 

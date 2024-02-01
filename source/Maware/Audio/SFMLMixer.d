@@ -18,7 +18,8 @@ version (SFMLMixer):
 import maware.engine;
 import maware.audio.mixer;
 
-import derelict.sfml2.audio;
+import bindbc.sfml.audio;
+import bindbc.sfml;
 
 import std.string : toStringz;
 
@@ -34,7 +35,14 @@ class SFMLMixer : AudioMixer {
 
 	/// Link the libcsfml libraries dynamically
 	static void initialise() {
-		DerelictSFML2Audio.load();
+		SFMLSupport ret = loadSFMLAudio();
+		if (ret != sfmlSupport) {
+			if (ret == SFMLSupport.noLibrary) {
+				throw new Exception("CSFML library missing.");
+			} else if (ret == SFMLSupport.badLibrary) {
+				// whatever, let's try anyway
+			}
+		}
 	}
 
 	/// Not implemented

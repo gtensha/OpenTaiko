@@ -14,8 +14,8 @@ module maware.renderable.ellipsedtext;
 
 import maware.renderable.boundedtext;
 
-import derelict.sdl2.sdl : SDL_Color;
-import derelict.sdl2.ttf : TTF_Font;
+import bindbc.sdl : SDL_Color;
+import sdl_ttf : TTF_Font;
 
 import std.algorithm.comparison : equal;
 

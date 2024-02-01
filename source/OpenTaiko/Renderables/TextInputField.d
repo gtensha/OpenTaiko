@@ -19,7 +19,7 @@ import maware.font;
 import maware.renderable.text;
 import maware.renderable.solid;
 import opentaiko.game;
-import derelict.sdl2.sdl : SDL_Rect;
+import bindbc.sdl : SDL_Rect;
 
 import std.stdio;
 

@@ -12,7 +12,7 @@
 
 module maware.inputhandler;
 
-import derelict.sdl2.sdl;/* : SDL_PollEvent,
+import bindbc.sdl;/* : SDL_PollEvent,
 						   SDL_Event,
 						   SDL_Keycode,
 						   SDL_KeyboardEvent,

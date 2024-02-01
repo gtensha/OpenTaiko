@@ -16,7 +16,7 @@ import maware.font;
 import maware.renderable.menus.traversable;
 import maware.renderable.text;
 
-import derelict.sdl2.sdl : SDL_Color;
+import bindbc.sdl : SDL_Color;
 
 import std.conv : to;
 

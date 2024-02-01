@@ -20,7 +20,7 @@ import maware.renderable.menus.button;
 import maware.renderable.menus.horizontaltopbarbutton;
 import maware.renderable.text;
 
-import derelict.sdl2.sdl : SDL_Color, SDL_Renderer;
+import bindbc.sdl : SDL_Color, SDL_Renderer;
 
 class HorizontalTopBarMenu : Menu {
 

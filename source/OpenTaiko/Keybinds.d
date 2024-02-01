@@ -13,7 +13,7 @@
 
 module opentaiko.keybinds;
 
-import derelict.sdl2.sdl : SDL_GameController;
+import bindbc.sdl : SDL_GameController;
 
 /// Structure containing controller and keyboard bindings for a player
 struct Keybinds {

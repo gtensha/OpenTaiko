@@ -28,7 +28,7 @@ import maware.font;
 import std.string : rightJustify;
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_Renderer;
+import bindbc.sdl : SDL_Renderer;
 
 /// Status types for hit result effects
 enum StatusType {

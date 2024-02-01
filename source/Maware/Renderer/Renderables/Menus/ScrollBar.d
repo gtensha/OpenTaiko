@@ -19,7 +19,7 @@ import maware.renderable.renderable;
 import maware.renderable.solid;
 import maware.renderable.text;
 
-import derelict.sdl2.sdl : SDL_Color;
+import bindbc.sdl : SDL_Color;
 
 import std.math : ceil;
 

@@ -35,8 +35,8 @@ import std.conv : to;
 import std.format : format;
 import std.string : rightJustify;
 
-import derelict.sdl2.sdl : SDL_Color, SDL_Renderer, SDL_Texture;
-import derelict.sdl2.ttf : TTF_Font;
+import bindbc.sdl : SDL_Color, SDL_Renderer, SDL_Texture;
+import sdl_ttf : TTF_Font;
 
 class SongSelectMenu : Traversable {
 

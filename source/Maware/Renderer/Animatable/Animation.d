@@ -17,7 +17,7 @@ import maware.renderable.solid;
 import maware.animatable.animatable;
 import maware.util.timer;
 
-import derelict.sdl2.sdl : SDL_Rect;
+import bindbc.sdl : SDL_Rect;
 
 /// A class for manipulating the position and/or size of Solid-based renderables
 class Animation : Animatable {

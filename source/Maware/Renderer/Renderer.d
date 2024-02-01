@@ -26,14 +26,11 @@ import std.file;
 import std.string : fromStringz, toStringz;
 import std.conv : to;
 
-import derelict.sdl2.sdl;
-import derelict.sdl2.image;
-import derelict.sdl2.ttf;
-import derelict.util.exception : ShouldThrow;
-
-ShouldThrow myMissingSymCB(string symbolName) {
-    return ShouldThrow.No;
-}
+//import loader = bindbc.loader.sharedlib;
+import bindbc.sdl;
+import sdl_ttf;
+import sdl_image;
+import bindbc.loader.sharedlib;
 
 /// A renderer class for creating and rendering on-screen objects and scenes
 /// Must be initialised before it can be used; see initialise() methods
@@ -60,34 +57,46 @@ class Renderer {
 	/// Attempt loading the SDL2 libraries. Needed to successfully construct
 	/// an object of this class. Throws exceptions on load failure.
 	static void initialise(int videoFlags, int imgFlags) {
-
-		//DerelictSDL2.missingSymbolCallback = &myMissingSymCB;
-
-		DerelictSDL2.load();
-		DerelictSDL2Image.load();
-		DerelictSDL2ttf.load();
-
-		if (SDL_Init(videoFlags) < 0) {
-			throw new Exception(to!string("Failed to initialise SDL: "
-										  ~ fromStringz(SDL_GetError())));
+		SDLSupport ret = loadSDL();
+		if (ret != sdlSupport) {		
+			string msg;
+			if (ret == SDLSupport.noLibrary) {
+				msg = "This application requires the SDL library.";
+			} else {
+				msg = "Bad SDL version.";
+			}
+			throw new Exception(msg);
 		}
-
-		if (IMG_Init(imgFlags) < 0) {
-			throw new Exception(to!string("Failed to initialise SDL_image: "
-										  ~ fromStringz(IMG_GetError())));
+		SDLImageSupport imgRet = loadSDLImage();
+		if (imgRet != sdlImageSupport) {		
+			string msg;
+			if (imgRet == SDLImageSupport.noLibrary) {
+				msg = "This application requires the SDL_Image library.";
+			} else {
+				msg = "Bad SDL version.";
+			}
+			throw new Exception(msg);
 		}
-
-		if (TTF_Init() < 0) {
-			throw new Exception(to!string("Failed to initialise SDL_ttf: "
-										  ~ fromStringz(TTF_GetError())));
+		SDLTTFSupport ttfRet = loadSDLTTF();
+		if (ttfRet != sdlTTFSupport) {		
+			string msg;
+			if (ttfRet == SDLTTFSupport.noLibrary) {
+				msg = "This application requires the SDL_TTF library.";
+			} else {
+				msg = "Bad SDL version.";
+			}
+			throw new Exception(msg);
 		}
-
+		SDL_Init(videoFlags);
+		IMG_Init(imgFlags);
+		TTF_Init();
 		sdlIsInit = true;
 	}
 
 	/// Call initialise() with default video subsystem flags
 	static void initialise() {
-		initialise(SDL_INIT_VIDEO, IMG_INIT_PNG | IMG_INIT_JPG);
+		initialise(SDL_INIT_VIDEO,
+				   IMG_INIT_PNG | IMG_INIT_JPG);
 	}
 
 	/// Reverses the library initialisations made by initialise().

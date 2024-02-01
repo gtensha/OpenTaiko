@@ -17,7 +17,7 @@ import maware.animatable.animatable;
 import maware.renderable.solid;
 import maware.util.timer;
 
-import derelict.sdl2.sdl : SDL_Color;
+import bindbc.sdl : SDL_Color;
 
 /// A class for modifying color values of Solid-based Renderables
 class Effect : Animatable {

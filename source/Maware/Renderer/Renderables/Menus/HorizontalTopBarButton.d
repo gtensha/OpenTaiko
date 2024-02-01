@@ -25,7 +25,7 @@ import maware.util.math.ezmath;
 import std.conv : to;
 import std.math : sin, cos, PI;
 
-import derelict.sdl2.sdl : SDL_Renderer, SDL_Rect, SDL_UnionRect, SDL_Color;
+import bindbc.sdl : SDL_Renderer, SDL_Rect, SDL_UnionRect, SDL_Color;
 
 class HorizontalTopBarButton : Button {
 

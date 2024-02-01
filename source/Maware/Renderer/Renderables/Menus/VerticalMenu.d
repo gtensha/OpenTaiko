@@ -23,7 +23,7 @@ import maware.renderable.text;
 import maware.renderable.menus.menu;
 import maware.renderable.menus.scrollbar;
 
-import derelict.sdl2.sdl : SDL_Renderer, SDL_Color;
+import bindbc.sdl : SDL_Renderer, SDL_Color;
 
 import std.math : ceil;
 

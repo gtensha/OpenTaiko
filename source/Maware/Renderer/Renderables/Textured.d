@@ -16,11 +16,11 @@ module maware.renderable.textured;
 
 import maware.renderable.solid;
 
-import derelict.sdl2.sdl : SDL_Texture,
-						   SDL_Rect,
-						   SDL_QueryTexture,
-						   SDL_RenderCopy,
-						   SDL_Renderer;
+import bindbc.sdl : SDL_Texture,
+					SDL_Rect,
+					SDL_QueryTexture,
+					SDL_RenderCopy,
+					SDL_Renderer;
 
 class Textured : Solid {
 

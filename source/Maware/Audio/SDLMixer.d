@@ -19,8 +19,8 @@ import maware.audio.mixer;
 import std.string : fromStringz, toStringz;
 import std.conv : to;
 
-import derelict.sdl2.sdl : SDL_GetError;
-import derelict.sdl2.mixer;
+import bindbc.sdl : SDL_GetError;
+import sdl_mixer;
 
 /// A class for playing music and SFX using SDL_Mixer.
 /// Must be initialised before using; see initialise()
@@ -39,11 +39,13 @@ class SDLMixer : AudioMixer {
 	/// an object of this class. Throws exceptions on load failure.
 	static void initialise(int frequency, ushort format, int channels) {
 
-		try {
-			DerelictSDL2Mixer.load();
-		} catch (Exception e) {
-			throw new Exception("Failed to load SDL_Mixer: " ~ e.msg);
-		}
+		// Assume the renderer has initialised SDL already!
+		// SDLMixer is deprecated anyway.
+		// try {
+		// 	DerelictSDL2Mixer.load();
+		// } catch (Exception e) {
+		// 	throw new Exception("Failed to load SDL_Mixer: " ~ e.msg);
+		// }
 
 		if (Mix_OpenAudio(frequency,
 						  format,

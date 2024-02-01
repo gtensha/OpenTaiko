@@ -17,7 +17,7 @@ import maware.font;
 
 import opentaiko.game : OpenTaiko;
 
-import derelict.sdl2.sdl : SDL_Color;
+import bindbc.sdl : SDL_Color;
 
 import std.math : floor;
 

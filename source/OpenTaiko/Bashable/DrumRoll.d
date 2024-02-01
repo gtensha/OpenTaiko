@@ -22,7 +22,7 @@ import maware.renderable.solid;
 import maware.renderable.textured;
 import maware.util.timer;
 
-import derelict.sdl2.sdl : SDL_Texture, SDL_Color;
+import bindbc.sdl : SDL_Texture, SDL_Color;
 
 import std.math : PI, sin;
 

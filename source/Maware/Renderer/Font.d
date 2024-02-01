@@ -13,7 +13,7 @@
 
 module maware.font;
 
-import derelict.sdl2.ttf : TTF_CloseFont, TTF_Font, TTF_GetError, TTF_OpenFont;
+import sdl_ttf : TTF_CloseFont, TTF_Font, TTF_GetError, TTF_OpenFont;
 import std.string : fromStringz, toStringz;
 
 class FontLoadException : Exception {

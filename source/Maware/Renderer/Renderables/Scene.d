@@ -18,7 +18,7 @@ module maware.renderable.scene;
 import maware.renderable.renderable;
 import maware.animatable.animatable;
 
-import derelict.sdl2.sdl : SDL_Color;
+import bindbc.sdl : SDL_Color;
 
 /// A renderable class that holds other renderables to act as a "scene" in the game.
 /// Some of the methods in this class will throw a RangeError if bad indices

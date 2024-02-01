@@ -17,18 +17,18 @@ import maware.renderable.textured;
 
 import std.algorithm.comparison : equal;
 import std.string : toStringz;
-import derelict.sdl2.sdl : SDL_CreateTextureFromSurface,
-						   SDL_RenderCopy,
-						   SDL_DestroyTexture,
-						   SDL_Renderer,
-						   SDL_Surface,
-						   SDL_FreeSurface,
-						   SDL_QueryTexture,
-						   SDL_Color;
-import derelict.sdl2.ttf : TTF_Font,
- 						   TTF_RenderUTF8_Solid,
-						   TTF_RenderUTF8_Shaded,
-						   TTF_RenderUTF8_Blended;
+import bindbc.sdl : SDL_CreateTextureFromSurface,
+					SDL_RenderCopy,
+					SDL_DestroyTexture,
+					SDL_Renderer,
+					SDL_Surface,
+					SDL_FreeSurface,
+					SDL_QueryTexture,
+					SDL_Color;
+import sdl_ttf : TTF_Font,
+ 				 TTF_RenderUTF8_Solid,
+				 TTF_RenderUTF8_Shaded,
+				 TTF_RenderUTF8_Blended;
 
 class Text : Textured {
 

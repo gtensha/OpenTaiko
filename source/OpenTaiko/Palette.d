@@ -13,7 +13,7 @@
 
 module opentaiko.palette;
 
-import derelict.sdl2.sdl : SDL_Color;
+import bindbc.sdl : SDL_Color;
 
 struct ColorPalette {
 	

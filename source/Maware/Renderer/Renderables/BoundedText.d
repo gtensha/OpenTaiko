@@ -15,8 +15,8 @@ module maware.renderable.boundedtext;
 
 import maware.renderable.text;
 
-import derelict.sdl2.sdl : SDL_Color;
-import derelict.sdl2.ttf : TTF_Font;
+import bindbc.sdl : SDL_Color;
+import sdl_ttf : TTF_Font;
 
 /// Abstract class from which text that has a set bound can be derived
 /// universally

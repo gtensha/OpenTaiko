@@ -14,7 +14,7 @@ module maware.renderable.coloringtextured;
 
 import maware.renderable.textured;
 
-import derelict.sdl2.sdl : SDL_Color, SDL_Texture, SDL_SetTextureColorMod;
+import bindbc.sdl : SDL_Color, SDL_Texture, SDL_SetTextureColorMod;
 
 /// A Textured, but sets the texture color mode if its color struct has been
 /// changed

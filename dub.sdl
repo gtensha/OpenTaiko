@@ -4,13 +4,17 @@ authors "gtensha"
 copyright "Copyright © 2017-2019, gtensha"
 license "GNU GPLv3"
 
-dependency "derelict-sdl2" version="~>2.1.4"
+dependency "bindbc-sdl" version="~>1.4.5"
+versions "SDL_TTF_2_20"
+versions "SDL_Image_2_6"
+versions "SDL_Mixer_2_6"
 targetName "OpenTaiko"
 targetType "executable"
 
 configuration "SFMLMixer" {
-	dependency "derelict-sfml2" version="~>3.0.2"
+	dependency "bindbc-sfml" version="~>1.1.0"
 	versions "SFMLMixer"
+	versions "SFML_Audio"
 }
 
 configuration "SDLMixer" {

@@ -14,8 +14,8 @@ module maware.renderable.compactingtext;
 
 import maware.renderable.boundedtext;
 
-import derelict.sdl2.sdl : SDL_QueryTexture, SDL_Color;
-import derelict.sdl2.ttf : TTF_Font;
+import bindbc.sdl : SDL_QueryTexture, SDL_Color;
+import sdl_ttf : TTF_Font;
 
 /// Simple variant of Text that accepts an extra parameter; max length. If the
 /// length of the text exceeds the max length, then it will be rendered
