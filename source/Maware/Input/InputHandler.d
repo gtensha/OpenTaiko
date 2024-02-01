@@ -149,8 +149,8 @@ class InputHandler {
 
 	/// Bind multiple keys simultaneously
 	public void bind(int[] keys) {
-		foreach (int event, int key ; keys) {
-			bindings[key] = event;
+		foreach (size_t event, int key ; keys) {
+		  bindings[key] = cast(int) event;
 		}
 		bindings = bindings.rehash();
 	}

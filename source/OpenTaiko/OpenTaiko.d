@@ -815,9 +815,12 @@ class OpenTaiko {
 		
 		const void delegate() makeKeybindWipeMenu = (){
 			Menu wipeMenu = makeStandardMenu("Keybind wipe");
-			foreach (int i, Keybinds binds ; playerKeybinds) {
+			foreach (size_t i, Keybinds binds ; playerKeybinds) {
 				const string t = phrase(Message.Terminology.PLAYER) ~ " ";
-				wipeMenu.addButton(t ~ to!string(i + 1), i, wipeMenu, makeWipeCallback(i));
+				wipeMenu.addButton(t ~ to!string(i + 1),
+								   cast(int) i,
+								   wipeMenu,
+								   makeWipeCallback(cast(int) i));
 			}
 			keybindWipeButton.subMenu = wipeMenu;
 		};
@@ -832,9 +835,9 @@ class OpenTaiko {
 			return (){changeLanguage(id);};
 		}
 		
-		foreach (int i, string languageOption ; Message.getAvailableLanguages()) {
+		foreach (size_t i, string languageOption ; Message.getAvailableLanguages()) {
 			languageMenu.addButton(Message.getLanguageName(languageOption), 
-			                       i,
+			                       cast(int) i,
 			                       languageMenu,
 			                       makeLangChangeCallback(languageOption));
 		}
@@ -961,9 +964,9 @@ class OpenTaiko {
 		                     Action.DRUM_LEFT_CENTER,
 		                     Action.DRUM_RIGHT_CENTER,
 		                     Action.DRUM_RIGHT_RIM];
-		foreach (int drumNum, int actionCode ; actionCodes) {
-			foreach (int keyCode ; playerKeybinds[playerNum].keyboard.drumKeys[drumNum]) {
-				i.bind(actionCode + offset, keyCode);
+		foreach (size_t drumNum, int actionCode ; actionCodes) {
+			foreach (size_t keyCode ; playerKeybinds[playerNum].keyboard.drumKeys[drumNum]) {
+				i.bind(actionCode + offset, cast(int) keyCode);
 			}
 		}
 		void delegate() hitRimLeft = makeHitClosure(playerNum, Drum.Type.BLUE, Drum.Side.LEFT);
@@ -1397,41 +1400,59 @@ class OpenTaiko {
 			inputHandler.enableBoundActionListen();
 		};
 		inputHandler.setAnyKeyAction(mainMenuBinderIndex, selectKey);
-		foreach (int i, Player* player ; activePlayers) {
+		foreach (size_t playerI, Player* player ; activePlayers) {
 			Menu keySelect = makeStandardMenu("Key select");
-			if (playerKeybinds.length <= i) {
+			if (playerKeybinds.length <= playerI) {
 				Keybinds b;
 				playerKeybinds ~= b;
 			}
-			foreach (int j, string title ; [phrase(Message.Keys.DRUM_RIM_LEFT),
-			                                phrase(Message.Keys.DRUM_CENTER_LEFT),
-			                                phrase(Message.Keys.DRUM_CENTER_RIGHT),
-			                                phrase(Message.Keys.DRUM_RIM_RIGHT)]) {
-				int actionCode = Action.DRUM_LEFT_RIM + j + i * DRUM_ACTION_OFFSET;
-				int[] boundCodes = playerKeybinds[i].keyboard.drumKeys[j];
+			foreach (size_t dNameI,
+					 string title ; [phrase(Message.Keys.DRUM_RIM_LEFT),
+									 phrase(Message.Keys.DRUM_CENTER_LEFT),
+									 phrase(Message.Keys.DRUM_CENTER_RIGHT),
+									 phrase(Message.Keys.DRUM_RIM_RIGHT)]) {
+				int actionCode = cast(int) (Action.DRUM_LEFT_RIM
+											+ dNameI
+											+ playerI * DRUM_ACTION_OFFSET);
+				int[] boundCodes = playerKeybinds[playerI].keyboard.drumKeys[dNameI];
 				string[] keyNames = new string[boundCodes.length];
-				foreach (int ii, int val ; boundCodes) {
-					keyNames[ii] = InputHandler.getKeyName(val);
+				foreach (size_t bCodeI, int val ; boundCodes) {
+					keyNames[bCodeI] = InputHandler.getKeyName(val);
 				}
 				string extra;
 				if (keyNames.length > 0) {
 					extra = " [" ~ keyNames.join(", ") ~ "]";
 				} else {
-					extra = " " ~ phrase(Message.Menus.PLAYERS_KEYBINDS_UNBOUND);
+					extra = (" "
+							 ~ phrase(Message.Menus.PLAYERS_KEYBINDS_UNBOUND));
 				}
-				void delegate() makeKeyCallback(Button button, string altTitle, int keyNumber) {
+				void delegate() makeKeyCallback(Button button,
+												string altTitle,
+												int keyNumber) {
 					return (){
 						oldTitle = button.getTitle();
 						lastUsed = button;
-						button.setTitle(format(phrase(Message.Menus.PLAYERS_KEYBINDS_PRESSKEY), altTitle));
+						button.setTitle(format(phrase(Message.Menus.PLAYERS_KEYBINDS_PRESSKEY),
+											   altTitle));
 						keyNum = keyNumber;
 						inputHandler.enableAnyKeyListen();
 					};
 				}
-				Button button = keySelect.addButton(title ~ extra, j, null, null);
-				button.instruction = makeKeyCallback(button, title, j);
+				Button button = keySelect.addButton(title ~ extra,
+													cast(int) dNameI,
+													null,
+													null);
+				button.instruction = makeKeyCallback(button,
+													 title,
+													 cast(int) dNameI);
 			}
-			list.addButton("[P" ~ to!string(i + 1) ~ "] " ~ player.name, i, keySelect, selectPlayer);
+			list.addButton(("[P"
+							~ to!string(playerI + 1)
+							~ "] "
+							~ player.name),
+						   cast(int) playerI,
+						   keySelect,
+						   selectPlayer);
 		}
 	}
 
@@ -1445,8 +1466,8 @@ class OpenTaiko {
 			list.addButton(phrase(Message.Menus.PLAYERS_REMOVEPLAYER_RETURN), 0, null, &navigateMenuBack);
 			return;
 		}
-		foreach (int i, Player* player ; activePlayers) {
-			list.addButton(player.name, i, null, &removeActiveName);
+		foreach (size_t i, Player* player ; activePlayers) {
+			list.addButton(player.name, cast(int) i, null, &removeActiveName);
 		}
 	}
 	

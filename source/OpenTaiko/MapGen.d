@@ -578,13 +578,13 @@ class MapGen {
 		JSONValue vars = parseJSON(input);
 		const(JSONValue)* p = "resolution" in vars;
 		if (p) {
-			foreach (int i, JSONValue dimension ; (*p).array) {
+			foreach (size_t i, JSONValue dimension ; (*p).array) {
 				gameVars.resolution[i] = to!int(dimension.integer);
 			}
 		}
 		p = "vsync" in vars;
 		if (p) {
-			gameVars.vsync = (*p).type == JSON_TYPE.TRUE;
+			gameVars.vsync = (*p).type == JSONType.TRUE;
 		}
 		p = "assets" in vars;
 		if (p) {
@@ -682,7 +682,7 @@ class MapGen {
 			const(JSONValue)* keyboard = "keyboard" in binds;
 			if (keyboard !is null) {
 				JSONValue keyboardz = *keyboard;
-				foreach (int i, JSONValue key ; keyboardz.array) {
+				foreach (size_t i, JSONValue key ; keyboardz.array) {
 					int[] keyBindings;
 					foreach (JSONValue keycode ; key.array) {
 						keyBindings ~= cast(int)keycode.integer;
@@ -694,7 +694,7 @@ class MapGen {
 			const(JSONValue)* controller = "controller" in binds;
 			if (controller !is null) {
 				JSONValue controllerz = *controller;
-				foreach (int i, JSONValue button ; controllerz.array) {
+				foreach (size_t i, JSONValue button ; controllerz.array) {
 					bindings.controller.drumKeys[i] = cast(int)button.integer;
 				}
 			}

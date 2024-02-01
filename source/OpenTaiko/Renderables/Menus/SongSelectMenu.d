@@ -323,7 +323,7 @@ class DifficultyListMenu : Traversable {
 		
 		difficultyInfoBox = new TextBox[song.difficulties.length];
 		
-		foreach (int i, Difficulty diff ; song.difficulties) {
+		foreach (size_t i, Difficulty diff ; song.difficulties) {
 			wchar[10] starparts = ['☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆', '☆'];
 			for (int ii = 0; ii < diff.difficulty && ii < 10; ii++) {
 				starparts[ii] = '★';
@@ -331,7 +331,12 @@ class DifficultyListMenu : Traversable {
 			const string stars = to!string(starparts);
 			const int boxWidth = difficultyInfoPadding.rect.w - BORDER_SPACING * 2;
 			const int textWidth = boxWidth / TEXTBOX_COLUMN_COUNT;
-			difficultyList.addButton(diff.name ~ " " ~ stars, i, null, songSelectCallback);
+			difficultyList.addButton((diff.name
+									  ~ " "
+									  ~ stars),
+									 cast(int) i,
+									 null,
+									 songSelectCallback);
 			TextBox box = new TextBox(boxWidth,
 									  difficultyInfoPadding.rect.h - BORDER_SPACING * 2,
 									  difficultyInfoPadding.rect.x + BORDER_SPACING,

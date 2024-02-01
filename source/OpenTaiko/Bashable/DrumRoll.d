@@ -82,13 +82,13 @@ class DrumRoll : Bashable {
 		endB.rect.x = bodyB.rect.x + bodyB.rect.w;
 		endB.rect.y = bodyB.rect.y;
 		centerObjects([endB, endC], true, true);
-		foreach (int i, Solid s ; [endC,
-								   endB,
-								   bodyC,
-								   bodyB,
-								   startC,
-								   startB]) {
-			rendables[i] = s;
+		foreach (size_t i, Solid s ; [endC,
+									  endB,
+									  bodyC,
+									  bodyB,
+									  startC,
+									  startB]) {
+			rendables[cast(int) i] = s;
 		}
 		centerObjects(rendables, false, true);
 		super(rendables, position, scroll);
@@ -100,9 +100,9 @@ class DrumRoll : Bashable {
 															  centerColor);
 		void delegate(Timer, Solid) rimEffect = makeEffect(noColor,
 														   centerColor);
-		foreach (int typeInd, void delegate(Timer, Solid) e ; [centerEffect,
-															   rimEffect]) {
-			foreach (int i, Solid s ; [startC, bodyC, endC]) {
+		foreach (size_t typeInd, void delegate(Timer, Solid) e ; [centerEffect,
+																  rimEffect]) {
+			foreach (size_t i, Solid s ; [startC, bodyC, endC]) {
 				effects[typeInd][i] = new Effect(animationTimer, s, e);
 			}
 		}
@@ -111,14 +111,14 @@ class DrumRoll : Bashable {
 		leftAnimation = makeAnimation(LEFT_ANIMATION);
 		void delegate(Timer, Solid) rightAnimation;
 		leftAnimation = makeAnimation(RIGHT_ANIMATION);
-		foreach (int typeInd, void delegate(Timer, Solid) e ; [leftAnimation,
-															   rightAnimation]) {
-			foreach (int i, Solid s ; [startB,
-									   startC,
-									   bodyB,
-									   bodyC,
-									   endB,
-									   endC]) {
+		foreach (size_t typeInd, void delegate(Timer, Solid) e ; [leftAnimation,
+																  rightAnimation]) {
+			foreach (size_t i, Solid s ; [startB,
+										  startC,
+										  bodyB,
+										  bodyC,
+										  endB,
+										  endC]) {
 				animations[typeInd][i] = new Animation(animationTimer, s, e);
 			}
 		}

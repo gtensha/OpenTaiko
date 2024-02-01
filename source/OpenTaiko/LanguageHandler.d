@@ -50,7 +50,7 @@ pure string makeEnums(immutable string[][] messages) {
 			continue;
 		string prefix = separateFirstUnderscore(messageList[0])[0].capitalize();
 		string[] newMessageList = new string[messageList.length];
-		foreach (int i, string message ; messageList) {
+		foreach (size_t i, string message ; messageList) {
 			newMessageList[i] = separateFirstUnderscore(message)[1];
 		}
 		accString ~= makeEnum(prefix, newMessageList, accNum) ~ "\n";
