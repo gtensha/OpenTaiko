@@ -38,7 +38,7 @@ struct ColorPalette {
 
 immutable static ColorPalette standardPalette;
 
-static this() {
+shared static this() {
 	
 	const SDL_Color backgroundColor = {r:0x10, g:0x20, b:0x27, a:0xff};
 	const SDL_Color uiColorMain = {r:0x37, g:0x47, b:0x4f, a:0xff};

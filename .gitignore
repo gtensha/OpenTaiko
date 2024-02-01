@@ -1,3 +1,5 @@
 *.dll
 *~
 *.d~
+OpenTaiko
+dub.selections.json

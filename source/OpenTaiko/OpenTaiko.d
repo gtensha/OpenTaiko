@@ -275,7 +275,7 @@ class OpenTaiko {
 	private bool shouldWriteSettings;
 	private bool disableSettingsWrite;
 	
-	static this() {
+	shared static this() {
 		guiColors = standardPalette;
 	}
 
