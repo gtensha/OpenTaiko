@@ -14,19 +14,20 @@
 
 module opentaiko.mapgen;
 
-import std.conv;
-import std.stdio : writeln;
-import std.file;
-import std.algorithm.searching;
 import std.algorithm.comparison;
 import std.algorithm.iteration;
+import std.algorithm.searching;
 import std.array;
-import std.string;
 import std.ascii;
+import std.conv;
+import std.file;
 import std.json;
-import std.zip;
+import std.path : baseName;
 import std.process : execute, ProcessException;
+import std.stdio : writeln;
+import std.string;
 import std.typecons : tuple, Tuple;
+import std.zip;
 
 import opentaiko.drum;
 import opentaiko.bashable;
@@ -288,8 +289,8 @@ class MapGen {
 		
 		bool firstMapRead = true;
 		
-		foreach (name, am ; archive.directory) {
-			const string[] extensions = name.split(".");
+		foreach (am ; archive.directory) {
+			const string[] extensions = am.name.split(".");
 			const string extension = extensions[extensions.length - 1];
 			
 			switch (extension) {
@@ -308,7 +309,8 @@ class MapGen {
 					goto outside;
 				
 				default:
-					std.file.write(directory ~ "/" ~ name, archive.expand(am));
+					std.file.write(directory ~ "/" ~ baseName(am.name),
+								   archive.expand(am));
 					goto outside;
 							
 			}
