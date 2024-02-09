@@ -19,6 +19,7 @@ import maware.renderer;
 import maware.audio.mixer;
 import maware.audio.sdlmixer;
 import maware.audio.sfmlmixer;
+import maware.audio.openalmixer;
 import maware.inputhandler;
 import maware.util.timer;
 import maware.assets;
@@ -46,6 +47,7 @@ class Engine {
 		version (SFMLMixer) {
 			SFMLMixer.initialise();
 		}
+		OpenALMixer.initialise();
 	}
 
 	/// Deinitialise libraries needed by Renderer and AudioMixer
@@ -73,12 +75,13 @@ class Engine {
 
 		try {
 			renderer = new Renderer(this);
-			version (SDLMixer) {
-				audioMixer = new SDLMixer(this);
-			}
-			version (SFMLMixer) {
-				audioMixer = new SFMLMixer(this, 256);
-			}
+			// version (SDLMixer) {
+			// 	audioMixer = new SDLMixer(this);
+			// }
+			// version (SFMLMixer) {
+			// 	audioMixer = new SFMLMixer(this, 256);
+			// }
+			audioMixer = new OpenALMixer(this, 256);
 			inputHandler = new InputHandler(this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
