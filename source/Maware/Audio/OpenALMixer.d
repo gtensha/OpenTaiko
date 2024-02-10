@@ -37,6 +37,7 @@ class OpenALMixer : AudioMixer {
 	private int previousSFXSourceIndex;
 	private ALuint[] sfxSources;
 	private ALuint musicBuffer;
+	private long musicFrequency;
 	private ALuint[] effectBuffers;
 	private string[string] trackLocations;
 	
@@ -219,32 +220,64 @@ class OpenALMixer : AudioMixer {
 	/// Gets the position (in ms) of any playing or paused music, < 1 if not
 	/// playing
 	public int getMusicPosition() {
-		return 0;
+		if (musicBuffer == 0) {
+			return 0;
+		} else {
+			int sampleOffset;
+			alGetSourcei(musicSource, AL_SAMPLE_OFFSET, &sampleOffset);
+			checkError("Failed to get music sample offset");
+			long sampleOffsetLong = sampleOffset * 1_000L;
+			long result = sampleOffsetLong / musicFrequency;
+			return cast(int) result;
+		}
 	}
 
 	/// Plays the already registered music track with the given title, looping
 	/// loop times (or loop < 1, infinite loop)
 	public void playTrack(string title, int loop) {
-		
+	    stopMusic();
+		musicBuffer = getAudioDataFromFile(trackLocations[title]);
+		alSourcei(musicSource, AL_BUFFER, musicBuffer);
+		checkError("Failed to set buffer for music source");
+		int sampleRate;
+		alGetBufferi(musicBuffer, AL_FREQUENCY, &sampleRate);
+		checkError("Failed to get music sample rate");
+		musicFrequency = sampleRate;
+		alSourcePlay(musicSource);
+		checkError("Failed to play music source");
 	}
 
-	public void playTrackLooped(string) {
-
+	public void playTrackLooped(string title) {
+		playTrack(title, true);
 	}
 
 	/// Pauses any currently playing music
 	public void pauseMusic() {
-
+		if (musicBuffer != 0) {
+			alSourcePause(musicSource);
+			checkError("Failed to pause music");
+		}
 	}
 
 	/// Stops any currently playing or paused music (rewinds it, unqueues it)
 	public void stopMusic() {
-
+		if (musicBuffer != 0) {
+			alSourceStop(musicSource);
+			checkError("Failed to stop music source");
+			alSourcei(musicSource, AL_BUFFER, 0);
+			checkError("Failed to remove music from source");
+			alDeleteBuffers(1, &musicBuffer);
+			checkError("Failed to delete music buffer");
+			musicBuffer = 0;
+		}
 	}
 
 	/// Resume playback of any paused music
 	public void resumeMusic() {
-
+		if (musicBuffer != 0) {
+			alSourcePlay(musicSource);
+			checkError("Failed to play music source");
+		}
 	}
 
 	private int getSFXSourceId() {
