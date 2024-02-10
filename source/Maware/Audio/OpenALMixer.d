@@ -12,6 +12,8 @@
 
 module maware.audio.openalmixer;
 
+version (OpenALMixer):
+
 import maware.engine;
 import maware.audio.mixer;
 

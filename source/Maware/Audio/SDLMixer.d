@@ -13,6 +13,8 @@
 
 module maware.audio.sdlmixer;
 
+version (SDLMixer):
+
 import maware.engine;
 import maware.audio.mixer;
 

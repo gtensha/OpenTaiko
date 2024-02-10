@@ -47,7 +47,9 @@ class Engine {
 		version (SFMLMixer) {
 			SFMLMixer.initialise();
 		}
-		OpenALMixer.initialise();
+		version (OpenALMixer) {
+			OpenALMixer.initialise();
+		}
 	}
 
 	/// Deinitialise libraries needed by Renderer and AudioMixer
@@ -75,13 +77,15 @@ class Engine {
 
 		try {
 			renderer = new Renderer(this);
-			// version (SDLMixer) {
-			// 	audioMixer = new SDLMixer(this);
-			// }
-			// version (SFMLMixer) {
-			// 	audioMixer = new SFMLMixer(this, 256);
-			// }
-			audioMixer = new OpenALMixer(this, 256);
+			version (SDLMixer) {
+				audioMixer = new SDLMixer(this);
+			}
+			version (SFMLMixer) {
+				audioMixer = new SFMLMixer(this, 256);
+			}
+			version (OpenALMixer) {
+				audioMixer = new OpenALMixer(this, 256);
+			}
 			inputHandler = new InputHandler(this);
 		} catch (Exception e) {
 			notify("Error loading sub modules: " ~ e.msg);
