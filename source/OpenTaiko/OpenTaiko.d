@@ -366,7 +366,7 @@ class OpenTaiko {
 			version (SFMLMixer) {
 				PreciseTimer t;
 				t = new PreciseTimer(cast(long delegate())&audioMixer.getMusicPosition,
-									 1_000);
+									 10_000);
 				t.regardlessOffset = Bashable.timing.hitOffset;
 				gameplayTimer = t;
 			} else {

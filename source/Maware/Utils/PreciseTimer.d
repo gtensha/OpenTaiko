@@ -22,13 +22,15 @@ class PreciseTimer : Timer {
 	long delegate() getSecondOpinion; /// Callback to get accurate timer value
 	uint adjustInterval; /// How often to check for accuracy in ms
 	long lastCheck; /// Last time (since lib init) accuracy was checked
-	long regardlessOffset; /// Value in milliseconds that will be added or subtracted from timer value
+	/// Value in milliseconds that will be added or subtracted from timer value
+	long regardlessOffset;
 	private long originalFrom;
+	private long oldMeasure;
+	private long measureDiff;
 	
 	/// Create a new PreciseTimer with 1 sec accuracy adjust
 	this(long delegate() getPreciseTimeCallback) {
-		getSecondOpinion = getPreciseTimeCallback;
-		adjustInterval = ADJUSTINTERVAL_DEFAULT;
+		this(getPreciseTimeCallback, ADJUSTINTERVAL_DEFAULT);
 	}
 	
 	/// Create a new PreciseTimer with custom adjustInterval
@@ -39,7 +41,9 @@ class PreciseTimer : Timer {
 	
 	/// If timer has passed faster than source, subtract difference
 	void adjustAccuracy() { // TODO: make this smoother (remove jitter)
+		oldMeasure = measureFrom;
 		measureFrom = libInitPassed - getSecondOpinion();
+		measureDiff = measureFrom - oldMeasure;
 		lastCheck = libInitPassed;
 	}
 	
@@ -49,11 +53,18 @@ class PreciseTimer : Timer {
 				adjustAccuracy();
 			}
 		}
-		return libInitPassed - measureFrom + regardlessOffset;
+		const double correction = (((libInitPassed - lastCheck)
+									/ cast(double) (lastCheck + adjustInterval))
+								   * measureDiff);	  
+		return (libInitPassed
+				- oldMeasure
+				+ cast(long) correction
+				+ regardlessOffset);
 	}
 	
 	override void set(long newTime) {
 		measureFrom = newTime;
+		oldMeasure = newTime;
 		originalFrom = newTime;
 	}
 	

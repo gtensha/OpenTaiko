@@ -14,12 +14,12 @@ module maware.util.timer;
 
 import std.conv : to;
 
-// Simple timer class for sharing timing data across objects
+/// Simple timer class for sharing timing data across objects
 class Timer {
 
 	public static Timer[] timers;
 
-	// Creates a timer object and adds it to the static list
+	/// Creates a timer object and adds it to the static list
 	public static int addTimer() {
 		timers ~= new Timer();
 		return to!int(timers.length - 1);
@@ -30,7 +30,7 @@ class Timer {
 
 	/// The current ms value to calculate from
 	protected long measureFrom;
-	/// The current ms value to calculate to
+	/// The current ms value to calculate to. It is used by getPercentagePassed
 	protected long measureTo;
 
 	/// Refresh time and recalculate
@@ -38,12 +38,13 @@ class Timer {
 		libInitPassed = currentTime;
 	}
 
-	// Calculate time passed and return
+	/// Calculate time passed and return
 	public long getTimerPassed() {
 		return libInitPassed - measureFrom;
 	}
 	
-	/// Returns percentage value of how much of the time has passed
+	/// Returns percentage value of how much of the time has passed. If you do
+	/// not set newTimeTo with set(), this will always return 100.
 	public double getPercentagePassed() {
 		if (libInitPassed >= measureTo) {
 			return 100;
@@ -54,11 +55,12 @@ class Timer {
 		}
 	}
 
-	// Set new value to measure from
+	/// Set new value to measure from
 	public void set(long newTime) {
 		this.measureFrom = newTime;
 	}
 
+	/// Set new value to measure from, and to
 	public void set(long newTime, long newTimeTo) {
 		this.measureFrom = newTime;
 		this.measureTo = newTimeTo;
