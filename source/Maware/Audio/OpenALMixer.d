@@ -38,6 +38,7 @@ class OpenALMixer : AudioMixer {
 	private ALuint[] sfxSources;
 	private ALuint musicBuffer;
 	private long musicFrequency;
+	private string musicName;
 	private ALuint[] effectBuffers;
 	private string[string] trackLocations;
 	
@@ -235,14 +236,20 @@ class OpenALMixer : AudioMixer {
 	/// Plays the already registered music track with the given title, looping
 	/// loop times (or loop < 1, infinite loop)
 	public void playTrack(string title, int loop) {
-	    stopMusic();
-		musicBuffer = getAudioDataFromFile(trackLocations[title]);
-		alSourcei(musicSource, AL_BUFFER, musicBuffer);
-		checkError("Failed to set buffer for music source");
-		int sampleRate;
-		alGetBufferi(musicBuffer, AL_FREQUENCY, &sampleRate);
-		checkError("Failed to get music sample rate");
-		musicFrequency = sampleRate;
+		if (musicName == title) {
+			alSourceRewind(musicSource);
+			checkError("Failed to rewind music");
+		} else {
+			stopMusic();
+			musicBuffer = getAudioDataFromFile(trackLocations[title]);
+			alSourcei(musicSource, AL_BUFFER, musicBuffer);
+			checkError("Failed to set buffer for music source");
+			int sampleRate;
+			alGetBufferi(musicBuffer, AL_FREQUENCY, &sampleRate);
+			checkError("Failed to get music sample rate");
+			musicFrequency = sampleRate;
+			musicName = title;
+		}
 		alSourcePlay(musicSource);
 		checkError("Failed to play music source");
 	}
@@ -269,6 +276,7 @@ class OpenALMixer : AudioMixer {
 			alDeleteBuffers(1, &musicBuffer);
 			checkError("Failed to delete music buffer");
 			musicBuffer = 0;
+			musicName = null;
 		}
 	}
 
