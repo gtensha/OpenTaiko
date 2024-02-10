@@ -202,11 +202,11 @@ enum TIMINGS_FILE_PATH = "timings.json"; /// File path for timing variables file
 class OpenTaiko {
 
 	enum GAME_TITLE = "OpenTaiko";
-	enum VERSION = "0.2.0";
+	enum VERSION = "0.2.1";
 
 	static struct Copyright {
 		enum YEAR_START = 2017;
-		enum YEAR_END = 2019;
+		enum YEAR_END = 2024;
 		enum AUTHORS = ["gtensha"];
 	}
 
